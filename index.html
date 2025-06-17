@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>FF14 キャラクターカードジェネレーター</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="card">
+    <h1>キャラクター名: <span id="charNamePreview">（未入力）</span></h1>
+    <label>名前を入力:
+      <input type="text" id="charName" placeholder="なまえ">
+    </label>
+  </div>
+  <script>
+    document.getElementById("charName").addEventListener("input", function(e) {
+      document.getElementById("charNamePreview").textContent = e.target.value || "（未入力）";
+    });
+  </script>
+</body>
+</html>
