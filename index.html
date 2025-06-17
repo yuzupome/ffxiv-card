@@ -11,10 +11,37 @@
     <label>名前を入力:
       <input type="text" id="charName" placeholder="なまえ">
     </label>
+
+    <h2>メインジョブを選んでください</h2>
+    <div class="job-selector">
+      <label>
+        <input type="radio" name="mainJob" value="paladin">
+        <img src="job-icons/paladin.png" alt="ナイト">
+        ナイト
+      </label>
+      <label>
+        <input type="radio" name="mainJob" value="white_mage">
+        <img src="job-icons/white_mage.png" alt="白魔道士">
+        白魔道士
+      </label>
+      <label>
+        <input type="radio" name="mainJob" value="monk">
+        <img src="job-icons/monk.png" alt="モンク">
+        モンク
+      </label>
+    </div>
   </div>
+
   <script>
     document.getElementById("charName").addEventListener("input", function(e) {
       document.getElementById("charNamePreview").textContent = e.target.value || "（未入力）";
+    });
+
+    document.querySelectorAll('input[name="mainJob"]').forEach(input => {
+      input.addEventListener("change", function() {
+        const job = this.value;
+        console.log("選ばれたメインジョブ:", job);
+      });
     });
   </script>
 </body>
