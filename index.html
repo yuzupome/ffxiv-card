@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="card">
+  <div class="card" id="card">
     <h1>キャラクター名: <span id="charNamePreview">（未入力）</span></h1>
     <label>名前を入力:
       <input type="text" id="charName" placeholder="なまえ">
@@ -14,21 +14,16 @@
 
     <h2>メインジョブを選んでください</h2>
     <div class="job-selector">
-      <label>
-        <input type="radio" name="mainJob" value="paladin">
-        <img src="job-icons/paladin.png" alt="ナイト">
-        ナイト
-      </label>
-      <label>
-        <input type="radio" name="mainJob" value="white_mage">
-        <img src="job-icons/white_mage.png" alt="白魔道士">
-        白魔道士
-      </label>
-      <label>
-        <input type="radio" name="mainJob" value="monk">
-        <img src="job-icons/monk.png" alt="モンク">
-        モンク
-      </label>
+      <label><input type="radio" name="mainJob" value="paladin"><img src="job-icons/paladin.png"><span>ナイト</span></label>
+      <label><input type="radio" name="mainJob" value="warrior"><img src="job-icons/warrior.png"><span>戦士</span></label>
+      <label><input type="radio" name="mainJob" value="dark_knight"><img src="job-icons/dark_knight.png"><span>暗黒</span></label>
+      <label><input type="radio" name="mainJob" value="gunbreaker"><img src="job-icons/gunbreaker.png"><span>ガンブレ</span></label>
+      <label><input type="radio" name="mainJob" value="white_mage"><img src="job-icons/white_mage.png"><span>白魔</span></label>
+      <label><input type="radio" name="mainJob" value="scholar"><img src="job-icons/scholar.png"><span>学者</span></label>
+      <label><input type="radio" name="mainJob" value="astrologian"><img src="job-icons/astrologian.png"><span>占星</span></label>
+      <label><input type="radio" name="mainJob" value="sage"><img src="job-icons/sage.png"><span>賢者</span></label>
+      <label><input type="radio" name="mainJob" value="monk"><img src="job-icons/monk.png"><span>モンク</span></label>
+      <label><input type="radio" name="mainJob" value="ninja"><img src="job-icons/ninja.png"><span>忍者</span></label>
     </div>
   </div>
 
@@ -39,8 +34,8 @@
 
     document.querySelectorAll('input[name="mainJob"]').forEach(input => {
       input.addEventListener("change", function() {
-        const job = this.value;
-        console.log("選ばれたメインジョブ:", job);
+        const card = document.getElementById("card");
+        card.className = "card job-" + this.value; // 背景変更用のクラスを付け替え
       });
     });
   </script>
