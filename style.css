@@ -1,61 +1,14 @@
 body {
   font-family: sans-serif;
-  background-color: #f5f5f5;
-  padding: 2em;
+  background: #f0f0f0;
+  padding: 1em;
 }
-.card {
-  background: white;
+canvas {
+  display: block;
+  margin: 1em auto;
   border: 1px solid #ccc;
-  border-radius: 12px;
-  padding: 2em;
-  max-width: 600px;
-  margin: auto;
-  box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-  background-size: cover;
-  background-position: center;
-  transition: background 0.3s ease-in-out;
 }
-input {
-  font-size: 1em;
-  padding: 0.5em;
-  width: 100%;
-  margin-top: 0.5em;
+label, select, input {
+  display: block;
+  margin: 0.5em 0;
 }
-.job-selector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1em;
-  margin-top: 1em;
-}
-.job-selector label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.5em;
-  cursor: pointer;
-  width: 80px;
-  font-size: 0.8em;
-}
-.job-selector input[type="radio"] {
-  display: none;
-}
-.job-selector input[type="radio"]:checked + img {
-  border: 2px solid #007bff;
-  border-radius: 8px;
-}
-.job-selector img {
-  width: 48px;
-  height: 48px;
-}
-
-/* 背景切替例（仮色） */
-.card.job-paladin { background-color: #fef4e8; }
-.card.job-warrior { background-color: #fde2e1; }
-.card.job-dark_knight { background-color: #e5e0f6; }
-.card.job-gunbreaker { background-color: #e0f7ff; }
-.card.job-white_mage { background-color: #f4f4f4; }
-.card.job-scholar { background-color: #eaffea; }
-.card.job-astrologian { background-color: #f5e6ff; }
-.card.job-sage { background-color: #dff8ff; }
-.card.job-monk { background-color: #fff3db; }
-.card.job-ninja { background-color: #f9e0e0; }

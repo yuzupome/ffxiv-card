@@ -2,42 +2,55 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>FF14 キャラクターカードジェネレーター</title>
+  <title>FF14カードジェネレーター（仮）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="card" id="card">
-    <h1>キャラクター名: <span id="charNamePreview">（未入力）</span></h1>
-    <label>名前を入力:
-      <input type="text" id="charName" placeholder="なまえ">
-    </label>
+  <h1>FF14キャラクターカード（仮）</h1>
 
-    <h2>メインジョブを選んでください</h2>
-    <div class="job-selector">
-      <label><input type="radio" name="mainJob" value="paladin"><img src="job-icons/paladin.png"><span>ナイト</span></label>
-      <label><input type="radio" name="mainJob" value="warrior"><img src="job-icons/warrior.png"><span>戦士</span></label>
-      <label><input type="radio" name="mainJob" value="dark_knight"><img src="job-icons/dark_knight.png"><span>暗黒</span></label>
-      <label><input type="radio" name="mainJob" value="gunbreaker"><img src="job-icons/gunbreaker.png"><span>ガンブレ</span></label>
-      <label><input type="radio" name="mainJob" value="white_mage"><img src="job-icons/white_mage.png"><span>白魔</span></label>
-      <label><input type="radio" name="mainJob" value="scholar"><img src="job-icons/scholar.png"><span>学者</span></label>
-      <label><input type="radio" name="mainJob" value="astrologian"><img src="job-icons/astrologian.png"><span>占星</span></label>
-      <label><input type="radio" name="mainJob" value="sage"><img src="job-icons/sage.png"><span>賢者</span></label>
-      <label><input type="radio" name="mainJob" value="monk"><img src="job-icons/monk.png"><span>モンク</span></label>
-      <label><input type="radio" name="mainJob" value="ninja"><img src="job-icons/ninja.png"><span>忍者</span></label>
-    </div>
+  <label>キャラ画像をアップロード：
+    <input type="file" id="bgUpload" accept="image/*">
+  </label>
+
+  <div>
+    <h2>データセンターを選択：</h2>
+    <select id="dcSelect">
+      <option value="">-- 選択 --</option>
+      <option value="Mana">Mana</option>
+      <option value="Gaia">Gaia</option>
+      <option value="Elemental">Elemental</option>
+      <option value="Meteor">Meteor</option>
+    </select>
   </div>
 
-  <script>
-    document.getElementById("charName").addEventListener("input", function(e) {
-      document.getElementById("charNamePreview").textContent = e.target.value || "（未入力）";
-    });
+  <div>
+    <h2>プレイスタイル：</h2>
+    <label><input type="checkbox" value="レベリング">レベリング</label>
+    <label><input type="checkbox" value="PVP">PVP</label>
+    <label><input type="checkbox" value="ギャザクラ">ギャザクラ</label>
+    <label><input type="checkbox" value="ロールプレイ">ロールプレイ</label>
+  </div>
 
-    document.querySelectorAll('input[name="mainJob"]').forEach(input => {
-      input.addEventListener("change", function() {
-        const card = document.getElementById("card");
-        card.className = "card job-" + this.value; // 背景変更用のクラスを付け替え
-      });
-    });
-  </script>
+  <div>
+    <h2>進行度：</h2>
+    <select id="progressSelect">
+      <option value="">-- 選択 --</option>
+      <option value="新生">新生</option>
+      <option value="蒼天">蒼天</option>
+      <option value="紅蓮">紅蓮</option>
+      <option value="漆黒">漆黒</option>
+      <option value="暁月">暁月</option>
+      <option value="黄金">黄金</option>
+      <option value="ALL CLEAR">ALL CLEAR</option>
+    </select>
+  </div>
+
+  <button id="generateBtn">カード生成</button>
+  <a id="downloadLink" style="display:none;" download="ffxiv_card.png">画像をダウンロード</a>
+
+  <canvas id="canvas" width="800" height="600"></canvas>
+
+  <script src="script.js"></script>
 </body>
 </html>
