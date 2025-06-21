@@ -9,6 +9,14 @@ let isDragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
 
+let lastTouchDist = null;
+
+function getTouchDist(touches) {
+  const dx = touches[0].clientX - touches[1].clientX;
+  const dy = touches[0].clientY - touches[1].clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
 document.getElementById('bgUpload').addEventListener('change', function(e) {
   const file = e.target.files[0];
   const reader = new FileReader();
@@ -29,22 +37,9 @@ document.getElementById('bgUpload').addEventListener('change', function(e) {
 canvas.addEventListener('wheel', function(e) {
   if (!img) return;
   e.preventDefault();
-  const prevWidth = img.width * scale;
-  const prevHeight = img.height * scale;
-  const prevX = imgX;
-  const prevY = imgY;
-
   const delta = e.deltaY < 0 ? 1.1 : 0.9;
   scale *= delta;
   scale = Math.min(Math.max(scale, 0.2), 5);
-
-  const newWidth = img.width * scale;
-  const newHeight = img.height * scale;
-  const dx = (newWidth - prevWidth) * ((e.offsetX - prevX) / prevWidth);
-  const dy = (newHeight - prevHeight) * ((e.offsetY - prevY) / prevHeight);
-  imgX -= dx;
-  imgY -= dy;
-
   draw();
 });
 
@@ -54,7 +49,6 @@ canvas.addEventListener("mousedown", function(e) {
   dragStartX = e.offsetX - imgX;
   dragStartY = e.offsetY - imgY;
 });
-
 canvas.addEventListener("mousemove", function(e) {
   if (isDragging) {
     imgX = e.offsetX - dragStartX;
@@ -62,12 +56,40 @@ canvas.addEventListener("mousemove", function(e) {
     draw();
   }
 });
+canvas.addEventListener("mouseup", () => isDragging = false);
+canvas.addEventListener("mouseleave", () => isDragging = false);
 
-canvas.addEventListener("mouseup", function() {
-  isDragging = false;
+canvas.addEventListener("touchstart", function(e) {
+  if (!img) return;
+  if (e.touches.length === 1) {
+    isDragging = true;
+    dragStartX = e.touches[0].clientX - imgX;
+    dragStartY = e.touches[0].clientY - imgY;
+  } else if (e.touches.length === 2) {
+    lastTouchDist = getTouchDist(e.touches);
+  }
 });
-canvas.addEventListener("mouseleave", function() {
+canvas.addEventListener("touchmove", function(e) {
+  e.preventDefault();
+  if (!img) return;
+  if (e.touches.length === 1 && isDragging) {
+    imgX = e.touches[0].clientX - dragStartX;
+    imgY = e.touches[0].clientY - dragStartY;
+    draw();
+  } else if (e.touches.length === 2) {
+    const newDist = getTouchDist(e.touches);
+    if (lastTouchDist) {
+      const delta = newDist / lastTouchDist;
+      scale *= delta;
+      scale = Math.min(Math.max(scale, 0.2), 5);
+    }
+    lastTouchDist = newDist;
+    draw();
+  }
+}, { passive: false });
+canvas.addEventListener("touchend", () => {
   isDragging = false;
+  lastTouchDist = null;
 });
 
 document.getElementById('generateBtn').addEventListener('click', () => {
