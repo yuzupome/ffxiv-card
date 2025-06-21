@@ -2,55 +2,16 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>FF14カードジェネレーター（仮）</title>
+  <title>FF14 ジェネレーター（ズーム対応）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>FF14キャラクターカード（仮）</h1>
-
+  <h1>画像アップロード & ズーム操作</h1>
   <label>キャラ画像をアップロード：
     <input type="file" id="bgUpload" accept="image/*">
   </label>
-
-  <div>
-    <h2>データセンターを選択：</h2>
-    <select id="dcSelect">
-      <option value="">-- 選択 --</option>
-      <option value="Mana">Mana</option>
-      <option value="Gaia">Gaia</option>
-      <option value="Elemental">Elemental</option>
-      <option value="Meteor">Meteor</option>
-    </select>
-  </div>
-
-  <div>
-    <h2>プレイスタイル：</h2>
-    <label><input type="checkbox" value="レベリング">レベリング</label>
-    <label><input type="checkbox" value="PVP">PVP</label>
-    <label><input type="checkbox" value="ギャザクラ">ギャザクラ</label>
-    <label><input type="checkbox" value="ロールプレイ">ロールプレイ</label>
-  </div>
-
-  <div>
-    <h2>進行度：</h2>
-    <select id="progressSelect">
-      <option value="">-- 選択 --</option>
-      <option value="新生">新生</option>
-      <option value="蒼天">蒼天</option>
-      <option value="紅蓮">紅蓮</option>
-      <option value="漆黒">漆黒</option>
-      <option value="暁月">暁月</option>
-      <option value="黄金">黄金</option>
-      <option value="ALL CLEAR">ALL CLEAR</option>
-    </select>
-  </div>
-
-  <button id="generateBtn">カード生成</button>
-  <a id="downloadLink" style="display:none;" download="ffxiv_card.png">画像をダウンロード</a>
-
   <canvas id="canvas" width="800" height="600"></canvas>
-
   <script src="script.js"></script>
 </body>
 </html>

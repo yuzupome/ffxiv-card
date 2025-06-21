@@ -2,13 +2,10 @@ body {
   font-family: sans-serif;
   background: #f0f0f0;
   padding: 1em;
+  text-align: center;
 }
 canvas {
-  display: block;
-  margin: 1em auto;
+  margin-top: 1em;
   border: 1px solid #ccc;
-}
-label, select, input {
-  display: block;
-  margin: 0.5em 0;
+  touch-action: none;
 }
