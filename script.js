@@ -29,9 +29,22 @@ document.getElementById('bgUpload').addEventListener('change', function(e) {
 canvas.addEventListener('wheel', function(e) {
   if (!img) return;
   e.preventDefault();
+  const prevWidth = img.width * scale;
+  const prevHeight = img.height * scale;
+  const prevX = imgX;
+  const prevY = imgY;
+
   const delta = e.deltaY < 0 ? 1.1 : 0.9;
   scale *= delta;
   scale = Math.min(Math.max(scale, 0.2), 5);
+
+  const newWidth = img.width * scale;
+  const newHeight = img.height * scale;
+  const dx = (newWidth - prevWidth) * ((e.offsetX - prevX) / prevWidth);
+  const dy = (newHeight - prevHeight) * ((e.offsetY - prevY) / prevHeight);
+  imgX -= dx;
+  imgY -= dy;
+
   draw();
 });
 
