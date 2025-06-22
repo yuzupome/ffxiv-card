@@ -1,4 +1,4 @@
-// script/main.js - Canvas描画と名前描画エリア調整付き
+// script/main.js - Canvas描画と名前描画エリア調整付き（CSS変数をbodyから取得）
 
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
@@ -74,10 +74,10 @@ function drawNameText() {
   const name = nameInput.value;
   if (!name) return;
 
-  const x = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--name-area-x'));
-  const y = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--name-area-y'));
-  const width = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--name-area-width'));
-  const height = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--name-area-height'));
+  const x = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-x'));
+  const y = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-y'));
+  const width = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-width'));
+  const height = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-height'));
 
   const fontSize = Math.floor(height * 0.5);
   ctx.font = `${fontSize}px '${selectedFont}', sans-serif`;
