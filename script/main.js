@@ -1,4 +1,4 @@
-// script/main.js - Canvas描画と名前描画エリア＋色切替対応
+// script/main.js - Canvas描画と名前描画エリア＋色切替＆フォント選択対応
 
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
@@ -7,14 +7,14 @@ canvas.height = 2250;
 
 let backgroundImg = null;
 let uploadedImg = null;
-let selectedFont = 'Orbitron';
+let selectedFont = 'Orbitron, sans-serif';
 
 const nameInput = document.getElementById('nameInput');
 const fontSelect = document.getElementById('fontSelect');
 
 fontSelect.addEventListener('change', () => {
   selectedFont = fontSelect.value;
-  document.documentElement.style.setProperty('--selected-font', `'${selectedFont}', sans-serif`);
+  document.documentElement.style.setProperty('--selected-font', selectedFont);
   drawCanvas();
 });
 
@@ -76,7 +76,7 @@ function drawNameText() {
   const color = getComputedStyle(document.body).getPropertyValue('--name-color').trim();
 
   const fontSize = Math.floor(height * 0.5);
-  ctx.font = `${fontSize}px '${selectedFont}', sans-serif`;
+  ctx.font = `${fontSize}px ${selectedFont}`;
   ctx.fillStyle = color;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
