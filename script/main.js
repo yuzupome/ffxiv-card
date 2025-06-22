@@ -1,4 +1,4 @@
-// main.js - 種族アイコン最上面描画対応付き
+// main.js - 種族＆データセンター画像切替＆最上面描画対応済み（構文エラー修正済）
 
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
@@ -14,6 +14,7 @@ let dcImg = null;
 const nameInput = document.getElementById('nameInput');
 const fontSelect = document.getElementById('fontSelect');
 const raceSelect = document.getElementById('raceSelect');
+const dcSelect = document.getElementById('dcSelect');
 
 fontSelect.addEventListener('change', () => {
   selectedFont = fontSelect.value;
@@ -22,6 +23,7 @@ fontSelect.addEventListener('change', () => {
 });
 
 nameInput.addEventListener('input', drawCanvas);
+
 raceSelect.addEventListener('change', () => {
   const race = raceSelect.value;
   if (!race) {
@@ -35,7 +37,6 @@ raceSelect.addEventListener('change', () => {
   raceImg.onload = drawCanvas;
 });
 
-const dcSelect = document.getElementById('dcSelect');
 dcSelect.addEventListener('change', () => {
   const dc = dcSelect.value;
   if (!dc) {
@@ -54,7 +55,6 @@ function setTemplateBackground(path, templateClass) {
   backgroundImg.src = path;
   backgroundImg.onload = () => {
     document.body.className = templateClass;
-    // 再読み込み：種族再選択反映（テンプレに応じた画像）
     const race = raceSelect.value;
     if (race) {
       raceImg = new Image();
@@ -72,7 +72,6 @@ function setTemplateBackground(path, templateClass) {
       };
     } else {
       drawCanvas();
-    }
     }
   };
 }
