@@ -1,90 +1,96 @@
-/* ffxiv-card style.css - フォント＆Canvas表示調整用 */
+body {
+  font-family: sans-serif;
+  background-color: #1e1e1e;
+  color: #fff;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
 
-canvas {
-  width: 100%;
-  max-width: 900px;  /* 表示サイズをここで制御 */
-  height: auto;
-  display: block;
-  margin: 0 auto;
-  background-color: #000;
-  font-family: var(--selected-font, 'Orbitron, sans-serif'); /* フォント設定（JSで上書きされる前提） */
+h1 {
+  margin-top: 1rem;
+  font-size: 1.5rem;
 }
 
 #controls {
-  text-align: center;
-  margin-bottom: 1em;
+  margin: 1rem auto;
+  max-width: 900px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-#controls input[type="text"] {
-  padding: 0.5em;
-  font-size: 1em;
-  width: 200px;
-  margin-right: 0.5em;
+input[type="text"],
+select,
+button {
+  font-size: 1rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
 }
 
-#controls select {
-  padding: 0.5em;
-  font-size: 1em;
-  margin-right: 0.5em;
-}
-
-#controls input[type="file"] {
-  margin-top: 0.5em;
+input[type="file"] {
+  border: none;
+  background: none;
+  color: #fff;
 }
 
 #templateButtons button {
-  margin: 0 0.5em;
-  padding: 0.5em 1em;
-  font-size: 0.9em;
-  cursor: pointer;
-}
-
-#downloadBtn {
-  margin-top: 1em;
-  padding: 0.75em 1.5em;
-  font-size: 1em;
-  font-weight: bold;
   background-color: #444;
-  color: white;
+  color: #fff;
   border: none;
   cursor: pointer;
 }
 
+#templateButtons button:hover {
+  background-color: #666;
+}
+
+canvas {
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  background-color: #000;
+}
+
+/* 名前描画位置の制御 */
 body {
-  font-family: sans-serif;
-  background-color: #f4f4f4;
-  padding: 1em;
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 1em;
-}
-
-/* テンプレートごとの赤枠エリア（名前表示位置）を定義 */
-:root {
   --name-area-x: 150px;
-  --name-area-y: 110px;
-  --name-area-width: 700px;
-  --name-area-height: 200px;
-  --name-color: white;
-}
-
-/* 将来テンプレごとの切り替えに備え、テンプレ固有クラスを用意 */
-body.template-gothic-black {
-  --name-area-x: 70px;
-  --name-area-y: 250px;
-  --name-area-width: 700px;
-  --name-area-height: 200px;
-  --name-color: white;
+  --name-area-y: 150px;
+  --name-area-width: 1000px;
+  --name-area-height: 300px;
+  --name-color: #ffffff;
+  --selected-font: 'Orbitron', sans-serif;
 }
 
 body.template-gothic-white {
-  --name-area-x: 70px;
-  --name-area-y: 250px;
-  --name-area-width: 700px;
-  --name-area-height: 200px;
-  --name-color: black;
+  --name-color: #000000;
 }
 
-/* 他のテンプレート追加時は上記のように変数だけ更新すればOK */
+/* プレイスタイルボタンUI */
+#styleButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+#styleButtons button {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #ccc;
+  background: #f4f4f4;
+  color: #000;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+#styleButtons button.active {
+  background: #0066cc;
+  color: #fff;
+  border-color: #004999;
+}
