@@ -1,8 +1,8 @@
 
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = 540;
-canvas.height = 960;
+canvas.width = 1280;
+canvas.height = 768;
 
 const BASE_URL = "/ffxiv-card";
 
