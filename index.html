@@ -1,27 +1,32 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>FFXIV キャラクターカード</title>
-  <link rel="stylesheet" href="/ffxiv-card/assets/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Exo+2&family=Share+Tech&family=Permanent+Marker&family=Hachi+Maru+Pop&family=DotGothic16&family=Dancing+Script&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
   <h1>FFXIV キャラクターカード</h1>
   <div id="controls">
-    <input type="text" id="nameInput" placeholder="名前を入力" />
-    <select id="fontSelect"></select>
-    <input type="file" id="uploadImage" accept="image/*" />
+    <input type="text" id="nameInput" placeholder="名前を入力">
+    <select id="fontSelect">
+      <option value="Orbitron, sans-serif">太字系</option>
+      <option value="'Exo 2', sans-serif">Exo 2</option>
+      <option value="'Share Tech', sans-serif">Share Tech</option>
+      <option value="'Permanent Marker', cursive">Permanent Marker</option>
+      <option value="'Hachi Maru Pop', cursive">Hachi Maru Pop</option>
+      <option value="'DotGothic16', sans-serif">ドットゴシック16</option>
+      <option value="'Dancing Script', cursive">Dancing Script</option>
+    </select>
+    <input type="file" id="uploadImage" accept="image/*">
     <div id="templateButtons">
-      <button id="blackBgBtn">黒背景</button>
-      <button id="whiteBgBtn">白背景</button>
+      <button onclick="setTemplate('black')">黒背景</button>
+      <button onclick="setTemplate('white')">白背景</button>
     </div>
     <button id="downloadBtn">PNG出力</button>
   </div>
-
-  <!-- 修正済み：width/height属性削除 -->
-  <canvas id="cardCanvas"></canvas>
-
-  <script src="/ffxiv-card/script/main.js"></script>
+  <canvas id="cardCanvas" width="3750" height="2250"></canvas>
+  <script src="script/main.js"></script>
 </body>
 </html>
