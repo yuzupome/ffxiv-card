@@ -156,5 +156,10 @@ function drawCanvas() {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(nameText, textBox.x, textBox.y);
+
+  // テキスト描画位置確認用赤枠
+  ctx.strokeStyle = "red";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(textBox.x - 200, TEXTBOX_TOP, 400, TEXTBOX_HEIGHT);
   }
 }
