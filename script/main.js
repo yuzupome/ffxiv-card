@@ -13,13 +13,10 @@ let isDragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
 let nameText = '';
-let fontName = 'sans-serif';
+let fontName = 'Black Han Sans';
 
 function drawCanvas() {
-  // 背景テンプレ
-  if (backgroundImage) {
-    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-  }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // アップロード画像（最背面）
   if (uploadedImage) {
@@ -30,13 +27,20 @@ function drawCanvas() {
     ctx.drawImage(uploadedImage, drawX, drawY, scaledWidth, scaledHeight);
   }
 
-  // テキスト描画（赤枠中央）
+  // 背景テンプレ画像（前面）
+  if (backgroundImage) {
+    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+  }
+
+  // 名前テキスト描画（赤枠の中央、中央揃え）
   if (nameText) {
     ctx.font = `48px '${fontName}'`;
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(nameText, canvas.width / 2, 115); // 赤枠中央Y（仮）
+    const textX = canvas.width / 2;
+    const textY = 95; // 赤枠の中央位置に調整
+    ctx.fillText(nameText, textX, textY);
   }
 }
 
