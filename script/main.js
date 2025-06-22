@@ -15,15 +15,8 @@ let dragging = false;
 let lastX, lastY;
 let lastTouchDistance = null;
 let fontName = "Black Han Sans";
+let currentBg = "Gothic_black.png";
 
-// 背景描画
-function drawBackground(bgFile) {
-    bgImage = new Image();
-    bgImage.onload = drawCanvas;
-    bgImage.src = BASE_URL + '/assets/backgrounds/' + bgFile;
-}
-
-// Canvas全体描画
 function drawCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -36,7 +29,7 @@ function drawCanvas() {
         ctx.drawImage(uploadedImage, x, y, w, h);
     }
 
-    // テンプレ画像（前面）
+    // テンプレ画像
     if (bgImage) {
         ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
     }
@@ -44,28 +37,32 @@ function drawCanvas() {
     // 名前
     const name = document.getElementById("charName").value;
     ctx.font = `48px '${fontName}'`;
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.fillText(name, canvas.width / 2, 80);
 }
 
-// テンプレ選択
+function drawBackground(bgFile) {
+    currentBg = bgFile;
+    bgImage = new Image();
+    bgImage.onload = drawCanvas;
+    bgImage.src = BASE_URL + '/assets/backgrounds/' + bgFile;
+}
+
+// イベント設定
 document.querySelectorAll('#templateButtons button').forEach(btn => {
     btn.addEventListener('click', () => {
         drawBackground(btn.getAttribute('data-bg'));
     });
 });
 
-// フォント変更
-document.getElementById('fontSelector').addEventListener('change', (e) => {
+document.getElementById("fontSelector").addEventListener("change", (e) => {
     fontName = e.target.value;
     drawCanvas();
 });
 
-// 名前入力
-document.getElementById('charName').addEventListener('input', drawCanvas);
+document.getElementById("charName").addEventListener("input", drawCanvas);
 
-// アップロード
 document.getElementById("uploadImage").addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -83,7 +80,6 @@ document.getElementById("uploadImage").addEventListener("change", (e) => {
     reader.readAsDataURL(file);
 });
 
-// 出力
 document.getElementById("downloadBtn").addEventListener("click", () => {
     const a = document.createElement("a");
     a.download = "card.png";
@@ -149,5 +145,5 @@ canvas.addEventListener("touchend", () => {
     lastTouchDistance = null;
 });
 
-// 初期テンプレート
-drawBackground("Gothic_black.png");
+// 初期描画
+drawBackground(currentBg);
