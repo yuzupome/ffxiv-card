@@ -60,3 +60,28 @@ h1 {
   text-align: center;
   margin-bottom: 1em;
 }
+
+/* テンプレートごとの赤枠エリア（名前表示位置）を定義 */
+:root {
+  --name-area-x: 150px;
+  --name-area-y: 110px;
+  --name-area-width: 700px;
+  --name-area-height: 200px;
+}
+
+/* 将来テンプレごとの切り替えに備え、テンプレ固有クラスを用意 */
+body.template-gothic-black {
+  --name-area-x: 150px;
+  --name-area-y: 110px;
+  --name-area-width: 700px;
+  --name-area-height: 200px;
+}
+
+body.template-gothic-white {
+  --name-area-x: 150px;
+  --name-area-y: 110px;
+  --name-area-width: 700px;
+  --name-area-height: 200px;
+}
+
+/* 他のテンプレート追加時は上記のように変数だけ更新すればOK */
