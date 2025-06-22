@@ -31,8 +31,8 @@ body {
 }
 
 canvas {
-  width: 1280px;
-  height: 768px;
+  width: 2048px;
+  height: 1228px;
   max-width: 100%;
   height: auto;
   display: block;
