@@ -31,11 +31,9 @@ body {
 }
 
 canvas {
-  width: 2048px;
-  height: 1228px;
   max-width: 100%;
   height: auto;
   display: block;
   margin: 0 auto;
-  border: 1px solid #ccc;
+  background-color: #000;
 }
