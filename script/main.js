@@ -4,146 +4,148 @@ const ctx = canvas.getContext('2d');
 canvas.width = 1280;
 canvas.height = 768;
 
-const BASE_URL = "/ffxiv-card";
-
-let bgImage = null;
+let backgroundImage = new Image();
 let uploadedImage = null;
-let uploadedScale = 1;
-let uploadedX = 0;
-let uploadedY = 0;
-let dragging = false;
-let lastX, lastY;
-let lastTouchDistance = null;
-let fontName = "Black Han Sans";
-let currentBg = "Gothic_black.png";
+let imageX = canvas.width / 2;
+let imageY = canvas.height / 2;
+let imageScale = 1;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let nameText = '';
+let fontName = 'sans-serif';
 
 function drawCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // 背景テンプレ
+  if (backgroundImage) {
+    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+  }
 
-    // アップロード画像（最背面）
-    if (uploadedImage) {
-        const w = uploadedImage.width * uploadedScale;
-        const h = uploadedImage.height * uploadedScale;
-        const x = (canvas.width - w) / 2 + uploadedX;
-        const y = (canvas.height - h) / 2 + uploadedY;
-        ctx.drawImage(uploadedImage, x, y, w, h);
-    }
+  // アップロード画像（最背面）
+  if (uploadedImage) {
+    const scaledWidth = uploadedImage.width * imageScale;
+    const scaledHeight = uploadedImage.height * imageScale;
+    const drawX = imageX - scaledWidth / 2;
+    const drawY = imageY - scaledHeight / 2;
+    ctx.drawImage(uploadedImage, drawX, drawY, scaledWidth, scaledHeight);
+  }
 
-    // テンプレ画像
-    if (bgImage) {
-        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
-    }
-
-    // 名前
-    const name = document.getElementById("charName").value;
+  // テキスト描画（赤枠中央）
+  if (nameText) {
     ctx.font = `48px '${fontName}'`;
-    ctx.fillStyle = "#ffffff";
-    ctx.textAlign = "center";
-    ctx.fillText(name, canvas.width / 2, 80);
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(nameText, canvas.width / 2, 115); // 赤枠中央Y（仮）
+  }
 }
 
-function drawBackground(bgFile) {
-    currentBg = bgFile;
-    bgImage = new Image();
-    bgImage.onload = drawCanvas;
-    bgImage.src = BASE_URL + '/assets/backgrounds/' + bgFile;
-}
-
-// イベント設定
-document.querySelectorAll('#templateButtons button').forEach(btn => {
-    btn.addEventListener('click', () => {
-        drawBackground(btn.getAttribute('data-bg'));
-    });
-});
-
-document.getElementById("fontSelector").addEventListener("change", (e) => {
-    fontName = e.target.value;
-    drawCanvas();
-});
-
-document.getElementById("charName").addEventListener("input", drawCanvas);
-
-document.getElementById("uploadImage").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-        uploadedImage = new Image();
-        uploadedImage.onload = () => {
-            uploadedX = 0;
-            uploadedY = 0;
-            uploadedScale = 1;
-            drawCanvas();
-        };
-        uploadedImage.src = reader.result;
+document.getElementById('uploadImage').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    uploadedImage = new Image();
+    uploadedImage.onload = function() {
+      drawCanvas();
     };
-    reader.readAsDataURL(file);
+    uploadedImage.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
 });
 
-document.getElementById("downloadBtn").addEventListener("click", () => {
-    const a = document.createElement("a");
-    a.download = "card.png";
-    a.href = canvas.toDataURL("image/png");
-    a.click();
+document.querySelectorAll('#templateButtons button').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    const bgFile = e.target.getAttribute('data-bg');
+    backgroundImage.src = `/ffxiv-card/assets/backgrounds/${bgFile}`;
+    backgroundImage.onload = drawCanvas;
+  });
 });
 
-// PC操作
-canvas.addEventListener("mousedown", (e) => {
-    dragging = true;
-    lastX = e.clientX;
-    lastY = e.clientY;
-});
-canvas.addEventListener("mousemove", (e) => {
-    if (dragging) {
-        uploadedX += e.clientX - lastX;
-        uploadedY += e.clientY - lastY;
-        lastX = e.clientX;
-        lastY = e.clientY;
-        drawCanvas();
-    }
-});
-canvas.addEventListener("mouseup", () => dragging = false);
-canvas.addEventListener("wheel", (e) => {
-    e.preventDefault();
-    uploadedScale *= e.deltaY < 0 ? 1.05 : 0.95;
-    drawCanvas();
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = 'ffxiv_card.png';
+  link.href = canvas.toDataURL();
+  link.click();
 });
 
-// スマホ操作
-canvas.addEventListener("touchstart", (e) => {
-    if (e.touches.length === 1) {
-        dragging = true;
-        lastX = e.touches[0].clientX;
-        lastY = e.touches[0].clientY;
-    } else if (e.touches.length === 2) {
-        lastTouchDistance = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-        );
-    }
+document.getElementById('nameInput').addEventListener('input', (e) => {
+  nameText = e.target.value;
+  drawCanvas();
 });
-canvas.addEventListener("touchmove", (e) => {
-    e.preventDefault();
-    if (e.touches.length === 1 && dragging) {
-        uploadedX += e.touches[0].clientX - lastX;
-        uploadedY += e.touches[0].clientY - lastY;
-        lastX = e.touches[0].clientX;
-        lastY = e.touches[0].clientY;
-        drawCanvas();
-    } else if (e.touches.length === 2) {
-        const newDistance = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-        );
-        uploadedScale *= newDistance / lastTouchDistance;
-        lastTouchDistance = newDistance;
-        drawCanvas();
-    }
+
+document.getElementById('fontSelect').addEventListener('change', (e) => {
+  fontName = e.target.value;
+  drawCanvas();
+});
+
+// PC：マウス操作
+canvas.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  dragStartX = e.offsetX;
+  dragStartY = e.offsetY;
+});
+
+canvas.addEventListener('mouseup', () => isDragging = false);
+canvas.addEventListener('mouseleave', () => isDragging = false);
+canvas.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  const dx = e.offsetX - dragStartX;
+  const dy = e.offsetY - dragStartY;
+  imageX += dx;
+  imageY += dy;
+  dragStartX = e.offsetX;
+  dragStartY = e.offsetY;
+  drawCanvas();
+});
+
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  imageScale += e.deltaY * -0.001;
+  imageScale = Math.min(Math.max(0.1, imageScale), 5);
+  drawCanvas();
+});
+
+// スマホ：ピンチと1本指
+let lastTouchDist = null;
+
+canvas.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    dragStartX = e.touches[0].clientX;
+    dragStartY = e.touches[0].clientY;
+  } else if (e.touches.length === 2) {
+    lastTouchDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+  }
 }, { passive: false });
-canvas.addEventListener("touchend", () => {
-    dragging = false;
-    lastTouchDistance = null;
-});
 
-// 初期描画
-drawBackground(currentBg);
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  if (e.touches.length === 1 && isDragging) {
+    const dx = e.touches[0].clientX - dragStartX;
+    const dy = e.touches[0].clientY - dragStartY;
+    imageX += dx;
+    imageY += dy;
+    dragStartX = e.touches[0].clientX;
+    dragStartY = e.touches[0].clientY;
+    drawCanvas();
+  } else if (e.touches.length === 2 && lastTouchDist !== null) {
+    const newDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    const scaleChange = newDist / lastTouchDist;
+    imageScale *= scaleChange;
+    imageScale = Math.min(Math.max(0.1, imageScale), 5);
+    lastTouchDist = newDist;
+    drawCanvas();
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', () => {
+  isDragging = false;
+  lastTouchDist = null;
+});
