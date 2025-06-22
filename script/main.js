@@ -136,6 +136,7 @@ canvas.addEventListener('mouseleave', () => {
 
 // タッチ操作（スマホ）
 canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
   if (!uploadedImgState) return;
   const rect = canvas.getBoundingClientRect();
   if (e.touches.length === 1) {
@@ -155,6 +156,7 @@ canvas.addEventListener('touchstart', (e) => {
 }, { passive: false });
 
 canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
   if (!uploadedImgState) return;
   const rect = canvas.getBoundingClientRect();
   if (uploadedImgState.dragging && e.touches.length === 1) {
