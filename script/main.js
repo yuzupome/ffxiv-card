@@ -1,5 +1,3 @@
-// main.js - 進行度「ALL CLEAR」複数レイヤー描画対応済み
-
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 3750;
@@ -52,11 +50,12 @@ dcSelect.addEventListener('change', () => {
   dcImg.onload = drawCanvas;
 });
 
-progressSelect?.addEventListener('change', () => {
+progressSelect.addEventListener('change', () => {
   const value = progressSelect.value;
   const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
   progressImgs = [];
 
+  const progressOrder = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
   const addImg = (name) => {
     const img = new Image();
     img.src = `/ffxiv-card/assets/progress_icons/${templateClass}_${name}.png`;
@@ -64,13 +63,16 @@ progressSelect?.addEventListener('change', () => {
     progressImgs.push(img);
   };
 
-  if (!value) {
-    drawCanvas();
-  } else if (value === 'all_clear') {
-    ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'].forEach(addImg);
+  if (value === 'all_clear') {
+    [...progressOrder, 'all_clear'].forEach(addImg);
   } else {
-    addImg(value);
+    const index = progressOrder.indexOf(value);
+    if (index >= 0) {
+      progressOrder.slice(0, index + 1).forEach(addImg);
+    }
   }
+
+  if (!value) drawCanvas();
 });
 
 function setTemplateBackground(path, templateClass) {
@@ -78,6 +80,7 @@ function setTemplateBackground(path, templateClass) {
   backgroundImg.src = path;
   backgroundImg.onload = () => {
     document.body.className = templateClass;
+
     const race = raceSelect.value;
     if (race) {
       raceImg = new Image();
@@ -88,13 +91,16 @@ function setTemplateBackground(path, templateClass) {
         if (dc) {
           dcImg = new Image();
           dcImg.src = `/ffxiv-card/assets/dc_icons/${base}_${dc}.png`;
-          dcImg.onload = drawCanvas;
+          dcImg.onload = () => {
+            const progress = progressSelect?.value;
+            progressSelect.dispatchEvent(new Event('change'));
+          };
         } else {
-          drawCanvas();
+          progressSelect.dispatchEvent(new Event('change'));
         }
       };
     } else {
-      drawCanvas();
+      progressSelect.dispatchEvent(new Event('change'));
     }
   };
 }
