@@ -2,7 +2,17 @@ body {
   font-family: sans-serif;
   margin: 1em;
 }
+
 canvas {
-  max-width: 100%;
+  width: 100%;
+  max-width: 540px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
   border: 1px solid #ccc;
+}
+
+#templateButtons button {
+  margin: 0.2em;
+  padding: 0.5em 1em;
 }
