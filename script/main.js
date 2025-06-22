@@ -1,152 +1,137 @@
+
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 1280;
 canvas.height = 768;
 
-let userImg = null;
-let userImgX = 0;
-let userImgY = 0;
-let userImgScale = 1;
-let isDragging = false;
-let dragStartX = 0;
-let dragStartY = 0;
-
-let lastTouchDist = null;
-
 const BASE_URL = "/ffxiv-card";
+let bgImage = null;
+let uploadedImage = null;
+let uploadedScale = 1;
+let uploadedX = 0;
+let uploadedY = 0;
+let dragging = false;
+let lastX, lastY;
+let lastTouchDistance = null;
 
-let currentBg = 'Gothic_black.png';
-
-function drawUserImage() {
-  if (!userImg) return;
-  const imgW = userImg.width * userImgScale;
-  const imgH = userImg.height * userImgScale;
-  const drawX = userImgX - imgW / 2;
-  const drawY = userImgY - imgH / 2;
-  ctx.drawImage(userImg, drawX, drawY, imgW, imgH);
-}
-
+// 背景描画関数（テンプレート）
 function drawBackground(bgFile) {
-  const img = new Image();
-  img.onload = () => {
-    drawAll();
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  };
-  img.onerror = () => {
-    console.error("背景画像の読み込みに失敗:", img.src);
-  };
-  img.src = BASE_URL + '/assets/backgrounds/' + bgFile;
+    bgImage = new Image();
+    bgImage.onload = () => drawCanvas();
+    bgImage.src = BASE_URL + '/assets/backgrounds/' + bgFile;
 }
 
-function drawAll() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawUserImage();
-}
+// Canvas全体を再描画
+function drawCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-document.querySelectorAll('#templateButtons button').forEach(btn => {
-  btn.addEventListener('click', e => {
-    currentBg = e.target.getAttribute('data-bg');
-    drawBackground(currentBg);
-  });
-});
-
-document.getElementById('uploadImage').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const img = new Image();
-    img.onload = () => {
-      userImg = img;
-      userImgX = canvas.width / 2;
-      userImgY = canvas.height / 2;
-      userImgScale = 1;
-      drawBackground(currentBg);
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-});
-
-canvas.addEventListener('wheel', e => {
-  e.preventDefault();
-  if (!userImg) return;
-  const delta = e.deltaY < 0 ? 1.05 : 0.95;
-  userImgScale *= delta;
-  drawBackground(currentBg);
-});
-
-canvas.addEventListener('mousedown', e => {
-  isDragging = true;
-  dragStartX = e.offsetX;
-  dragStartY = e.offsetY;
-});
-
-canvas.addEventListener('mousemove', e => {
-  if (!isDragging || !userImg) return;
-  userImgX += e.offsetX - dragStartX;
-  userImgY += e.offsetY - dragStartY;
-  dragStartX = e.offsetX;
-  dragStartY = e.offsetY;
-  drawBackground(currentBg);
-});
-
-canvas.addEventListener('mouseup', () => {
-  isDragging = false;
-});
-canvas.addEventListener('mouseleave', () => {
-  isDragging = false;
-});
-
-canvas.addEventListener('touchstart', e => {
-  if (!userImg) return;
-  if (e.touches.length === 1) {
-    isDragging = true;
-    dragStartX = e.touches[0].clientX;
-    dragStartY = e.touches[0].clientY;
-  } else if (e.touches.length === 2) {
-    lastTouchDist = getTouchDist(e);
-  }
-});
-
-canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  if (!userImg) return;
-  if (e.touches.length === 1 && isDragging) {
-    const dx = e.touches[0].clientX - dragStartX;
-    const dy = e.touches[0].clientY - dragStartY;
-    userImgX += dx;
-    userImgY += dy;
-    dragStartX = e.touches[0].clientX;
-    dragStartY = e.touches[0].clientY;
-    drawBackground(currentBg);
-  } else if (e.touches.length === 2) {
-    const newDist = getTouchDist(e);
-    if (lastTouchDist) {
-      const scaleChange = newDist / lastTouchDist;
-      userImgScale *= scaleChange;
-      drawBackground(currentBg);
+    // アップロード画像（最背面）
+    if (uploadedImage) {
+        const w = uploadedImage.width * uploadedScale;
+        const h = uploadedImage.height * uploadedScale;
+        const x = (canvas.width - w) / 2 + uploadedX;
+        const y = (canvas.height - h) / 2 + uploadedY;
+        ctx.drawImage(uploadedImage, x, y, w, h);
     }
-    lastTouchDist = newDist;
-  }
-}, { passive: false });
 
-canvas.addEventListener('touchend', () => {
-  isDragging = false;
-  lastTouchDist = null;
-});
-
-function getTouchDist(e) {
-  const dx = e.touches[0].clientX - e.touches[1].clientX;
-  const dy = e.touches[0].clientY - e.touches[1].clientY;
-  return Math.sqrt(dx * dx + dy * dy);
+    // 背景テンプレート（前面）
+    if (bgImage) {
+        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+    }
 }
 
-document.getElementById('downloadBtn').addEventListener('click', () => {
-  const link = document.createElement('a');
-  link.download = 'ffxiv-card.png';
-  link.href = canvas.toDataURL();
-  link.click();
+// テンプレート切り替えボタン
+document.querySelectorAll('#templateButtons button').forEach(btn => {
+    btn.addEventListener('click', e => {
+        const bgFile = e.target.getAttribute('data-bg');
+        drawBackground(bgFile);
+    });
 });
 
-drawBackground(currentBg);
+// 画像アップロード
+document.getElementById('uploadImage').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+        uploadedImage = new Image();
+        uploadedImage.onload = () => {
+            uploadedScale = 1;
+            uploadedX = 0;
+            uploadedY = 0;
+            drawCanvas();
+        };
+        uploadedImage.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+// PNG出力
+document.getElementById('downloadBtn').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.download = 'card.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+});
+
+// PC: マウス操作
+canvas.addEventListener('mousedown', (e) => {
+    dragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+});
+canvas.addEventListener('mousemove', (e) => {
+    if (dragging) {
+        uploadedX += e.clientX - lastX;
+        uploadedY += e.clientY - lastY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        drawCanvas();
+    }
+});
+canvas.addEventListener('mouseup', () => dragging = false);
+canvas.addEventListener('wheel', (e) => {
+    const scaleAmount = e.deltaY < 0 ? 1.05 : 0.95;
+    uploadedScale *= scaleAmount;
+    drawCanvas();
+});
+
+// スマホ: タッチ操作
+canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+        dragging = true;
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
+    } else if (e.touches.length === 2) {
+        lastTouchDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
+    }
+});
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (e.touches.length === 1 && dragging) {
+        uploadedX += e.touches[0].clientX - lastX;
+        uploadedY += e.touches[0].clientY - lastY;
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
+        drawCanvas();
+    } else if (e.touches.length === 2) {
+        const newDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
+        const scaleAmount = newDistance / lastTouchDistance;
+        uploadedScale *= scaleAmount;
+        lastTouchDistance = newDistance;
+        drawCanvas();
+    }
+}, { passive: false });
+canvas.addEventListener('touchend', () => {
+    dragging = false;
+    lastTouchDistance = null;
+});
+
+// 初期テンプレート表示
+drawBackground('Gothic_black.png');
