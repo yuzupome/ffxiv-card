@@ -1,5 +1,3 @@
-// main.js - 進行度「ALL CLEAR」複数レイヤー描画対応済み
-
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 3750;
@@ -11,12 +9,14 @@ let selectedFont = 'Orbitron, sans-serif';
 let raceImg = null;
 let dcImg = null;
 let progressImgs = [];
+let styleImgs = [];
 
 const nameInput = document.getElementById('nameInput');
 const fontSelect = document.getElementById('fontSelect');
 const raceSelect = document.getElementById('raceSelect');
 const dcSelect = document.getElementById('dcSelect');
 const progressSelect = document.getElementById('progressSelect');
+const styleSelect = document.getElementById('styleSelect');
 
 fontSelect.addEventListener('change', () => {
   selectedFont = fontSelect.value;
@@ -52,25 +52,57 @@ dcSelect.addEventListener('change', () => {
   dcImg.onload = drawCanvas;
 });
 
-progressSelect?.addEventListener('change', () => {
+progressSelect.addEventListener('change', () => {
   const value = progressSelect.value;
   const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
   progressImgs = [];
 
-  const addImg = (name) => {
-    const img = new Image();
-    img.src = `/ffxiv-card/assets/progress_icons/${templateClass}_${name}.png`;
-    img.onload = drawCanvas;
-    progressImgs.push(img);
-  };
+  const progressOrder = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
+  const selectedKeys = value === 'all_clear'
+    ? [...progressOrder, 'all_clear']
+    : progressOrder.slice(0, progressOrder.indexOf(value) + 1);
+
+  let loadedCount = 0;
+  const total = selectedKeys.length;
 
   if (!value) {
     drawCanvas();
-  } else if (value === 'all_clear') {
-    ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'].forEach(addImg);
-  } else {
-    addImg(value);
+    return;
   }
+
+  selectedKeys.forEach((name) => {
+    const img = new Image();
+    img.onload = () => {
+      loadedCount++;
+      if (loadedCount === total) drawCanvas();
+    };
+    img.src = `/ffxiv-card/assets/progress_icons/${templateClass}_${name}.png`;
+    progressImgs.push(img);
+  });
+});
+
+styleSelect.addEventListener('change', () => {
+  const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+  const selected = Array.from(styleSelect.selectedOptions).map(opt => opt.value);
+
+  styleImgs = [];
+  let loaded = 0;
+  const total = selected.length;
+
+  if (total === 0) {
+    drawCanvas();
+    return;
+  }
+
+  selected.forEach((value) => {
+    const img = new Image();
+    img.src = `/ffxiv-card/assets/style_icons/${templateClass}_${value}.png`;
+    img.onload = () => {
+      loaded++;
+      if (loaded === total) drawCanvas();
+    };
+    styleImgs.push(img);
+  });
 });
 
 function setTemplateBackground(path, templateClass) {
@@ -78,23 +110,29 @@ function setTemplateBackground(path, templateClass) {
   backgroundImg.src = path;
   backgroundImg.onload = () => {
     document.body.className = templateClass;
+
     const race = raceSelect.value;
     if (race) {
       raceImg = new Image();
-      const base = templateClass === 'template-gothic-white' ? 'Gothic_white' : 'Gothic_black';
+      const base = templateClass;
       raceImg.src = `/ffxiv-card/assets/race_icons/${base}_${race}.png`;
       raceImg.onload = () => {
         const dc = dcSelect?.value;
         if (dc) {
           dcImg = new Image();
           dcImg.src = `/ffxiv-card/assets/dc_icons/${base}_${dc}.png`;
-          dcImg.onload = drawCanvas;
+          dcImg.onload = () => {
+            progressSelect.dispatchEvent(new Event('change'));
+            styleSelect.dispatchEvent(new Event('change'));
+          };
         } else {
-          drawCanvas();
+          progressSelect.dispatchEvent(new Event('change'));
+          styleSelect.dispatchEvent(new Event('change'));
         }
       };
     } else {
-      drawCanvas();
+      progressSelect.dispatchEvent(new Event('change'));
+      styleSelect.dispatchEvent(new Event('change'));
     }
   };
 }
@@ -138,6 +176,11 @@ function drawCanvas() {
   }
   if (progressImgs.length > 0) {
     for (const img of progressImgs) {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
+  }
+  if (styleImgs.length > 0) {
+    for (const img of styleImgs) {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     }
   }
