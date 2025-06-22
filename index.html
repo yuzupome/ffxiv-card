@@ -3,42 +3,42 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>FF14 背景テンプレ切替デモ</title>
+  <title>テンプレ切替デモ</title>
   <style>
     body { text-align: center; background: #111; color: white; }
     canvas { border: 1px solid #ccc; margin-top: 20px; }
-    select { font-size: 16px; padding: 4px; }
+    select { font-size: 16px; padding: 4px; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <h2>背景テンプレート選択</h2>
-  <select id="bgSelect">
+  <h2>テンプレート背景の切替デモ</h2>
+  <select id="templateSelect">
     <option value="Gothic_black">Gothic Black</option>
     <option value="Gothic_white">Gothic White</option>
   </select>
   <br>
-  <canvas id="cardCanvas" width="1280" height="768"></canvas>
+  <canvas id="previewCanvas" width="1280" height="768"></canvas>
 
   <script>
-    const canvas = document.getElementById("cardCanvas");
+    const canvas = document.getElementById("previewCanvas");
     const ctx = canvas.getContext("2d");
+    const selector = document.getElementById("templateSelect");
 
-    const bgSelect = document.getElementById("bgSelect");
-    const loadImage = (template) => {
+    function drawBackground(template) {
       const img = new Image();
-      img.src = `public/assets/black/frames/${template}.png`;
+      img.src = "assets/" + template + ".png";
       img.onload = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       };
-    };
+    }
 
-    bgSelect.addEventListener("change", () => {
-      loadImage(bgSelect.value);
+    selector.addEventListener("change", () => {
+      drawBackground(selector.value);
     });
 
-    // 初期ロード
-    loadImage(bgSelect.value);
+    // 初期表示
+    drawBackground(selector.value);
   </script>
 </body>
 </html>
