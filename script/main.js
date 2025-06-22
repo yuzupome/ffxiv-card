@@ -1,4 +1,4 @@
-// main.js - 種族＆データセンター画像切替＆最上面描画対応済み（構文エラー修正済）
+// main.js - 進行度「ALL CLEAR」複数レイヤー描画対応済み
 
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
@@ -10,11 +10,13 @@ let uploadedImgState = null;
 let selectedFont = 'Orbitron, sans-serif';
 let raceImg = null;
 let dcImg = null;
+let progressImgs = [];
 
 const nameInput = document.getElementById('nameInput');
 const fontSelect = document.getElementById('fontSelect');
 const raceSelect = document.getElementById('raceSelect');
 const dcSelect = document.getElementById('dcSelect');
+const progressSelect = document.getElementById('progressSelect');
 
 fontSelect.addEventListener('change', () => {
   selectedFont = fontSelect.value;
@@ -48,6 +50,27 @@ dcSelect.addEventListener('change', () => {
   dcImg = new Image();
   dcImg.src = `/ffxiv-card/assets/dc_icons/${templateClass}_${dc}.png`;
   dcImg.onload = drawCanvas;
+});
+
+progressSelect?.addEventListener('change', () => {
+  const value = progressSelect.value;
+  const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+  progressImgs = [];
+
+  const addImg = (name) => {
+    const img = new Image();
+    img.src = `/ffxiv-card/assets/progress_icons/${templateClass}_${name}.png`;
+    img.onload = drawCanvas;
+    progressImgs.push(img);
+  };
+
+  if (!value) {
+    drawCanvas();
+  } else if (value === 'all_clear') {
+    ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'].forEach(addImg);
+  } else {
+    addImg(value);
+  }
 });
 
 function setTemplateBackground(path, templateClass) {
@@ -112,6 +135,11 @@ function drawCanvas() {
   }
   if (dcImg) {
     ctx.drawImage(dcImg, 0, 0, canvas.width, canvas.height);
+  }
+  if (progressImgs.length > 0) {
+    for (const img of progressImgs) {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
   }
 }
 
