@@ -84,7 +84,10 @@ document.getElementById('fontSelect').addEventListener('change', (e) => {
 });
 
 // PC：マウス操作
+
 canvas.addEventListener('mousedown', (e) => {
+  if (!uploadedImage) return;
+
   isDragging = true;
   dragStartX = e.offsetX;
   dragStartY = e.offsetY;
@@ -92,7 +95,10 @@ canvas.addEventListener('mousedown', (e) => {
 
 canvas.addEventListener('mouseup', () => isDragging = false);
 canvas.addEventListener('mouseleave', () => isDragging = false);
+
 canvas.addEventListener('mousemove', (e) => {
+  if (!isDragging || !uploadedImage) return;
+
   if (!isDragging) return;
   const dx = e.offsetX - dragStartX;
   const dy = e.offsetY - dragStartY;
@@ -113,7 +119,10 @@ canvas.addEventListener('wheel', (e) => {
 // スマホ：ピンチと1本指
 let lastTouchDist = null;
 
+
 canvas.addEventListener('touchstart', (e) => {
+  if (!uploadedImage) return;
+
   if (e.touches.length === 1) {
     isDragging = true;
     dragStartX = e.touches[0].clientX;
@@ -126,7 +135,10 @@ canvas.addEventListener('touchstart', (e) => {
   }
 }, { passive: false });
 
+
 canvas.addEventListener('touchmove', (e) => {
+  if (!uploadedImage) return;
+
   e.preventDefault();
   if (e.touches.length === 1 && isDragging) {
     const dx = e.touches[0].clientX - dragStartX;
