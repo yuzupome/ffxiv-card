@@ -17,10 +17,15 @@ let nameText = "";
 let selectedFont = "Black Han Sans";
 
 // 中央に表示するための赤枠基準位置（仮置き）
+
+const TEXTBOX_TOP = 48;
+const TEXTBOX_HEIGHT = 144;
+
 const textBox = {
   x: canvas.width / 2,
-  y: 120, // 赤枠の縦位置中央
+  y: TEXTBOX_TOP + TEXTBOX_HEIGHT / 2
 };
+
 
 document.getElementById('nameInput').addEventListener('input', (e) => {
   nameText = e.target.value;
