@@ -1,1 +1,0 @@
-// JavaScript統合ファイル
