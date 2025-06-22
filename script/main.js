@@ -9,6 +9,7 @@ let backgroundImg = null;
 let uploadedImgState = null;
 let selectedFont = 'Orbitron, sans-serif';
 let raceImg = null;
+let dcImg = null;
 
 const nameInput = document.getElementById('nameInput');
 const fontSelect = document.getElementById('fontSelect');
@@ -34,6 +35,20 @@ raceSelect.addEventListener('change', () => {
   raceImg.onload = drawCanvas;
 });
 
+const dcSelect = document.getElementById('dcSelect');
+dcSelect.addEventListener('change', () => {
+  const dc = dcSelect.value;
+  if (!dc) {
+    dcImg = null;
+    drawCanvas();
+    return;
+  }
+  const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+  dcImg = new Image();
+  dcImg.src = `/ffxiv-card/assets/dc_icons/${templateClass}_${dc}.png`;
+  dcImg.onload = drawCanvas;
+});
+
 function setTemplateBackground(path, templateClass) {
   backgroundImg = new Image();
   backgroundImg.src = path;
@@ -45,9 +60,19 @@ function setTemplateBackground(path, templateClass) {
       raceImg = new Image();
       const base = templateClass === 'template-gothic-white' ? 'Gothic_white' : 'Gothic_black';
       raceImg.src = `/ffxiv-card/assets/race_icons/${base}_${race}.png`;
-      raceImg.onload = drawCanvas;
+      raceImg.onload = () => {
+        const dc = dcSelect?.value;
+        if (dc) {
+          dcImg = new Image();
+          dcImg.src = `/ffxiv-card/assets/dc_icons/${base}_${dc}.png`;
+          dcImg.onload = drawCanvas;
+        } else {
+          drawCanvas();
+        }
+      };
     } else {
       drawCanvas();
+    }
     }
   };
 }
@@ -85,6 +110,9 @@ function drawCanvas() {
   drawNameText();
   if (raceImg) {
     ctx.drawImage(raceImg, 0, 0, canvas.width, canvas.height);
+  }
+  if (dcImg) {
+    ctx.drawImage(dcImg, 0, 0, canvas.width, canvas.height);
   }
 }
 
