@@ -145,8 +145,13 @@ function drawCanvas() {
     ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
   }
 
+  // テキスト描画を最後に
+  
+
   if (nameText) {
     ctx.font = `48px "${selectedFont}"`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
