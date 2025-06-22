@@ -1,46 +1,43 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FFXIV キャラクターカード</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Exo+2&family=Share+Tech&family=Permanent+Marker&family=Hachi+Maru+Pop&family=DotGothic16&family=Dancing+Script&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
-  <style>
-    body.template-gothic-black {
-      --name-area-x: 70px;
-      --name-area-y: 250px;
-      --name-area-width: 700px;
-      --name-area-height: 200px;
-    }
-    body.template-gothic-white {
-      --name-area-x: 70px;
-      --name-area-y: 250px;
-      --name-area-width: 700px;
-      --name-area-height: 200px;
-    }
-  </style>
+  <link rel="stylesheet" href="/ffxiv-card/assets/css/style.css" />
 </head>
 <body class="template-gothic-black">
   <h1>FFXIV キャラクターカード</h1>
   <div id="controls">
-    <input type="text" id="nameInput" placeholder="名前を入力">
+    <input type="text" id="nameInput" placeholder="名前を入力" />
     <select id="fontSelect">
       <option value="Orbitron, sans-serif">太字系</option>
-      <option value="'Exo 2', sans-serif">Exo 2</option>
-      <option value="'Share Tech', sans-serif">Share Tech</option>
-      <option value="'Permanent Marker', cursive">Permanent Marker</option>
-      <option value="'Hachi Maru Pop', cursive">Hachi Maru Pop</option>
-      <option value="'DotGothic16', sans-serif">ドットゴシック16</option>
-      <option value="'Dancing Script', cursive">Dancing Script</option>
+      <option value="\"Exo 2\", sans-serif">Exo 2</option>
+      <option value="\"Share Tech\", sans-serif">Share Tech</option>
+      <option value="\"Permanent Marker\", cursive">Permanent Marker</option>
+      <option value="\"Hachi Maru Pop\", cursive">はちまるポップ</option>
+      <option value="\"DotGothic16\", sans-serif">ドットゴシック16</option>
+      <option value="\"Dancing Script\", cursive">Dancing Script</option>
     </select>
-    <input type="file" id="uploadImage" accept="image/*">
+    <input type="file" id="uploadImage" accept="image/*" />
     <div id="templateButtons">
-      <button data-bg="assets/backgrounds/Gothic_black.png" data-class="template-gothic-black">黒背景</button>
-      <button data-bg="assets/backgrounds/Gothic_white.png" data-class="template-gothic-white">白背景</button>
+      <button data-bg="/ffxiv-card/assets/backgrounds/Gothic_black.png" data-class="template-gothic-black">黒背景</button>
+      <button data-bg="/ffxiv-card/assets/backgrounds/Gothic_white.png" data-class="template-gothic-white">白背景</button>
     </div>
+    <select id="raceSelect">
+      <option value="">種族を選択</option>
+      <option value="au_ra">アウラ</option>
+      <option value="viera">ヴィエラ</option>
+      <option value="roegadyn">ルガディン</option>
+      <option value="miqote">ミコッテ</option>
+      <option value="hyur">ヒューラン</option>
+      <option value="elezen">エレゼン</option>
+      <option value="lalafell">ララフェル</option>
+      <option value="hrothgar">ロスガル</option>
+    </select>
     <button id="downloadBtn">PNG出力</button>
   </div>
   <canvas id="cardCanvas" width="3750" height="2250"></canvas>
-  <script src="script/main.js"></script>
+  <script src="/ffxiv-card/script/main.js"></script>
 </body>
 </html>
