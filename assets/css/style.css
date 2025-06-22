@@ -1,18 +1,15 @@
 body {
   font-family: sans-serif;
-  margin: 1em;
+  text-align: center;
+  padding: 1em;
 }
-
 canvas {
-  width: 100%;
-  max-width: 1280px;
+  max-width: 100%;
   height: auto;
   display: block;
-  margin: 0 auto;
-  border: 1px solid #ccc;
+  margin: 1em auto;
 }
-
-#templateButtons button {
-  margin: 0.2em;
-  padding: 0.5em 1em;
+input[type="text"], select {
+  margin: 0.5em;
+  padding: 0.5em;
 }
