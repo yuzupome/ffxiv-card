@@ -57,6 +57,11 @@ progressSelect.addEventListener('change', () => {
   const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
   progressImgs = [];
 
+  if (!value) {
+    drawCanvas();
+    return;
+  }
+
   const progressOrder = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
   const selectedKeys = value === 'all_clear'
     ? [...progressOrder, 'all_clear']
@@ -65,18 +70,13 @@ progressSelect.addEventListener('change', () => {
   let loadedCount = 0;
   const total = selectedKeys.length;
 
-  if (!value) {
-    drawCanvas();
-    return;
-  }
-
-  selectedKeys.forEach((name) => {
+  selectedKeys.forEach((key) => {
     const img = new Image();
+    img.src = `/ffxiv-card/assets/progress_icons/${templateClass}_${key}.png`;
     img.onload = () => {
       loadedCount++;
       if (loadedCount === total) drawCanvas();
     };
-    img.src = `/ffxiv-card/assets/progress_icons/${templateClass}_${name}.png`;
     progressImgs.push(img);
   });
 });
