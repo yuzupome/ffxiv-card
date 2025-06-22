@@ -31,7 +31,8 @@ body {
 }
 
 canvas {
-  max-width: 100%;
+  width: 100%;
+  max-width: 1536px;  /* 約1.5倍サイズ */
   height: auto;
   display: block;
   margin: 0 auto;
