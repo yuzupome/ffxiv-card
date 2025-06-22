@@ -1,0 +1,1 @@
+console.log('FF14 Card Generator Script Ready');
