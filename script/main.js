@@ -12,10 +12,10 @@ let dragStartX = 0;
 let dragStartY = 0;
 
 // テキストボックスの位置とサイズ
-const TEXTBOX_TOP = 58;
-const TEXTBOX_LEFT = 75;
-const TEXTBOX_WIDTH = 430;
-const TEXTBOX_HEIGHT = 80;
+const TEXTBOX_TOP = 100;
+const TEXTBOX_LEFT = 125;
+const TEXTBOX_WIDTH = 640;
+const TEXTBOX_HEIGHT = 120;
 
 function drawRedBox() {
   ctx.save();
