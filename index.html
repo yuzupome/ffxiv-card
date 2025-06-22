@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FF14 キャラカードジェネレーター</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: #111;
+      color: #fff;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: 1em auto;
+      border: 2px solid #ccc;
+      max-width: 100%;
+    }
+    #templateSelector {
+      font-size: 1.2em;
+      padding: 0.4em;
+      margin: 1em auto;
+      display: block;
+      background: #fff;
+      color: #000;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>背景テンプレ選択テスト</h1>
+  <select id="templateSelector">
+    <option value="black">Gothic（黒）</option>
+    <option value="white">Gothic（白）</option>
+  </select>
+  <canvas id="canvas" width="1280" height="768"></canvas>
+  <script src="assets/script.js"></script>
+</body>
+</html>
