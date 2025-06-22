@@ -1,4 +1,5 @@
-// main.js - 進行度「ALL CLEAR」複数レイヤー描画対応済み
+
+// main.js - テンプレ切り替え時の画像リロード＆パスミス修正＆全対応
 
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
@@ -10,13 +11,15 @@ let uploadedImgState = null;
 let selectedFont = 'Orbitron, sans-serif';
 let raceImg = null;
 let dcImg = null;
-let progressImgs = [];
+let progressImages = [];
+let playstyleImages = [];
 
 const nameInput = document.getElementById('nameInput');
 const fontSelect = document.getElementById('fontSelect');
 const raceSelect = document.getElementById('raceSelect');
 const dcSelect = document.getElementById('dcSelect');
 const progressSelect = document.getElementById('progressSelect');
+const playstyleButtons = document.querySelectorAll('#playstyleButtons button');
 
 fontSelect.addEventListener('change', () => {
   selectedFont = fontSelect.value;
@@ -27,75 +30,100 @@ fontSelect.addEventListener('change', () => {
 nameInput.addEventListener('input', drawCanvas);
 
 raceSelect.addEventListener('change', () => {
+  updateRaceImage();
+});
+
+dcSelect.addEventListener('change', () => {
+  updateDcImage();
+});
+
+progressSelect.addEventListener('change', () => {
+  updateProgressImages();
+});
+
+playstyleButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.classList.toggle('active');
+    updatePlaystyleImages();
+  });
+});
+
+function getTemplateBaseName() {
+  return document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+}
+
+function updateRaceImage() {
   const race = raceSelect.value;
   if (!race) {
     raceImg = null;
     drawCanvas();
     return;
   }
-  const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+  const base = getTemplateBaseName();
   raceImg = new Image();
-  raceImg.src = `/ffxiv-card/assets/race_icons/${templateClass}_${race}.png`;
+  raceImg.src = `/ffxiv-card/assets/race_icons/${base}_${race}.png`;
   raceImg.onload = drawCanvas;
-});
+}
 
-dcSelect.addEventListener('change', () => {
+function updateDcImage() {
   const dc = dcSelect.value;
   if (!dc) {
     dcImg = null;
     drawCanvas();
     return;
   }
-  const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+  const base = getTemplateBaseName();
   dcImg = new Image();
-  dcImg.src = `/ffxiv-card/assets/dc_icons/${templateClass}_${dc}.png`;
+  dcImg.src = `/ffxiv-card/assets/dc_icons/${base}_${dc}.png`;
   dcImg.onload = drawCanvas;
-});
+}
 
-progressSelect?.addEventListener('change', () => {
-  const value = progressSelect.value;
-  const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
-  progressImgs = [];
+function updateProgressImages() {
+  const base = getTemplateBaseName();
+  const selected = progressSelect.value;
+  const mapping = ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon", "all_clear"];
+  progressImages = [];
 
-  const addImg = (name) => {
-    const img = new Image();
-    img.src = `/ffxiv-card/assets/progress_icons/${templateClass}_${name}.png`;
-    img.onload = drawCanvas;
-    progressImgs.push(img);
-  };
-
-  if (!value) {
-    drawCanvas();
-  } else if (value === 'all_clear') {
-    ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'].forEach(addImg);
+  let maxIndex = -1;
+  if (selected === "all_clear") {
+    maxIndex = mapping.length - 1;
   } else {
-    addImg(value);
+    maxIndex = mapping.indexOf(selected);
   }
-});
+
+  if (maxIndex >= 0) {
+    for (let i = 0; i <= maxIndex; i++) {
+      const img = new Image();
+      img.src = `/ffxiv-card/assets/progress_icons/${base}_${mapping[i]}.png`;
+      progressImages.push(img);
+      img.onload = drawCanvas;
+    }
+  } else {
+    drawCanvas();
+  }
+}
+
+function updatePlaystyleImages() {
+  const base = getTemplateBaseName();
+  playstyleImages = [];
+  document.querySelectorAll('#playstyleButtons .active').forEach(btn => {
+    const key = btn.dataset.key;
+    const img = new Image();
+    img.src = `/ffxiv-card/assets/playstyle_icons/${base}_${key}.png`;
+    playstyleImages.push(img);
+    img.onload = drawCanvas;
+  });
+}
 
 function setTemplateBackground(path, templateClass) {
   backgroundImg = new Image();
   backgroundImg.src = path;
   backgroundImg.onload = () => {
     document.body.className = templateClass;
-    const race = raceSelect.value;
-    if (race) {
-      raceImg = new Image();
-      const base = templateClass === 'template-gothic-white' ? 'Gothic_white' : 'Gothic_black';
-      raceImg.src = `/ffxiv-card/assets/race_icons/${base}_${race}.png`;
-      raceImg.onload = () => {
-        const dc = dcSelect?.value;
-        if (dc) {
-          dcImg = new Image();
-          dcImg.src = `/ffxiv-card/assets/dc_icons/${base}_${dc}.png`;
-          dcImg.onload = drawCanvas;
-        } else {
-          drawCanvas();
-        }
-      };
-    } else {
-      drawCanvas();
-    }
+    updateRaceImage();
+    updateDcImage();
+    updateProgressImages();
+    updatePlaystyleImages();
   };
 }
 
@@ -126,21 +154,12 @@ function drawCanvas() {
     const { img, x, y, width, height } = uploadedImgState;
     ctx.drawImage(img, x, y, width, height);
   }
-  if (backgroundImg) {
-    ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
-  }
+  if (backgroundImg) ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
   drawNameText();
-  if (raceImg) {
-    ctx.drawImage(raceImg, 0, 0, canvas.width, canvas.height);
-  }
-  if (dcImg) {
-    ctx.drawImage(dcImg, 0, 0, canvas.width, canvas.height);
-  }
-  if (progressImgs.length > 0) {
-    for (const img of progressImgs) {
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    }
-  }
+  if (raceImg) ctx.drawImage(raceImg, 0, 0, canvas.width, canvas.height);
+  if (dcImg) ctx.drawImage(dcImg, 0, 0, canvas.width, canvas.height);
+  progressImages.forEach(img => ctx.drawImage(img, 0, 0, canvas.width, canvas.height));
+  playstyleImages.forEach(img => ctx.drawImage(img, 0, 0, canvas.width, canvas.height));
 }
 
 function drawNameText() {
