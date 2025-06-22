@@ -3,35 +3,34 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>FF14 キャラクターカードジェネレーター</title>
-  <link rel="stylesheet" href="assets/css/style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP&family=Kosugi+Maru&family=Yomogi&family=RocknRoll+One&family=Zen+Maru+Gothic&family=Black+Han+Sans&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FFXIV Card Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP&family=Kosugi+Maru&family=Yomogi&family=Train+One&family=DotGothic16&family=Black+Han+Sans&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>FF14 キャラクターカードジェネレーター</h1>
-
-  <div id="templateButtons">
-    <button data-bg="Gothic_black.png">黒テンプレ</button>
-    <button data-bg="Gothic_white.png">白テンプレ</button>
-  </div>
+  <h1>FFXIV キャラクターカード</h1>
 
   <div id="controls">
-    <input type="text" id="charName" placeholder="名前を入力" />
-    <select id="fontSelector">
+    <input type="text" id="nameInput" placeholder="名前を入力" />
+    <select id="fontSelect">
       <option value="Noto Serif JP">明朝体</option>
       <option value="Kosugi Maru">ゴシック体</option>
-      <option value="Yomogi">手書き</option>
-      <option value="RocknRoll One">角ゴ</option>
-      <option value="Zen Maru Gothic">丸ゴ</option>
-      <option value="Black Han Sans" selected>太字</option>
+      <option value="Yomogi">手書き風</option>
+      <option value="Train One">装飾系1</option>
+      <option value="DotGothic16">ドット風</option>
+      <option value="Black Han Sans" selected>太字系</option>
     </select>
     <input type="file" id="uploadImage" accept="image/*" />
+    <div id="templateButtons">
+      <button data-bg="Gothic_black.png">黒背景</button>
+      <button data-bg="Gothic_white.png">白背景</button>
+    </div>
+    <button id="downloadBtn">PNG出力</button>
   </div>
 
-  <canvas id="cardCanvas" width="1280" height="768"></canvas>
-  <button id="downloadBtn">PNG出力</button>
+  <canvas id="cardCanvas"></canvas>
 
-  <script src="script/main.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
