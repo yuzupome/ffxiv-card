@@ -8,22 +8,27 @@
 </head>
 <body class="template-gothic-black">
   <h1>FFXIV キャラクターカード</h1>
+
   <div id="controls">
     <input type="text" id="nameInput" placeholder="名前を入力" />
+
     <select id="fontSelect">
       <option value="Orbitron, sans-serif">太字系</option>
-      <option value="\"Exo 2\", sans-serif">Exo 2</option>
-      <option value="\"Share Tech\", sans-serif">Share Tech</option>
-      <option value="\"Permanent Marker\", cursive">Permanent Marker</option>
-      <option value="\"Hachi Maru Pop\", cursive">はちまるポップ</option>
-      <option value="\"DotGothic16\", sans-serif">ドットゴシック16</option>
-      <option value="\"Dancing Script\", cursive">Dancing Script</option>
+      <option value="&quot;Exo 2&quot;, sans-serif">Exo 2</option>
+      <option value="&quot;Share Tech&quot;, sans-serif">Share Tech</option>
+      <option value="&quot;Permanent Marker&quot;, cursive">Permanent Marker</option>
+      <option value="&quot;Hachi Maru Pop&quot;, cursive">はちまるポップ</option>
+      <option value="&quot;DotGothic16&quot;, sans-serif">ドットゴシック16</option>
+      <option value="&quot;Dancing Script&quot;, cursive">Dancing Script</option>
     </select>
+
     <input type="file" id="uploadImage" accept="image/*" />
+
     <div id="templateButtons">
       <button data-bg="/ffxiv-card/assets/backgrounds/Gothic_black.png" data-class="template-gothic-black">黒背景</button>
       <button data-bg="/ffxiv-card/assets/backgrounds/Gothic_white.png" data-class="template-gothic-white">白背景</button>
     </div>
+
     <select id="raceSelect">
       <option value="">種族を選択</option>
       <option value="au_ra">アウラ</option>
@@ -35,45 +40,50 @@
       <option value="lalafell">ララフェル</option>
       <option value="hrothgar">ロスガル</option>
     </select>
+
     <select id="dcSelect">
-  <option value="">データセンターを選択</option>
-  <option value="mana">Mana（マナ）</option>
-  <option value="gaia">Gaia（ガイア）</option>
-  <option value="elemental">Elemental（エレメンタル）</option>
-  <option value="meteor">Meteor（メテオ）</option>
-</select>
+      <option value="">データセンターを選択</option>
+      <option value="mana">Mana（マナ）</option>
+      <option value="gaia">Gaia（ガイア）</option>
+      <option value="elemental">Elemental（エレメンタル）</option>
+      <option value="meteor">Meteor（メテオ）</option>
+    </select>
+
     <select id="progressSelect">
-  <option value="">進行度を選択</option>
-  <option value="shinsei">新生</option>
-  <option value="souten">蒼天</option>
-  <option value="guren">紅蓮</option>
-  <option value="shikkoku">漆黒</option>
-  <option value="gyougetsu">暁月</option>
-  <option value="ougon">黄金</option>
-  <option value="all_clear">ALL CLEAR</option>
-</select>
+      <option value="">進行度を選択</option>
+      <option value="shinsei">新生</option>
+      <option value="souten">蒼天</option>
+      <option value="guren">紅蓮</option>
+      <option value="shikkoku">漆黒</option>
+      <option value="gyougetsu">暁月</option>
+      <option value="ougon">黄金</option>
+      <option value="all_clear">ALL CLEAR</option>
+    </select>
+
+    <!-- ✅ トグル式 プレイスタイル選択 -->
     <div id="styleButtons">
-  <button data-value="leveling">レベリング</button>
-  <button data-value="raid">レイド</button>
-  <button data-value="pvp">PvP</button>
-  <button data-value="dd">DD</button>
-  <button data-value="hunt">モブハント</button>
-  <button data-value="gatherer">ギャザラー</button>
-  <button data-value="crafter">クラフター</button>
-  <button data-value="gil">金策</button>
-  <button data-value="map">地図</button>
-  <button data-value="perform">演奏</button>
-  <button data-value="roleplay">ロールプレイ</button>
-  <button data-value="housing">ハウジング</button>
-  <button data-value="glam">ミラプリ</button>
-  <button data-value="screenshot">SS撮影</button>
-  <button data-value="studio">スタジオ制作</button>
-  <button data-value="drawing">お絵描き</button>
-  <button data-value="streaming">配信</button>
-</div>
+      <button data-value="leveling">レベリング</button>
+      <button data-value="raid">レイド</button>
+      <button data-value="pvp">PvP</button>
+      <button data-value="dd">DD</button>
+      <button data-value="hunt">モブハント</button>
+      <button data-value="gatherer">ギャザラー</button>
+      <button data-value="crafter">クラフター</button>
+      <button data-value="gil">金策</button>
+      <button data-value="map">地図</button>
+      <button data-value="perform">演奏</button>
+      <button data-value="roleplay">ロールプレイ</button>
+      <button data-value="housing">ハウジング</button>
+      <button data-value="glam">ミラプリ</button>
+      <button data-value="screenshot">SS撮影</button>
+      <button data-value="studio">スタジオ制作</button>
+      <button data-value="drawing">お絵描き</button>
+      <button data-value="streaming">配信</button>
+    </div>
 
     <button id="downloadBtn">PNG出力</button>
   </div>
+
   <canvas id="cardCanvas" width="3750" height="2250"></canvas>
   <script src="/ffxiv-card/script/main.js"></script>
 </body>
