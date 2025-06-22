@@ -71,15 +71,15 @@ h1 {
 
 /* 将来テンプレごとの切り替えに備え、テンプレ固有クラスを用意 */
 body.template-gothic-black {
-  --name-area-x: 150px;
-  --name-area-y: 110px;
+  --name-area-x: 70px;
+  --name-area-y: 250px;
   --name-area-width: 700px;
   --name-area-height: 200px;
 }
 
 body.template-gothic-white {
-  --name-area-x: 150px;
-  --name-area-y: 110px;
+  --name-area-x: 70px;
+  --name-area-y: 250px;
   --name-area-width: 700px;
   --name-area-height: 200px;
 }
