@@ -1,32 +1,27 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>FFXIV キャラクターカード</title>
-    <link rel="stylesheet" href="assets/css/style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FFXIV キャラクターカード</title>
+  <link rel="stylesheet" href="/ffxiv-card/assets/css/style.css" />
 </head>
 <body>
-    <h1>FFXIV キャラクターカード</h1>
-    <div id="controls">
-        <input type="text" id="nameInput" placeholder="名前を入力" />
-        <select id="fontSelect">
-            <option value="serif">明朝体</option>
-            <option value="sans-serif">ゴシック体</option>
-            <option value="cursive">手書き風</option>
-            <option value="fantasy">ファンタジー</option>
-            <option value="monospace">等幅</option>
-            <option value="system-ui">システム</option>
-        </select>
-        <input type="file" id="uploadImage" accept="image/*" />
-        <div id="templateButtons">
-            <button onclick="setBackground('black')">黒背景</button>
-            <button onclick="setBackground('white')">白背景</button>
-        </div>
-        <button id="downloadBtn">PNG出力</button>
+  <h1>FFXIV キャラクターカード</h1>
+  <div id="controls">
+    <input type="text" id="nameInput" placeholder="名前を入力" />
+    <select id="fontSelect"></select>
+    <input type="file" id="uploadImage" accept="image/*" />
+    <div id="templateButtons">
+      <button id="blackBgBtn">黒背景</button>
+      <button id="whiteBgBtn">白背景</button>
     </div>
-    <canvas id="cardCanvas"></canvas>
-    <script src="script/main.js"></script>
+    <button id="downloadBtn">PNG出力</button>
+  </div>
+
+  <!-- 修正済み：width/height属性削除 -->
+  <canvas id="cardCanvas"></canvas>
+
+  <script src="/ffxiv-card/script/main.js"></script>
 </body>
 </html>
