@@ -11,9 +11,10 @@ const fontSelect = document.getElementById("fontSelect");
 const TEXTBOX_TOP = 48;
 const TEXTBOX_HEIGHT = 144;
 
-const textBox = {
-  x: canvas.width / 2,
-  y: TEXTBOX_TOP + TEXTBOX_HEIGHT / 2,
+// ↓ 修正: canvasサイズを drawCanvas 内で取得して座標を正確に設定
+  const textBox = {
+    x: canvas.width / 2,
+    y: 48 + 144 / 2,
   width: 500,
   height: TEXTBOX_HEIGHT
 };
