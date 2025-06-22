@@ -1,92 +1,79 @@
 
 const canvas = document.getElementById("cardCanvas");
 const ctx = canvas.getContext("2d");
+const nameInput = document.getElementById("nameInput");
+const fontSelect = document.getElementById("fontSelect");
+const uploadImage = document.getElementById("uploadImage");
+const downloadBtn = document.getElementById("downloadBtn");
 
+let bgImage = new Image();
 let uploadedImage = null;
-let backgroundImage = null;
-let uploadedImageX = 0;
-let uploadedImageY = 0;
-let uploadedImageScale = 1;
-let isDragging = false;
-let dragStartX = 0;
-let dragStartY = 0;
+let backgroundType = "black";
 
-const TEXTBOX_TOP = 100;
-const TEXTBOX_LEFT = 125;
-const TEXTBOX_WIDTH = 640;
-const TEXTBOX_HEIGHT = 120;
+const CANVAS_WIDTH = 3750;
+const CANVAS_HEIGHT = 2250;
 
-function drawRedBox() {
-  ctx.save();
-  ctx.strokeStyle = "red";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(TEXTBOX_LEFT, TEXTBOX_TOP, TEXTBOX_WIDTH, TEXTBOX_HEIGHT);
-  ctx.restore();
+canvas.width = CANVAS_WIDTH;
+canvas.height = CANVAS_HEIGHT;
+
+function setBackground(type) {
+    backgroundType = type;
+    bgImage.src = `assets/backgrounds/Gothic_${type}.png`;
 }
 
-function drawNameText(text, font) {
-  ctx.save();
-  ctx.fillStyle = "white";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = "bold 48px " + font;
-  ctx.fillText(text, TEXTBOX_LEFT + TEXTBOX_WIDTH / 2, TEXTBOX_TOP + TEXTBOX_HEIGHT / 2);
-  ctx.restore();
-}
+bgImage.onload = () => {
+    drawCanvas();
+};
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (uploadedImage) {
-    const iw = uploadedImage.width * uploadedImageScale;
-    const ih = uploadedImage.height * uploadedImageScale;
-    ctx.drawImage(uploadedImage, uploadedImageX, uploadedImageY, iw, ih);
-  }
-  if (backgroundImage) {
-    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-  }
-  drawNameText(document.getElementById("nameInput").value, document.getElementById("fontSelect").value);
-  drawRedBox();
-}
-
-document.getElementById("nameInput").addEventListener("input", draw);
-document.getElementById("fontSelect").addEventListener("change", draw);
-document.getElementById("uploadImage").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    const img = new Image();
-    img.onload = () => {
-      uploadedImage = img;
-      uploadedImageX = 0;
-      uploadedImageY = 0;
-      uploadedImageScale = canvas.width / img.width;
-      draw();
+uploadImage.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        uploadedImage = new Image();
+        uploadedImage.onload = drawCanvas;
+        uploadedImage.src = event.target.result;
     };
-    img.src = event.target.result;
-  };
-  reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
 });
 
-function loadBackground(src) {
-  const img = new Image();
-  img.onload = () => {
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    backgroundImage = img;
-    draw();
-  };
-  img.src = src;
+nameInput.addEventListener("input", drawCanvas);
+fontSelect.addEventListener("change", drawCanvas);
+
+downloadBtn.addEventListener("click", () => {
+    const link = document.createElement("a");
+    link.download = "ffxiv_card.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+});
+
+function drawCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (uploadedImage) {
+        const scale = Math.max(
+            canvas.width / uploadedImage.width,
+            canvas.height / uploadedImage.height
+        );
+        const imgWidth = uploadedImage.width * scale;
+        const imgHeight = uploadedImage.height * scale;
+        const x = (canvas.width - imgWidth) / 2;
+        const y = (canvas.height - imgHeight) / 2;
+        ctx.drawImage(uploadedImage, x, y, imgWidth, imgHeight);
+    }
+
+    if (bgImage.complete) {
+        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+    }
+
+    const text = nameInput.value;
+    if (text) {
+        ctx.font = `120px ${fontSelect.value}`;
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, canvas.width / 2, 220);
+    }
 }
 
-document.getElementById("templateButtons").innerHTML = `
-  <button onclick="loadBackground('./assets/backgrounds/Gothic_black.png')">黒背景</button>
-  <button onclick="loadBackground('./assets/backgrounds/Gothic_white.png')">白背景</button>
-`;
-
-document.getElementById("downloadBtn").addEventListener("click", () => {
-  const a = document.createElement("a");
-  a.href = canvas.toDataURL("image/png");
-  a.download = "ffxiv_card.png";
-  a.click();
-});
+setBackground("black");
