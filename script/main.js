@@ -16,7 +16,7 @@ const fontSelect = document.getElementById('fontSelect');
 const raceSelect = document.getElementById('raceSelect');
 const dcSelect = document.getElementById('dcSelect');
 const progressSelect = document.getElementById('progressSelect');
-const styleSelect = document.getElementById('styleSelect');
+const styleButtons = document.querySelectorAll('#styleButtons button');
 
 fontSelect.addEventListener('change', () => {
   selectedFont = fontSelect.value;
@@ -81,20 +81,31 @@ progressSelect.addEventListener('change', () => {
   });
 });
 
-styleSelect.addEventListener('change', () => {
+// ✅ プレイスタイル：トグルボタン式対応
+styleButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    button.classList.toggle('active');
+    updateStyleImages();
+  });
+});
+
+function updateStyleImages() {
   const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
-  const selected = Array.from(styleSelect.selectedOptions).map(opt => opt.value);
+  const selected = Array.from(styleButtons)
+    .filter(btn => btn.classList.contains('active'))
+    .map(btn => btn.dataset.value);
 
   styleImgs = [];
-  let loaded = 0;
-  const total = selected.length;
 
-  if (total === 0) {
+  if (selected.length === 0) {
     drawCanvas();
     return;
   }
 
-  selected.forEach((value) => {
+  let loaded = 0;
+  const total = selected.length;
+
+  selected.forEach(value => {
     const img = new Image();
     img.src = `/ffxiv-card/assets/style_icons/${templateClass}_${value}.png`;
     img.onload = () => {
@@ -103,7 +114,7 @@ styleSelect.addEventListener('change', () => {
     };
     styleImgs.push(img);
   });
-});
+}
 
 function setTemplateBackground(path, templateClass) {
   backgroundImg = new Image();
@@ -123,16 +134,16 @@ function setTemplateBackground(path, templateClass) {
           dcImg.src = `/ffxiv-card/assets/dc_icons/${base}_${dc}.png`;
           dcImg.onload = () => {
             progressSelect.dispatchEvent(new Event('change'));
-            styleSelect.dispatchEvent(new Event('change'));
+            updateStyleImages();
           };
         } else {
           progressSelect.dispatchEvent(new Event('change'));
-          styleSelect.dispatchEvent(new Event('change'));
+          updateStyleImages();
         }
       };
     } else {
       progressSelect.dispatchEvent(new Event('change'));
-      styleSelect.dispatchEvent(new Event('change'));
+      updateStyleImages();
     }
   };
 }
