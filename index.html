@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>FF14 キャラクターカードジェネレーター</title>
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
@@ -13,10 +14,11 @@
     <button data-bg="Gothic_black.png">黒テンプレ</button>
     <button data-bg="Gothic_white.png">白テンプレ</button>
   </div>
-　<input type="file" id="uploadImage" accept="image/*">
+
+  <input type="file" id="uploadImage" accept="image/*" />
   <canvas id="cardCanvas"></canvas>
   <button id="downloadBtn">PNG出力</button>
 
-  <script src="/ffxiv-card/script/main.js"></script>
+  <script src="script/main.js"></script>
 </body>
 </html>
