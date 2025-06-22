@@ -1,35 +1,32 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FFXIV Card Generator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP&family=Kosugi+Maru&family=Yomogi&family=Train+One&family=DotGothic16&family=Black+Han+Sans&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/ffxiv-card/assets/css/style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>FFXIV キャラクターカード</title>
+    <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
-  <h1>FFXIV キャラクターカード</h1>
-
-  <div id="controls">
-    <input type="text" id="nameInput" placeholder="名前を入力" />
-    <select id="fontSelect">
-      <option value="Noto Serif JP">明朝体</option>
-      <option value="Kosugi Maru">ゴシック体</option>
-      <option value="Yomogi">手書き風</option>
-      <option value="Train One">装飾系1</option>
-      <option value="DotGothic16">ドット風</option>
-      <option value="Black Han Sans" selected>太字系</option>
-    </select>
-    <input type="file" id="uploadImage" accept="image/*" />
-    <div id="templateButtons">
-      <button data-bg="Gothic_black.png">黒背景</button>
-      <button data-bg="Gothic_white.png">白背景</button>
+    <h1>FFXIV キャラクターカード</h1>
+    <div id="controls">
+        <input type="text" id="nameInput" placeholder="名前を入力" />
+        <select id="fontSelect">
+            <option value="serif">明朝体</option>
+            <option value="sans-serif">ゴシック体</option>
+            <option value="cursive">手書き風</option>
+            <option value="fantasy">ファンタジー</option>
+            <option value="monospace">等幅</option>
+            <option value="system-ui">システム</option>
+        </select>
+        <input type="file" id="uploadImage" accept="image/*" />
+        <div id="templateButtons">
+            <button onclick="setBackground('black')">黒背景</button>
+            <button onclick="setBackground('white')">白背景</button>
+        </div>
+        <button id="downloadBtn">PNG出力</button>
     </div>
-    <button id="downloadBtn">PNG出力</button>
-  </div>
-
-  <canvas id="cardCanvas"></canvas>
-
-  <script src="/ffxiv-card/script/main.js"></script>
+    <canvas id="cardCanvas"></canvas>
+    <script src="script/main.js"></script>
 </body>
 </html>
