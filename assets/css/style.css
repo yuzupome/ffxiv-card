@@ -31,9 +31,9 @@ body {
 }
 
 canvas {
-  max-width: 100%;
-  height: auto;
+  width: 1280px;
+  height: 768px;
   display: block;
   margin: 0 auto;
-  border: 1px solid #ccc;
+  background-color: #000;
 }
