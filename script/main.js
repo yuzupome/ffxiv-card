@@ -9,9 +9,6 @@ const templateHeight = 2250;
 canvas.width = templateWidth;
 canvas.height = templateHeight;
 
-canvas.style.width = "100%";
-canvas.style.maxWidth = "1536px";
-canvas.style.height = "auto";
 
 const downloadBtn = document.getElementById("downloadBtn");
 
