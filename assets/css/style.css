@@ -8,7 +8,7 @@ body {
 
 canvas {
     width: 100%;
-    max-width: 1200px;  /* 縦横比維持したままPCでやや小さく表示 */
+    max-width: 900px;  /* PCでややコンパクトに表示 */
     height: auto;
     display: block;
     margin: 0 auto;
