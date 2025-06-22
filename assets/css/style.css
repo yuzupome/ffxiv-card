@@ -1,16 +1,62 @@
-
-body {
-    font-family: sans-serif;
-    text-align: center;
-    margin: 1em;
-    background: #fff;
-}
+/* ffxiv-card style.css - フォント＆Canvas表示調整用 */
 
 canvas {
   width: 100%;
-  max-width: 900px;
+  max-width: 900px;  /* 表示サイズをここで制御 */
   height: auto;
   display: block;
   margin: 0 auto;
   background-color: #000;
+  font-family: var(--selected-font, 'Orbitron, sans-serif'); /* フォント設定（JSで上書きされる前提） */
+}
+
+#controls {
+  text-align: center;
+  margin-bottom: 1em;
+}
+
+#controls input[type="text"] {
+  padding: 0.5em;
+  font-size: 1em;
+  width: 200px;
+  margin-right: 0.5em;
+}
+
+#controls select {
+  padding: 0.5em;
+  font-size: 1em;
+  margin-right: 0.5em;
+}
+
+#controls input[type="file"] {
+  margin-top: 0.5em;
+}
+
+#templateButtons button {
+  margin: 0 0.5em;
+  padding: 0.5em 1em;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+#downloadBtn {
+  margin-top: 1em;
+  padding: 0.75em 1.5em;
+  font-size: 1em;
+  font-weight: bold;
+  background-color: #444;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+body {
+  font-family: sans-serif;
+  background-color: #f4f4f4;
+  padding: 1em;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 1em;
 }
