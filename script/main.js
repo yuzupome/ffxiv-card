@@ -19,7 +19,7 @@ const fontSelect = document.getElementById('fontSelect');
 const raceSelect = document.getElementById('raceSelect');
 const dcSelect = document.getElementById('dcSelect');
 const progressSelect = document.getElementById('progressSelect');
-const playstyleButtons = document.querySelectorAll('#playstyleButtons button');
+const playstyleButtons = document.querySelectorAll('#styleButtons button');
 
 fontSelect.addEventListener('change', () => {
   selectedFont = fontSelect.value;
