@@ -1,3 +1,4 @@
+
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 3750;
@@ -33,7 +34,7 @@ raceSelect.addEventListener('change', () => {
     drawCanvas();
     return;
   }
-  const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+  const templateClass = getTemplateBaseName();
   raceImg = new Image();
   raceImg.src = `/ffxiv-card/assets/race_icons/${templateClass}_${race}.png`;
   raceImg.onload = drawCanvas;
@@ -46,7 +47,7 @@ dcSelect.addEventListener('change', () => {
     drawCanvas();
     return;
   }
-  const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+  const templateClass = getTemplateBaseName();
   dcImg = new Image();
   dcImg.src = `/ffxiv-card/assets/dc_icons/${templateClass}_${dc}.png`;
   dcImg.onload = drawCanvas;
@@ -54,7 +55,7 @@ dcSelect.addEventListener('change', () => {
 
 progressSelect.addEventListener('change', () => {
   const selected = progressSelect.value;
-  const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+  const templateClass = getTemplateBaseName();
   const order = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'];
   const index = order.indexOf(selected);
   progressImgs = [];
@@ -65,10 +66,8 @@ progressSelect.addEventListener('change', () => {
       img.src = `/ffxiv-card/assets/progress_icons/${templateClass}_${order[i]}.png`;
       progressImgs.push(img);
     }
-    progressImgs[progressImgs.length - 1].onload = drawCanvas;
-  } else {
-    drawCanvas();
   }
+  drawCanvas();
 });
 
 styleButtons?.addEventListener('click', (e) => {
@@ -80,9 +79,9 @@ styleButtons?.addEventListener('click', (e) => {
 
 function updateStyleImages() {
   styleImgs = [];
-  const templateClass = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
-  document.querySelectorAll('#styleButtons button.active').forEach((btn) => {
-    const value = btn.dataset.value.trim(); // ← 修正：余分な空白を除去
+  const templateClass = getTemplateBaseName();
+  document.querySelectorAll('#styleButtons button.active').forEach(btn => {
+    const value = btn.dataset.value.trim();
     const img = new Image();
     img.src = `/ffxiv-card/assets/style_icons/${templateClass}_${value}.png`;
     styleImgs.push(img);
@@ -90,13 +89,17 @@ function updateStyleImages() {
   drawCanvas();
 }
 
+function getTemplateBaseName() {
+  return document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+}
+
 function setTemplateBackground(path, templateClass) {
   backgroundImg = new Image();
   backgroundImg.src = path;
   backgroundImg.onload = () => {
     document.body.className = templateClass;
-    const base = templateClass === 'template-gothic-white' ? 'Gothic_white' : 'Gothic_black';
 
+    const base = getTemplateBaseName();
     const race = raceSelect.value;
     if (race) {
       raceImg = new Image();
@@ -115,6 +118,7 @@ function setTemplateBackground(path, templateClass) {
 
     updateStyleImages();
     progressSelect.dispatchEvent(new Event('change'));
+    drawCanvas();
   };
 }
 
@@ -124,9 +128,7 @@ function drawCanvas() {
     const { img, x, y, width, height } = uploadedImgState;
     ctx.drawImage(img, x, y, width, height);
   }
-  if (backgroundImg) {
-    ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
-  }
+  if (backgroundImg) ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
   drawNameText();
   if (raceImg) ctx.drawImage(raceImg, 0, 0, canvas.width, canvas.height);
   if (dcImg) ctx.drawImage(dcImg, 0, 0, canvas.width, canvas.height);
@@ -165,7 +167,7 @@ document.getElementById('templateButtons')?.addEventListener('click', (e) => {
   }
 });
 
-uploadImage.addEventListener('change', (e) => {
+document.getElementById('uploadImage').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
