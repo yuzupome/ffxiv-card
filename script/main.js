@@ -1,5 +1,5 @@
 
-// main.js - テンプレ切り替え時の画像リロード＆パスミス修正＆全対応
+// 修正済み main.js - プレイスタイルのIDと属性名を修正済み
 
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
@@ -19,29 +19,18 @@ const fontSelect = document.getElementById('fontSelect');
 const raceSelect = document.getElementById('raceSelect');
 const dcSelect = document.getElementById('dcSelect');
 const progressSelect = document.getElementById('progressSelect');
-const playstyleButtons = document.querySelectorAll('#styleButtons button');
 
 fontSelect.addEventListener('change', () => {
   selectedFont = fontSelect.value;
-  document.documentElement.style.setProperty('--selected-font', selectedFont);
   drawCanvas();
 });
-
 nameInput.addEventListener('input', drawCanvas);
+raceSelect.addEventListener('change', updateRaceImage);
+dcSelect.addEventListener('change', updateDcImage);
+progressSelect.addEventListener('change', updateProgressImages);
 
-raceSelect.addEventListener('change', () => {
-  updateRaceImage();
-});
-
-dcSelect.addEventListener('change', () => {
-  updateDcImage();
-});
-
-progressSelect.addEventListener('change', () => {
-  updateProgressImages();
-});
-
-playstyleButtons.forEach(btn => {
+// ✅ 修正済みのイベントバインド（#styleButtons + data-value）
+document.querySelectorAll('#styleButtons button').forEach(btn => {
   btn.addEventListener('click', () => {
     btn.classList.toggle('active');
     updatePlaystyleImages();
@@ -106,8 +95,8 @@ function updateProgressImages() {
 function updatePlaystyleImages() {
   const base = getTemplateBaseName();
   playstyleImages = [];
-  document.querySelectorAll('#playstyleButtons .active').forEach(btn => {
-    const key = btn.dataset.key;
+  document.querySelectorAll('#styleButtons .active').forEach(btn => {
+    const key = btn.dataset.value;
     const img = new Image();
     img.src = `/ffxiv-card/assets/playstyle_icons/${base}_${key}.png`;
     playstyleImages.push(img);
