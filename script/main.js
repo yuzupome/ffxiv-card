@@ -84,7 +84,7 @@ function updateStyleImages() {
   document.querySelectorAll('#styleButtons button.active').forEach((btn) => {
     const value = btn.dataset.value.trim(); // ← 修正：余分な空白を除去
     const img = new Image();
-    img.src = `/ffxiv-card/assets/playstyle_icons/${templateClass}_${value}.png`;
+    img.src = `/ffxiv-card/assets/style_icons/${templateClass}_${value}.png`;
     styleImgs.push(img);
   });
   drawCanvas();
