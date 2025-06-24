@@ -81,6 +81,31 @@
       <button data-value="streaming">配信</button>
     </div>
 
+    <div id="timeSection">
+  <label>プレイ時間</label>
+  <div class="time-group">
+    <div class="time-subgroup">
+      <strong>平日</strong><br>
+      <label><input type="checkbox" data-value="weekday_morning"> 朝</label>
+      <label><input type="checkbox" data-value="weekday_daytime"> 昼</label>
+      <label><input type="checkbox" data-value="weekday_night"> 夜</label>
+      <label><input type="checkbox" data-value="weekday_midnight"> 深夜</label>
+    </div>
+    <div class="time-subgroup">
+      <strong>休日</strong><br>
+      <label><input type="checkbox" data-value="holiday_morning"> 朝</label>
+      <label><input type="checkbox" data-value="holiday_daytime"> 昼</label>
+      <label><input type="checkbox" data-value="holiday_night"> 夜</label>
+      <label><input type="checkbox" data-value="holiday_midnight"> 深夜</label>
+    </div>
+    <div class="time-subgroup">
+      <strong>その他</strong><br>
+      <label><input type="checkbox" data-value="random"> 不定期</label>
+      <label><input type="checkbox" data-value="fulltime"> エオ在住</label>
+    </div>
+  </div>
+</div>
+
     <button id="downloadBtn">PNG出力</button>
   </div>
 
