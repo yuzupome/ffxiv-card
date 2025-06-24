@@ -1,5 +1,5 @@
 
-// main.js - 最新版（進行度・プレイスタイル保持＆描画遅延修正済み）
+// main.js - 最新統合版（プレイ時間・進行度・スタイル・DC・種族など全対応）
 
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
@@ -13,6 +13,9 @@ let raceImg = null;
 let dcImg = null;
 let progressImgs = [];
 let playstyleImgs = [];
+let timeImgs = [];
+let weekdaySummaryImg = null;
+let holidaySummaryImg = null;
 
 const nameInput = document.getElementById('nameInput');
 const fontSelect = document.getElementById('fontSelect');
@@ -20,6 +23,7 @@ const raceSelect = document.getElementById('raceSelect');
 const dcSelect = document.getElementById('dcSelect');
 const progressSelect = document.getElementById('progressSelect');
 const playstyleButtons = document.querySelectorAll('#styleButtons button');
+const timeCheckboxes = document.querySelectorAll('#timeSection input[type="checkbox"]');
 
 let currentTemplateClass = 'template-gothic-black';
 let currentBase = 'Gothic_black';
@@ -84,13 +88,54 @@ function updatePlaystyleImages() {
   playstyleImgs = [];
   playstyleButtons.forEach(button => {
     if (button.classList.contains('active')) {
-      const key = button.dataset.value;
+      const key = button.dataset.value.trim();
       const img = new Image();
       img.src = `/ffxiv-card/assets/style_icons/${currentBase}_${key}.png`;
       playstyleImgs.push(img);
       img.onload = drawCanvas;
     }
   });
+  drawCanvas();
+}
+
+timeCheckboxes.forEach(checkbox => {
+  checkbox.addEventListener('change', updateTimeImages);
+});
+
+function updateTimeImages() {
+  timeImgs = [];
+  let hasWeekday = false;
+  let hasHoliday = false;
+
+  timeCheckboxes.forEach(checkbox => {
+    if (checkbox.checked) {
+      const value = checkbox.dataset.value.trim();
+      if (value.startsWith('weekday_')) hasWeekday = true;
+      if (value.startsWith('holiday_')) hasHoliday = true;
+
+      const img = new Image();
+      img.src = `/ffxiv-card/assets/time_icons/${currentBase}_${value}.png`;
+      timeImgs.push(img);
+      img.onload = drawCanvas;
+    }
+  });
+
+  if (hasWeekday) {
+    weekdaySummaryImg = new Image();
+    weekdaySummaryImg.src = `/ffxiv-card/assets/time_icons/${currentBase}_weekday.png`;
+    weekdaySummaryImg.onload = drawCanvas;
+  } else {
+    weekdaySummaryImg = null;
+  }
+
+  if (hasHoliday) {
+    holidaySummaryImg = new Image();
+    holidaySummaryImg.src = `/ffxiv-card/assets/time_icons/${currentBase}_holiday.png`;
+    holidaySummaryImg.onload = drawCanvas;
+  } else {
+    holidaySummaryImg = null;
+  }
+
   drawCanvas();
 }
 
@@ -126,6 +171,7 @@ function updateAllAssets() {
 
   progressSelect.dispatchEvent(new Event('change'));
   updatePlaystyleImages();
+  updateTimeImages();
 }
 
 const uploadImage = document.getElementById('uploadImage');
@@ -155,14 +201,15 @@ function drawCanvas() {
     const { img, x, y, width, height } = uploadedImgState;
     ctx.drawImage(img, x, y, width, height);
   }
-  if (backgroundImg) {
-    ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
-  }
+  if (backgroundImg) ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
   drawNameText();
   if (raceImg) ctx.drawImage(raceImg, 0, 0, canvas.width, canvas.height);
   if (dcImg) ctx.drawImage(dcImg, 0, 0, canvas.width, canvas.height);
   progressImgs.forEach(img => ctx.drawImage(img, 0, 0, canvas.width, canvas.height));
   playstyleImgs.forEach(img => ctx.drawImage(img, 0, 0, canvas.width, canvas.height));
+  timeImgs.forEach(img => ctx.drawImage(img, 0, 0, canvas.width, canvas.height));
+  if (weekdaySummaryImg) ctx.drawImage(weekdaySummaryImg, 0, 0, canvas.width, canvas.height);
+  if (holidaySummaryImg) ctx.drawImage(holidaySummaryImg, 0, 0, canvas.width, canvas.height);
 }
 
 function drawNameText() {
