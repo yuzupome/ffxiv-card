@@ -1,4 +1,6 @@
 
+// main.js - 最新版（進行度・プレイスタイル保持＆描画遅延修正済み）
+
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 3750;
@@ -10,14 +12,17 @@ let selectedFont = 'Orbitron, sans-serif';
 let raceImg = null;
 let dcImg = null;
 let progressImgs = [];
-let styleImgs = [];
+let playstyleImgs = [];
 
 const nameInput = document.getElementById('nameInput');
 const fontSelect = document.getElementById('fontSelect');
 const raceSelect = document.getElementById('raceSelect');
 const dcSelect = document.getElementById('dcSelect');
 const progressSelect = document.getElementById('progressSelect');
-const styleButtons = document.getElementById('styleButtons');
+const playstyleButtons = document.querySelectorAll('#styleButtons button');
+
+let currentTemplateClass = 'template-gothic-black';
+let currentBase = 'Gothic_black';
 
 fontSelect.addEventListener('change', () => {
   selectedFont = fontSelect.value;
@@ -34,9 +39,8 @@ raceSelect.addEventListener('change', () => {
     drawCanvas();
     return;
   }
-  const templateClass = getTemplateBaseName();
   raceImg = new Image();
-  raceImg.src = `/ffxiv-card/assets/race_icons/${templateClass}_${race}.png`;
+  raceImg.src = `/ffxiv-card/assets/race_icons/${currentBase}_${race}.png`;
   raceImg.onload = drawCanvas;
 });
 
@@ -47,50 +51,47 @@ dcSelect.addEventListener('change', () => {
     drawCanvas();
     return;
   }
-  const templateClass = getTemplateBaseName();
   dcImg = new Image();
-  dcImg.src = `/ffxiv-card/assets/dc_icons/${templateClass}_${dc}.png`;
+  dcImg.src = `/ffxiv-card/assets/dc_icons/${currentBase}_${dc}.png`;
   dcImg.onload = drawCanvas;
 });
 
 progressSelect.addEventListener('change', () => {
-  const selected = progressSelect.value;
-  const templateClass = getTemplateBaseName();
-  const order = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'];
-  const index = order.indexOf(selected);
+  const value = progressSelect.value;
+  const list = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'];
+  const index = list.indexOf(value);
   progressImgs = [];
-
   if (index >= 0) {
     for (let i = 0; i <= index; i++) {
       const img = new Image();
-      img.src = `/ffxiv-card/assets/progress_icons/${templateClass}_${order[i]}.png`;
+      img.src = `/ffxiv-card/assets/progress_icons/${currentBase}_${list[i]}.png`;
       progressImgs.push(img);
+      img.onload = drawCanvas;
     }
-  }
-  drawCanvas();
-});
-
-styleButtons?.addEventListener('click', (e) => {
-  if (e.target.tagName === 'BUTTON') {
-    e.target.classList.toggle('active');
-    updateStyleImages();
+  } else {
+    drawCanvas();
   }
 });
 
-function updateStyleImages() {
-  styleImgs = [];
-  const templateClass = getTemplateBaseName();
-  document.querySelectorAll('#styleButtons button.active').forEach(btn => {
-    const value = btn.dataset.value.trim();
-    const img = new Image();
-    img.src = `/ffxiv-card/assets/style_icons/${templateClass}_${value}.png`;
-    styleImgs.push(img);
+playstyleButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    button.classList.toggle('active');
+    updatePlaystyleImages();
+  });
+});
+
+function updatePlaystyleImages() {
+  playstyleImgs = [];
+  playstyleButtons.forEach(button => {
+    if (button.classList.contains('active')) {
+      const key = button.dataset.value;
+      const img = new Image();
+      img.src = `/ffxiv-card/assets/style_icons/${currentBase}_${key}.png`;
+      playstyleImgs.push(img);
+      img.onload = drawCanvas;
+    }
   });
   drawCanvas();
-}
-
-function getTemplateBaseName() {
-  return document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
 }
 
 function setTemplateBackground(path, templateClass) {
@@ -98,29 +99,55 @@ function setTemplateBackground(path, templateClass) {
   backgroundImg.src = path;
   backgroundImg.onload = () => {
     document.body.className = templateClass;
-
-    const base = getTemplateBaseName();
-    const race = raceSelect.value;
-    if (race) {
-      raceImg = new Image();
-      raceImg.src = `/ffxiv-card/assets/race_icons/${base}_${race}.png`;
-    } else {
-      raceImg = null;
-    }
-
-    const dc = dcSelect.value;
-    if (dc) {
-      dcImg = new Image();
-      dcImg.src = `/ffxiv-card/assets/dc_icons/${base}_${dc}.png`;
-    } else {
-      dcImg = null;
-    }
-
-    updateStyleImages();
-    progressSelect.dispatchEvent(new Event('change'));
-    drawCanvas();
+    currentTemplateClass = templateClass;
+    currentBase = templateClass === 'template-gothic-white' ? 'Gothic_white' : 'Gothic_black';
+    updateAllAssets();
   };
 }
+
+function updateAllAssets() {
+  const race = raceSelect.value;
+  if (race) {
+    raceImg = new Image();
+    raceImg.src = `/ffxiv-card/assets/race_icons/${currentBase}_${race}.png`;
+    raceImg.onload = drawCanvas;
+  } else {
+    raceImg = null;
+  }
+
+  const dc = dcSelect.value;
+  if (dc) {
+    dcImg = new Image();
+    dcImg.src = `/ffxiv-card/assets/dc_icons/${currentBase}_${dc}.png`;
+    dcImg.onload = drawCanvas;
+  } else {
+    dcImg = null;
+  }
+
+  progressSelect.dispatchEvent(new Event('change'));
+  updatePlaystyleImages();
+}
+
+const uploadImage = document.getElementById('uploadImage');
+uploadImage.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+      const width = img.width * scale;
+      const height = img.height * scale;
+      const x = (canvas.width - width) / 2;
+      const y = (canvas.height - height) / 2;
+      uploadedImgState = { img, x, y, width, height, dragging: false };
+      drawCanvas();
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
 
 function drawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -128,12 +155,14 @@ function drawCanvas() {
     const { img, x, y, width, height } = uploadedImgState;
     ctx.drawImage(img, x, y, width, height);
   }
-  if (backgroundImg) ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+  if (backgroundImg) {
+    ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+  }
   drawNameText();
   if (raceImg) ctx.drawImage(raceImg, 0, 0, canvas.width, canvas.height);
   if (dcImg) ctx.drawImage(dcImg, 0, 0, canvas.width, canvas.height);
   progressImgs.forEach(img => ctx.drawImage(img, 0, 0, canvas.width, canvas.height));
-  styleImgs.forEach(img => ctx.drawImage(img, 0, 0, canvas.width, canvas.height));
+  playstyleImgs.forEach(img => ctx.drawImage(img, 0, 0, canvas.width, canvas.height));
 }
 
 function drawNameText() {
@@ -165,24 +194,4 @@ document.getElementById('templateButtons')?.addEventListener('click', (e) => {
     const className = e.target.dataset.class;
     if (bg && className) setTemplateBackground(bg, className);
   }
-});
-
-document.getElementById('uploadImage').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
-      const width = img.width * scale;
-      const height = img.height * scale;
-      const x = (canvas.width - width) / 2;
-      const y = (canvas.height - height) / 2;
-      uploadedImgState = { img, x, y, width, height, dragging: false };
-      drawCanvas();
-    };
-    img.src = reader.result;
-  };
-  reader.readAsDataURL(file);
 });
