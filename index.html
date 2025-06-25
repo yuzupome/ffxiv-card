@@ -8,10 +8,8 @@
 </head>
 <body class="template-gothic-black">
   <h1>FFXIV キャラクターカード</h1>
-
   <div id="controls">
     <input type="text" id="nameInput" placeholder="名前を入力" />
-
     <select id="fontSelect">
       <option value="Orbitron, sans-serif">太字系</option>
       <option value="&quot;Exo 2&quot;, sans-serif">Exo 2</option>
@@ -21,7 +19,6 @@
       <option value="&quot;DotGothic16&quot;, sans-serif">ドットゴシック16</option>
       <option value="&quot;Dancing Script&quot;, cursive">Dancing Script</option>
     </select>
-
     <input type="file" id="uploadImage" accept="image/*" />
 
     <div id="templateButtons">
@@ -60,7 +57,6 @@
       <option value="all_clear">ALL CLEAR</option>
     </select>
 
-    <!-- ✅ トグル式 プレイスタイル選択 -->
     <div id="styleButtons">
       <button data-value="leveling">レベリング</button>
       <button data-value="raid">レイド</button>
@@ -81,30 +77,30 @@
       <button data-value="streaming">配信</button>
     </div>
 
-    <div id="timeSection">
-  <label>プレイ時間</label>
-  <div class="time-group">
-    <div class="time-subgroup">
-      <strong>平日</strong><br>
-      <label><input type="checkbox" data-value="weekday_morning"> 朝</label>
-      <label><input type="checkbox" data-value="weekday_daytime"> 昼</label>
-      <label><input type="checkbox" data-value="weekday_night"> 夜</label>
-      <label><input type="checkbox" data-value="weekday_midnight"> 深夜</label>
+    <div id="playtimeOptions">
+      <p>プレイ時間</p>
+      <p>平日</p>
+      <label><input type="checkbox" class="weekday" value="morning" />朝</label>
+      <label><input type="checkbox" class="weekday" value="noon" />昼</label>
+      <label><input type="checkbox" class="weekday" value="night" />夜</label>
+      <label><input type="checkbox" class="weekday" value="midnight" />深夜</label>
+      <p>休日</p>
+      <label><input type="checkbox" class="holiday" value="morning" />朝</label>
+      <label><input type="checkbox" class="holiday" value="noon" />昼</label>
+      <label><input type="checkbox" class="holiday" value="night" />夜</label>
+      <label><input type="checkbox" class="holiday" value="midnight" />深夜</label>
+      <p>その他</p>
+      <label><input type="checkbox" class="other" value="free" />不定期</label>
+      <label><input type="checkbox" class="other" value="resident" />エオ在住</label>
     </div>
-    <div class="time-subgroup">
-      <strong>休日</strong><br>
-      <label><input type="checkbox" data-value="holiday_morning"> 朝</label>
-      <label><input type="checkbox" data-value="holiday_daytime"> 昼</label>
-      <label><input type="checkbox" data-value="holiday_night"> 夜</label>
-      <label><input type="checkbox" data-value="holiday_midnight"> 深夜</label>
+
+    <div id="difficultyOptions">
+      <p>高難易度</p>
+      <label><input type="checkbox" class="difficulty" value="extreme" />極</label>
+      <label><input type="checkbox" class="difficulty" value="unreal" />幻</label>
+      <label><input type="checkbox" class="difficulty" value="savage" />零式</label>
+      <label><input type="checkbox" class="difficulty" value="ultimate" />絶</label>
     </div>
-    <div class="time-subgroup">
-      <strong>その他</strong><br>
-      <label><input type="checkbox" data-value="random"> 不定期</label>
-      <label><input type="checkbox" data-value="fulltime"> エオ在住</label>
-    </div>
-  </div>
-</div>
 
     <button id="downloadBtn">PNG出力</button>
   </div>
