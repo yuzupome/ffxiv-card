@@ -1,17 +1,18 @@
-// main.js - 修正版（プレイ時間・高難易度・メインジョブ描画修正、イベントバインド修正）
+// main_fixed_timeicons_v2.js - 全機能統合済み・プレイ時間修正対応版
 
-// 初期設定
 const canvas = document.getElementById("cardCanvas");
 const ctx = canvas.getContext("2d");
 canvas.width = 3750;
 canvas.height = 2250;
 
+// 初期状態
 let backgroundImg = null;
 let uploadedImgState = null;
-let selectedFont = 'Orbitron, sans-serif';
-let raceImg = null, dcImg = null;
+let selectedFont = "Orbitron, sans-serif";
+let raceImg = null;
+let dcImg = null;
 let progressImgs = [];
-let styleImgs = [];
+let playstyleImgs = [];
 let timeImgs = [];
 let difficultyImgs = [];
 let mainJobImg = null;
@@ -19,34 +20,154 @@ let subJobImgs = [];
 
 const nameInput = document.getElementById("nameInput");
 const fontSelect = document.getElementById("fontSelect");
+const raceSelect = document.getElementById("raceSelect");
+const dcSelect = document.getElementById("dcSelect");
+const progressSelect = document.getElementById("progressSelect");
+const styleButtons = document.querySelectorAll("#styleButtons button");
+const timeCheckboxes = document.querySelectorAll(".time-checkbox");
+const timeOtherCheckboxes = document.querySelectorAll(".time-other");
+const difficultyCheckboxes = document.querySelectorAll(".difficulty-checkbox");
+const mainJobSelect = document.getElementById("mainJobSelect");
+const subJobCheckboxes = document.querySelectorAll(".subjob-checkbox");
+
 fontSelect.addEventListener("change", () => {
   selectedFont = fontSelect.value;
   document.documentElement.style.setProperty("--selected-font", selectedFont);
   drawCanvas();
 });
+
 nameInput.addEventListener("input", drawCanvas);
 
-// 背景切り替え
-document.getElementById("templateButtons").addEventListener("click", (e) => {
-  if (e.target.tagName === "BUTTON") {
-    const bg = e.target.dataset.bg;
-    const className = e.target.dataset.class;
-    if (bg && className) {
-      setTemplateBackground(bg, className);
-    }
-  }
+raceSelect.addEventListener("change", () => {
+  const race = raceSelect.value;
+  raceImg = race ? loadOverlayImage("race_icons", race) : null;
 });
-function setTemplateBackground(path, templateClass) {
-  backgroundImg = new Image();
-  backgroundImg.src = path;
-  backgroundImg.onload = () => {
-    document.body.className = templateClass;
-    handleAllSelections();
-  };
+
+dcSelect.addEventListener("change", () => {
+  const dc = dcSelect.value;
+  dcImg = dc ? loadOverlayImage("dc_icons", dc) : null;
+});
+
+progressSelect.addEventListener("change", () => {
+  const templateClass = getTemplateClass();
+  const selected = progressSelect.value;
+  const values = selected === "all_clear"
+    ? ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon", "all_clear"]
+    : selected === "ougon"
+    ? ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon"]
+    : selected === "gyougetsu"
+    ? ["shinsei", "souten", "guren", "shikkoku", "gyougetsu"]
+    : selected === "shikkoku"
+    ? ["shinsei", "souten", "guren", "shikkoku"]
+    : selected === "guren"
+    ? ["shinsei", "souten", "guren"]
+    : selected === "souten"
+    ? ["shinsei", "souten"]
+    : selected === "shinsei"
+    ? ["shinsei"]
+    : [];
+
+  progressImgs = values.map(val => loadOverlayImage("progress_icons", val));
+});
+
+styleButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    btn.classList.toggle("active");
+    updatePlaystyleImages();
+  });
+});
+
+timeCheckboxes.forEach(cb => {
+  cb.addEventListener("change", updateTimeIcons);
+});
+timeOtherCheckboxes.forEach(cb => {
+  cb.addEventListener("change", updateTimeIcons);
+});
+
+difficultyCheckboxes.forEach(cb => {
+  cb.addEventListener("change", updateDifficultyIcons);
+});
+
+mainJobSelect.addEventListener("change", () => {
+  const key = mainJobSelect.value;
+  mainJobImg = key ? loadJobImage("main", key) : null;
+});
+
+subJobCheckboxes.forEach(cb => {
+  cb.addEventListener("change", () => {
+    const selected = [...subJobCheckboxes].filter(c => c.checked).map(c => c.value);
+    subJobImgs = selected.map(key => loadJobImage("sub", key));
+  });
+});
+
+function getTemplateClass() {
+  return document.body.classList.contains("template-gothic-white") ? "white" : "black";
 }
 
-// 画像アップロード
-document.getElementById("uploadImage").addEventListener("change", (e) => {
+function loadOverlayImage(dir, key) {
+  const template = getTemplateClass();
+  const img = new Image();
+  img.src = `/ffxiv-card/assets/${dir}/Gothic_${template}_${key}.png`;
+  img.onload = drawCanvas;
+  return img;
+}
+
+function loadJobImage(type, key) {
+  const template = getTemplateClass();
+  const dir = type === "main" ? "mainjob_icons" : "subjob_icons";
+  const prefix = type === "main" ? "main" : "sub";
+  const img = new Image();
+  img.src = `/ffxiv-card/assets/${dir}/Gothic_${template}_${prefix}_${key}.png`;
+  img.onload = drawCanvas;
+  return img;
+}
+
+function updatePlaystyleImages() {
+  const template = getTemplateClass();
+  playstyleImgs = [...styleButtons].filter(b => b.classList.contains("active")).map(b => {
+    const key = b.dataset.value;
+    const img = new Image();
+    img.src = `/ffxiv-card/assets/style_icons/Gothic_${template}_${key}.png`;
+    img.onload = drawCanvas;
+    return img;
+  });
+}
+
+function updateTimeIcons() {
+  const template = getTemplateClass();
+  const weekdayKeys = ["weekday_morning", "weekday_noon", "weekday_night", "weekday_late"];
+  const holidayKeys = ["holiday_morning", "holiday_noon", "holiday_night", "holiday_late"];
+  const otherKeys = ["irregular", "resident"];
+
+  const activeKeys = [];
+
+  let weekdayActive = false, holidayActive = false;
+
+  timeCheckboxes.forEach(cb => {
+    if (cb.checked) {
+      activeKeys.push(cb.value);
+      if (weekdayKeys.includes(cb.value)) weekdayActive = true;
+      if (holidayKeys.includes(cb.value)) holidayActive = true;
+    }
+  });
+
+  if (weekdayActive) activeKeys.push("weekday");
+  if (holidayActive) activeKeys.push("holiday");
+
+  timeOtherCheckboxes.forEach(cb => {
+    if (cb.checked) activeKeys.push(cb.value);
+  });
+
+  timeImgs = activeKeys.map(key => loadOverlayImage("time_icons", key));
+}
+
+function updateDifficultyIcons() {
+  const template = getTemplateClass();
+  const selected = [...difficultyCheckboxes].filter(c => c.checked).map(c => c.value);
+  difficultyImgs = selected.map(key => loadOverlayImage("difficulty_icons", key));
+}
+
+document.getElementById("uploadImage").addEventListener("change", e => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -66,123 +187,37 @@ document.getElementById("uploadImage").addEventListener("change", (e) => {
   reader.readAsDataURL(file);
 });
 
-// 描画処理
 function drawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (uploadedImgState) {
     const { img, x, y, width, height } = uploadedImgState;
     ctx.drawImage(img, x, y, width, height);
   }
-  if (backgroundImg) ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+  if (backgroundImg) {
+    ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+  }
   drawNameText();
-  [raceImg, dcImg, ...progressImgs, ...styleImgs, ...timeImgs, ...difficultyImgs, mainJobImg, ...subJobImgs].forEach(img => {
-    if (img && img.complete) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  });
+
+  [raceImg, dcImg, ...progressImgs, ...playstyleImgs, ...timeImgs, ...difficultyImgs, mainJobImg, ...subJobImgs]
+    .filter(Boolean)
+    .forEach(img => ctx.drawImage(img, 0, 0, canvas.width, canvas.height));
 }
 
 function drawNameText() {
   const name = nameInput.value;
   if (!name) return;
-  const x = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-x'));
-  const y = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-y'));
-  const width = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-width'));
-  const height = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-height'));
-  const color = getComputedStyle(document.body).getPropertyValue('--name-color').trim();
+  const x = parseInt(getComputedStyle(document.body).getPropertyValue("--name-area-x"));
+  const y = parseInt(getComputedStyle(document.body).getPropertyValue("--name-area-y"));
+  const width = parseInt(getComputedStyle(document.body).getPropertyValue("--name-area-width"));
+  const height = parseInt(getComputedStyle(document.body).getPropertyValue("--name-area-height"));
+  const color = getComputedStyle(document.body).getPropertyValue("--name-color").trim();
   const fontSize = Math.floor(height * 0.5);
   ctx.font = `${fontSize}px ${selectedFont}`;
   ctx.fillStyle = color;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
   ctx.fillText(name, x + width / 2, y + height / 2);
 }
-
-// 選択反映（背景変更含む）
-function handleAllSelections() {
-  const templateClass = document.body.classList.contains("template-gothic-white") ? "Gothic_white" : "Gothic_black";
-
-  const loadImage = (path) => {
-    const img = new Image();
-    img.onload = drawCanvas;
-    img.src = path;
-    return img;
-  };
-
-  // 種族・DC
-  const race = document.getElementById("raceSelect")?.value;
-  raceImg = race ? loadImage(`/ffxiv-card/assets/race_icons/${templateClass}_${race}.png`) : null;
-
-  const dc = document.getElementById("dcSelect")?.value;
-  dcImg = dc ? loadImage(`/ffxiv-card/assets/dc_icons/${templateClass}_${dc}.png`) : null;
-
-  // 進行度（累積）
-  const progress = document.getElementById("progressSelect")?.value;
-  const keys = ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon"];
-  const progressKeys = progress
-    ? progress === "all_clear"
-      ? [...keys, "all_clear"]
-      : keys.slice(0, keys.indexOf(progress) + 1)
-    : [];
-  progressImgs = progressKeys.map(k => loadImage(`/ffxiv-card/assets/progress_icons/${templateClass}_${k}.png`));
-
-  // プレイスタイル
-  styleImgs = [];
-  document.querySelectorAll("#styleButtons button.active").forEach(btn => {
-    const key = btn.dataset.value.trim();
-    styleImgs.push(loadImage(`/ffxiv-card/assets/style_icons/${templateClass}_${key}.png`));
-  });
-
-  // プレイ時間
-  timeImgs = [];
-  const times = new Set();
-  document.querySelectorAll("#playtimeOptions input:checked").forEach(cb => {
-    const k = cb.value.trim();
-    if (["morning","noon","night","midnight"].includes(k)) {
-      const parent = cb.classList.contains("weekday") ? "weekday" : cb.classList.contains("holiday") ? "holiday" : "";
-      if (parent) {
-        times.add(parent);
-        timeImgs.push(loadImage(`/ffxiv-card/assets/time_icons/${templateClass}_${parent}_${k}.png`));
-      }
-    } else {
-      timeImgs.push(loadImage(`/ffxiv-card/assets/time_icons/${templateClass}_${k}.png`));
-    }
-  });
-  if (times.has("weekday")) timeImgs.push(loadImage(`/ffxiv-card/assets/time_icons/${templateClass}_weekday.png`));
-  if (times.has("holiday")) timeImgs.push(loadImage(`/ffxiv-card/assets/time_icons/${templateClass}_holiday.png`));
-
-  // 高難易度
-  difficultyImgs = [];
-  document.querySelectorAll("#difficultyOptions input:checked").forEach(cb => {
-    const k = cb.value.trim();
-    difficultyImgs.push(loadImage(`/ffxiv-card/assets/difficulty_icons/${templateClass}_${k}.png`));
-  });
-
-  // メインジョブ
-  const mainJob = document.getElementById("mainjobSelect")?.value;
-  mainJobImg = mainJob ? loadImage(`/ffxiv-card/assets/mainjob_icons/${templateClass}_main_${mainJob}.png`) : null;
-
-  // サブジョブ
-  subJobImgs = [];
-  document.querySelectorAll("#subjobSection input:checked").forEach(cb => {
-    const key = cb.value.trim();
-    subJobImgs.push(loadImage(`/ffxiv-card/assets/subjob_icons/${templateClass}_sub_${key}.png`));
-  });
-
-  drawCanvas();
-}
-
-// 各イベント
-["raceSelect", "dcSelect", "progressSelect", "mainjobSelect"].forEach(id => {
-  document.getElementById(id)?.addEventListener("change", handleAllSelections);
-});
-document.querySelectorAll("#styleButtons button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    btn.classList.toggle("active");
-    handleAllSelections();
-  });
-});
-document.querySelectorAll("#playtimeOptions input, #difficultyOptions input, #subjobSection input").forEach(cb => {
-  cb.addEventListener("change", handleAllSelections);
-});
 
 document.getElementById("downloadBtn").addEventListener("click", () => {
   const link = document.createElement("a");
@@ -190,3 +225,31 @@ document.getElementById("downloadBtn").addEventListener("click", () => {
   link.href = canvas.toDataURL();
   link.click();
 });
+
+document.getElementById("templateButtons")?.addEventListener("click", e => {
+  if (e.target.tagName === "BUTTON") {
+    const bg = e.target.dataset.bg;
+    const className = e.target.dataset.class;
+    if (bg && className) setTemplateBackground(bg, className);
+  }
+});
+
+function setTemplateBackground(path, templateClass) {
+  backgroundImg = new Image();
+  backgroundImg.src = path;
+  backgroundImg.onload = () => {
+    document.body.className = templateClass;
+    updatePlaystyleImages();
+    updateTimeIcons();
+    updateDifficultyIcons();
+    const race = raceSelect.value;
+    raceImg = race ? loadOverlayImage("race_icons", race) : null;
+    const dc = dcSelect.value;
+    dcImg = dc ? loadOverlayImage("dc_icons", dc) : null;
+    const mainJob = mainJobSelect.value;
+    mainJobImg = mainJob ? loadJobImage("main", mainJob) : null;
+    const selectedSub = [...subJobCheckboxes].filter(c => c.checked).map(c => c.value);
+    subJobImgs = selectedSub.map(key => loadJobImage("sub", key));
+    drawCanvas();
+  };
+}
