@@ -34,6 +34,7 @@ window.addEventListener("DOMContentLoaded", () => {
     selectedFont = fontSelect.value;
     document.documentElement.style.setProperty("--selected-font", selectedFont);
     drawCanvas();
+    setTemplateBackground("/ffxiv-card/assets/backgrounds/Gothic_black.png", "template-gothic-black");
   });
 
   nameInput?.addEventListener("input", drawCanvas);
@@ -264,7 +265,7 @@ window.addEventListener("DOMContentLoaded", () => {
       raceImg = race ? loadOverlayImage("race_icons", race) : null;
       const dc = dcSelect.value;
       dcImg = dc ? loadOverlayImage("dc_icons", dc) : null;
-      const mainJob = mainJobSelect?.value;
+      const mainJob = mainJobSelect ? mainJobSelect.value : null;
       mainJobImg = mainJob ? loadJobImage("main", mainJob) : null;
       const selectedSub = [...subJobCheckboxes].filter(c => c.checked).map(c => c.value);
       subJobImgs = selectedSub.map(key => loadJobImage("sub", key));
@@ -273,4 +274,30 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   drawCanvas();
-});
+    
+    function updateTimeIcons() {
+    const template = getTemplateClass();
+    const activeKeys = [];
+    let weekdayActive = false, holidayActive = false;
+
+    timeCheckboxes.forEach(cb => {
+      if (cb.checked) {
+        const val = cb.value;
+        const key = cb.classList.contains("weekday") ? `weekday_${val}` :
+                    cb.classList.contains("holiday") ? `holiday_${val}` : val;
+        activeKeys.push(key);
+        if (key.startsWith("weekday")) weekdayActive = true;
+        if (key.startsWith("holiday")) holidayActive = true;
+      }
+    });
+
+    if (weekdayActive) activeKeys.push("weekday");
+    if (holidayActive) activeKeys.push("holiday");
+
+    timeOtherCheckboxes.forEach(cb => {
+      if (cb.checked) activeKeys.push(cb.value);
+    });
+
+    timeImgs = activeKeys.map(key => loadOverlayImage("time_icons", key));
+    drawCanvas();
+  }
