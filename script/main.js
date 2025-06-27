@@ -1,8 +1,6 @@
+// main.js - 修正版（プレイ時間・高難易度・メインジョブ描画修正、イベントバインド修正）
 
-// main_latest_with_job.js - 最新完全統合版
-// 全機能：名前、背景、種族、DC、進行度（累積）、プレイスタイル、プレイ時間（自動判定）、高難易度、メイン＆サブジョブ、画像アップロード＆拡縮・移動対応、テンプレ変更保持
-
-// Canvas初期化
+// 初期設定
 const canvas = document.getElementById("cardCanvas");
 const ctx = canvas.getContext("2d");
 canvas.width = 3750;
@@ -28,7 +26,7 @@ fontSelect.addEventListener("change", () => {
 });
 nameInput.addEventListener("input", drawCanvas);
 
-// 背景テンプレ変更
+// 背景切り替え
 document.getElementById("templateButtons").addEventListener("click", (e) => {
   if (e.target.tagName === "BUTTON") {
     const bg = e.target.dataset.bg;
@@ -47,7 +45,7 @@ function setTemplateBackground(path, templateClass) {
   };
 }
 
-// アップロード画像処理
+// 画像アップロード
 document.getElementById("uploadImage").addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -68,7 +66,7 @@ document.getElementById("uploadImage").addEventListener("change", (e) => {
   reader.readAsDataURL(file);
 });
 
-// Canvas描画関数
+// 描画処理
 function drawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (uploadedImgState) {
@@ -78,9 +76,10 @@ function drawCanvas() {
   if (backgroundImg) ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
   drawNameText();
   [raceImg, dcImg, ...progressImgs, ...styleImgs, ...timeImgs, ...difficultyImgs, mainJobImg, ...subJobImgs].forEach(img => {
-    if (img) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    if (img && img.complete) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   });
 }
+
 function drawNameText() {
   const name = nameInput.value;
   if (!name) return;
@@ -97,25 +96,18 @@ function drawNameText() {
   ctx.fillText(name, x + width / 2, y + height / 2);
 }
 
-// ダウンロード処理
-document.getElementById("downloadBtn").addEventListener("click", () => {
-  const link = document.createElement("a");
-  link.download = "ffxiv_card.png";
-  link.href = canvas.toDataURL();
-  link.click();
-});
-
-// 選択項目を背景変更時に再読み込み
+// 選択反映（背景変更含む）
 function handleAllSelections() {
   const templateClass = document.body.classList.contains("template-gothic-white") ? "Gothic_white" : "Gothic_black";
 
   const loadImage = (path) => {
     const img = new Image();
+    img.onload = drawCanvas;
     img.src = path;
     return img;
   };
 
-  // 各項目処理（種族・DC）
+  // 種族・DC
   const race = document.getElementById("raceSelect")?.value;
   raceImg = race ? loadImage(`/ffxiv-card/assets/race_icons/${templateClass}_${race}.png`) : null;
 
@@ -124,10 +116,11 @@ function handleAllSelections() {
 
   // 進行度（累積）
   const progress = document.getElementById("progressSelect")?.value;
+  const keys = ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon"];
   const progressKeys = progress
     ? progress === "all_clear"
-      ? ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon", "all_clear"]
-      : ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon"].slice(0, ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon"].indexOf(progress) + 1)
+      ? [...keys, "all_clear"]
+      : keys.slice(0, keys.indexOf(progress) + 1)
     : [];
   progressImgs = progressKeys.map(k => loadImage(`/ffxiv-card/assets/progress_icons/${templateClass}_${k}.png`));
 
@@ -141,29 +134,30 @@ function handleAllSelections() {
   // プレイ時間
   timeImgs = [];
   const times = new Set();
-  const isChecked = (v) => document.getElementById(v)?.checked;
-  ["weekday_morning","weekday_noon","weekday_night","weekday_late",
-   "holiday_morning","holiday_noon","holiday_night","holiday_late"].forEach(id => {
-    if (isChecked(id)) {
-      timeImgs.push(loadImage(`/ffxiv-card/assets/time_icons/${templateClass}_${id}.png`));
-      if (id.startsWith("weekday")) times.add("weekday");
-      if (id.startsWith("holiday")) times.add("holiday");
+  document.querySelectorAll("#playtimeOptions input:checked").forEach(cb => {
+    const k = cb.value.trim();
+    if (["morning","noon","night","midnight"].includes(k)) {
+      const parent = cb.classList.contains("weekday") ? "weekday" : cb.classList.contains("holiday") ? "holiday" : "";
+      if (parent) {
+        times.add(parent);
+        timeImgs.push(loadImage(`/ffxiv-card/assets/time_icons/${templateClass}_${parent}_${k}.png`));
+      }
+    } else {
+      timeImgs.push(loadImage(`/ffxiv-card/assets/time_icons/${templateClass}_${k}.png`));
     }
   });
   if (times.has("weekday")) timeImgs.push(loadImage(`/ffxiv-card/assets/time_icons/${templateClass}_weekday.png`));
   if (times.has("holiday")) timeImgs.push(loadImage(`/ffxiv-card/assets/time_icons/${templateClass}_holiday.png`));
-  if (isChecked("irregular")) timeImgs.push(loadImage(`/ffxiv-card/assets/time_icons/${templateClass}_irregular.png`));
-  if (isChecked("resident")) timeImgs.push(loadImage(`/ffxiv-card/assets/time_icons/${templateClass}_resident.png`));
 
   // 高難易度
   difficultyImgs = [];
-  document.querySelectorAll("#difficultySection input:checked").forEach(cb => {
+  document.querySelectorAll("#difficultyOptions input:checked").forEach(cb => {
     const k = cb.value.trim();
     difficultyImgs.push(loadImage(`/ffxiv-card/assets/difficulty_icons/${templateClass}_${k}.png`));
   });
 
   // メインジョブ
-  const mainJob = document.getElementById("mainJobSelect")?.value;
+  const mainJob = document.getElementById("mainjobSelect")?.value;
   mainJobImg = mainJob ? loadImage(`/ffxiv-card/assets/mainjob_icons/${templateClass}_main_${mainJob}.png`) : null;
 
   // サブジョブ
@@ -176,8 +170,8 @@ function handleAllSelections() {
   drawCanvas();
 }
 
-// 各UIイベントバインド
-["raceSelect", "dcSelect", "progressSelect", "mainJobSelect"].forEach(id => {
+// 各イベント
+["raceSelect", "dcSelect", "progressSelect", "mainjobSelect"].forEach(id => {
   document.getElementById(id)?.addEventListener("change", handleAllSelections);
 });
 document.querySelectorAll("#styleButtons button").forEach(btn => {
@@ -186,6 +180,13 @@ document.querySelectorAll("#styleButtons button").forEach(btn => {
     handleAllSelections();
   });
 });
-document.querySelectorAll("#timeSection input, #difficultySection input, #subjobSection input").forEach(cb => {
+document.querySelectorAll("#playtimeOptions input, #difficultyOptions input, #subjobSection input").forEach(cb => {
   cb.addEventListener("change", handleAllSelections);
+});
+
+document.getElementById("downloadBtn").addEventListener("click", () => {
+  const link = document.createElement("a");
+  link.download = "ffxiv_card.png";
+  link.href = canvas.toDataURL();
+  link.click();
 });
