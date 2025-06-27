@@ -1,262 +1,144 @@
-// main_fixed_timeicons_v2.js - 全機能統合済み・プレイ時間修正対応版 + 改善済み + スマホ操作対応
+// main_latest_with_job.js - 最新統合版（全機能対応）
 
-const canvas = document.getElementById("cardCanvas");
-const ctx = canvas.getContext("2d");
+const canvas = document.getElementById('cardCanvas');
+const ctx = canvas.getContext('2d');
 canvas.width = 3750;
 canvas.height = 2250;
 
 let backgroundImg = null;
 let uploadedImgState = null;
-let selectedFont = "Orbitron, sans-serif";
+let selectedFont = 'Orbitron, sans-serif';
 let raceImg = null;
 let dcImg = null;
 let progressImgs = [];
-let playstyleImgs = [];
+let styleImgs = [];
 let timeImgs = [];
 let difficultyImgs = [];
 let mainJobImg = null;
 let subJobImgs = [];
 
-const nameInput = document.getElementById("nameInput");
-const fontSelect = document.getElementById("fontSelect");
-const raceSelect = document.getElementById("raceSelect");
-const dcSelect = document.getElementById("dcSelect");
-const progressSelect = document.getElementById("progressSelect");
-const styleButtons = document.querySelectorAll("#styleButtons button");
-const timeCheckboxes = document.querySelectorAll(".time-checkbox");
-const timeOtherCheckboxes = document.querySelectorAll(".time-other");
-const difficultyCheckboxes = document.querySelectorAll(".difficulty-checkbox");
-const mainJobSelect = document.getElementById("mainJobSelect");
-const subJobCheckboxes = document.querySelectorAll(".subjob-checkbox");
+const nameInput = document.getElementById('nameInput');
+const fontSelect = document.getElementById('fontSelect');
+const raceSelect = document.getElementById('raceSelect');
+const dcSelect = document.getElementById('dcSelect');
+const progressSelect = document.getElementById('progressSelect');
+const mainJobSelect = document.getElementById('mainJobSelect');
 
-fontSelect.addEventListener("change", () => {
+function getTemplatePrefix() {
+  return document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+}
+
+fontSelect.addEventListener('change', () => {
   selectedFont = fontSelect.value;
-  document.documentElement.style.setProperty("--selected-font", selectedFont);
+  document.documentElement.style.setProperty('--selected-font', selectedFont);
   drawCanvas();
 });
 
-nameInput.addEventListener("input", drawCanvas);
+nameInput.addEventListener('input', drawCanvas);
 
-raceSelect.addEventListener("change", () => {
-  const race = raceSelect.value;
-  raceImg = race ? loadOverlayImage("race_icons", race) : null;
-});
+function preloadIcon(path, callback) {
+  const img = new Image();
+  img.src = path;
+  img.onload = () => {
+    if (callback) callback(img);
+    drawCanvas();
+  };
+  return img;
+}
 
-dcSelect.addEventListener("change", () => {
-  const dc = dcSelect.value;
-  dcImg = dc ? loadOverlayImage("dc_icons", dc) : null;
-});
+function updateProgress() {
+  const value = progressSelect?.value;
+  const base = getTemplatePrefix();
+  progressImgs = [];
+  const add = (name) => progressImgs.push(preloadIcon(`/ffxiv-card/assets/progress_icons/${base}_${name}.png`));
+  if (!value) return;
+  if (value === 'all_clear') {
+    ['shinsei','souten','guren','shikkoku','gyougetsu','ougon','all_clear'].forEach(add);
+  } else {
+    const stages = ['shinsei','souten','guren','shikkoku','gyougetsu','ougon'];
+    const index = stages.indexOf(value);
+    if (index !== -1) stages.slice(0, index + 1).forEach(add);
+  }
+}
 
-progressSelect.addEventListener("change", () => {
-  const selected = progressSelect.value;
-  const values = selected === "all_clear"
-    ? ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon", "all_clear"]
-    : selected === "ougon"
-    ? ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon"]
-    : selected === "gyougetsu"
-    ? ["shinsei", "souten", "guren", "shikkoku", "gyougetsu"]
-    : selected === "shikkoku"
-    ? ["shinsei", "souten", "guren", "shikkoku"]
-    : selected === "guren"
-    ? ["shinsei", "souten", "guren"]
-    : selected === "souten"
-    ? ["shinsei", "souten"]
-    : selected === "shinsei"
-    ? ["shinsei"]
-    : [];
-  progressImgs = values.map(val => loadOverlayImage("progress_icons", val));
-});
-
-styleButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    btn.classList.toggle("active");
-    updatePlaystyleImages();
+function updatePlayStyle() {
+  const base = getTemplatePrefix();
+  styleImgs = [];
+  document.querySelectorAll('#styleButtons button.active').forEach(btn => {
+    const key = btn.dataset.value;
+    styleImgs.push(preloadIcon(`/ffxiv-card/assets/style_icons/${base}_${key}.png`));
   });
-});
+}
 
-timeCheckboxes.forEach(cb => {
-  cb.addEventListener("change", updateTimeIcons);
-});
-timeOtherCheckboxes.forEach(cb => {
-  cb.addEventListener("change", updateTimeIcons);
-});
+function updatePlayTime() {
+  const base = getTemplatePrefix();
+  timeImgs = [];
+  const times = document.querySelectorAll('input[name^="time-"]:checked');
+  let hasWeekday = false, hasHoliday = false;
+  times.forEach(input => {
+    const key = input.value;
+    if (key.startsWith('weekday')) hasWeekday = true;
+    if (key.startsWith('holiday')) hasHoliday = true;
+    timeImgs.push(preloadIcon(`/ffxiv-card/assets/time_icons/${base}_${key}.png`));
+  });
+  document.querySelectorAll('input[name="time-other"]:checked').forEach(input => {
+    timeImgs.push(preloadIcon(`/ffxiv-card/assets/time_icons/${base}_${input.value}.png`));
+  });
+  if (hasWeekday) timeImgs.push(preloadIcon(`/ffxiv-card/assets/time_icons/${base}_weekday.png`));
+  if (hasHoliday) timeImgs.push(preloadIcon(`/ffxiv-card/assets/time_icons/${base}_holiday.png`));
+}
 
-difficultyCheckboxes.forEach(cb => {
-  cb.addEventListener("change", updateDifficultyIcons);
-});
+function updateDifficulty() {
+  const base = getTemplatePrefix();
+  difficultyImgs = [];
+  document.querySelectorAll('input[name="difficulty"]:checked').forEach(input => {
+    difficultyImgs.push(preloadIcon(`/ffxiv-card/assets/difficulty_icons/${base}_${input.value}.png`));
+  });
+}
 
-mainJobSelect.addEventListener("change", () => {
+function updateMainJob() {
   const key = mainJobSelect.value;
-  mainJobImg = key ? loadJobImage("main", key) : null;
-});
+  if (!key) return mainJobImg = null;
+  const base = getTemplatePrefix();
+  mainJobImg = preloadIcon(`/ffxiv-card/assets/mainjob_icons/${base}_main_${key}.png`);
+}
 
-subJobCheckboxes.forEach(cb => {
-  cb.addEventListener("change", () => {
-    const selected = [...subJobCheckboxes].filter(c => c.checked).map(c => c.value);
-    subJobImgs = selected.map(key => loadJobImage("sub", key));
+function updateSubJobs() {
+  const base = getTemplatePrefix();
+  subJobImgs = [];
+  document.querySelectorAll('input[name="subjob"]:checked').forEach(input => {
+    subJobImgs.push(preloadIcon(`/ffxiv-card/assets/subjob_icons/${base}_sub_${input.value}.png`));
+  });
+}
+
+[raceSelect, dcSelect].forEach(select => {
+  select.addEventListener('change', () => {
+    const val = select.value;
+    if (!val) return select === raceSelect ? raceImg = null : dcImg = null;
+    const base = getTemplatePrefix();
+    const dir = select === raceSelect ? 'race_icons' : 'dc_icons';
+    const target = select === raceSelect ? 'raceImg' : 'dcImg';
+    window[target] = preloadIcon(`/ffxiv-card/assets/${dir}/${base}_${val}.png`);
   });
 });
 
-function getTemplateClass() {
-  return document.body.classList.contains("template-gothic-white") ? "white" : "black";
-}
-
-function loadOverlayImage(dir, key) {
-  const template = getTemplateClass();
-  const img = new Image();
-  img.src = `/ffxiv-card/assets/${dir}/Gothic_${template}_${key}.png`;
-  img.onload = drawCanvas;
-  img.onerror = () => console.warn(`画像の読み込みに失敗しました: ${img.src}`);
-  return img;
-}
-
-function loadJobImage(type, key) {
-  const template = getTemplateClass();
-  const dir = type === "main" ? "mainjob_icons" : "subjob_icons";
-  const prefix = type === "main" ? "main" : "sub";
-  const img = new Image();
-  img.src = `/ffxiv-card/assets/${dir}/Gothic_${template}_${prefix}_${key}.png`;
-  img.onload = drawCanvas;
-  img.onerror = () => console.warn(`画像の読み込みに失敗しました: ${img.src}`);
-  return img;
-}
-
-function updatePlaystyleImages() {
-  const template = getTemplateClass();
-  playstyleImgs = [...styleButtons].filter(b => b.classList.contains("active")).map(b => {
-    const key = b.dataset.value;
-    const img = new Image();
-    img.src = `/ffxiv-card/assets/style_icons/Gothic_${template}_${key}.png`;
-    img.onload = drawCanvas;
-    img.onerror = () => console.warn(`画像の読み込みに失敗しました: ${img.src}`);
-    return img;
-  });
-}
-
-function updateTimeIcons() {
-  const template = getTemplateClass();
-  const weekdayKeys = ["weekday_morning", "weekday_noon", "weekday_night", "weekday_late"];
-  const holidayKeys = ["holiday_morning", "holiday_noon", "holiday_night", "holiday_late"];
-  const activeKeys = [];
-  let weekdayActive = false, holidayActive = false;
-
-  timeCheckboxes.forEach(cb => {
-    if (cb.checked) {
-      activeKeys.push(cb.value);
-      if (weekdayKeys.includes(cb.value)) weekdayActive = true;
-      if (holidayKeys.includes(cb.value)) holidayActive = true;
-    }
-  });
-  if (weekdayActive) activeKeys.push("weekday");
-  if (holidayActive) activeKeys.push("holiday");
-
-  timeOtherCheckboxes.forEach(cb => {
-    if (cb.checked) activeKeys.push(cb.value);
-  });
-
-  timeImgs = activeKeys.map(key => loadOverlayImage("time_icons", key));
-}
-
-function updateDifficultyIcons() {
-  const selected = [...difficultyCheckboxes].filter(c => c.checked).map(c => c.value);
-  difficultyImgs = selected.map(key => loadOverlayImage("difficulty_icons", key));
-}
-
-const uploadInput = document.getElementById("uploadImage");
-if (uploadInput) {
-  uploadInput.addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
-        const width = img.width * scale;
-        const height = img.height * scale;
-        const x = (canvas.width - width) / 2;
-        const y = (canvas.height - height) / 2;
-        uploadedImgState = { img, x, y, width, height, dragging: false };
-        drawCanvas();
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-canvas.addEventListener("mousedown", e => {
-  if (!uploadedImgState) return;
-  uploadedImgState.dragging = true;
-  uploadedImgState.offsetX = e.offsetX - uploadedImgState.x;
-  uploadedImgState.offsetY = e.offsetY - uploadedImgState.y;
-});
-
-canvas.addEventListener("mousemove", e => {
-  if (uploadedImgState?.dragging) {
-    uploadedImgState.x = e.offsetX - uploadedImgState.offsetX;
-    uploadedImgState.y = e.offsetY - uploadedImgState.offsetY;
-    drawCanvas();
+progressSelect?.addEventListener('change', updateProgress);
+document.getElementById('styleButtons')?.addEventListener('click', e => {
+  if (e.target.tagName === 'BUTTON') {
+    e.target.classList.toggle('active');
+    updatePlayStyle();
   }
 });
 
-canvas.addEventListener("mouseup", () => {
-  if (uploadedImgState) uploadedImgState.dragging = false;
+document.querySelectorAll('input[name^="time-"], input[name="time-other"]').forEach(input => {
+  input.addEventListener('change', updatePlayTime);
 });
-
-canvas.addEventListener("wheel", e => {
-  if (uploadedImgState) {
-    const delta = e.deltaY > 0 ? -0.05 : 0.05;
-    uploadedImgState.width *= 1 + delta;
-    uploadedImgState.height *= 1 + delta;
-    uploadedImgState.x -= (uploadedImgState.width * delta) / 2;
-    uploadedImgState.y -= (uploadedImgState.height * delta) / 2;
-    drawCanvas();
-  }
+document.querySelectorAll('input[name="difficulty"]').forEach(input => {
+  input.addEventListener('change', updateDifficulty);
 });
-
-let lastTouchDist = null;
-canvas.addEventListener("touchstart", e => {
-  if (!uploadedImgState) return;
-  if (e.touches.length === 1) {
-    const touch = e.touches[0];
-    uploadedImgState.dragging = true;
-    uploadedImgState.offsetX = touch.clientX - uploadedImgState.x;
-    uploadedImgState.offsetY = touch.clientY - uploadedImgState.y;
-  } else if (e.touches.length === 2) {
-    lastTouchDist = Math.hypot(
-      e.touches[0].clientX - e.touches[1].clientX,
-      e.touches[0].clientY - e.touches[1].clientY
-    );
-  }
-});
-
-canvas.addEventListener("touchmove", e => {
-  if (!uploadedImgState) return;
-  if (e.touches.length === 1 && uploadedImgState.dragging) {
-    const touch = e.touches[0];
-    uploadedImgState.x = touch.clientX - uploadedImgState.offsetX;
-    uploadedImgState.y = touch.clientY - uploadedImgState.offsetY;
-    drawCanvas();
-  } else if (e.touches.length === 2) {
-    const currentDist = Math.hypot(
-      e.touches[0].clientX - e.touches[1].clientX,
-      e.touches[0].clientY - e.touches[1].clientY
-    );
-    const delta = currentDist / lastTouchDist;
-    uploadedImgState.width *= delta;
-    uploadedImgState.height *= delta;
-    uploadedImgState.x -= (uploadedImgState.width * (delta - 1)) / 2;
-    uploadedImgState.y -= (uploadedImgState.height * (delta - 1)) / 2;
-    lastTouchDist = currentDist;
-    drawCanvas();
-  }
-  e.preventDefault();
-});
-
-canvas.addEventListener("touchend", () => {
-  if (uploadedImgState) uploadedImgState.dragging = false;
-  lastTouchDist = null;
+mainJobSelect?.addEventListener('change', updateMainJob);
+document.querySelectorAll('input[name="subjob"]').forEach(input => {
+  input.addEventListener('change', updateSubJobs);
 });
 
 function drawCanvas() {
@@ -265,64 +147,72 @@ function drawCanvas() {
     const { img, x, y, width, height } = uploadedImgState;
     ctx.drawImage(img, x, y, width, height);
   }
-  if (backgroundImg) {
-    ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
-  }
-  [raceImg, dcImg, ...progressImgs, ...playstyleImgs, ...timeImgs, ...difficultyImgs, mainJobImg, ...subJobImgs]
-    .filter(Boolean)
-    .forEach(img => ctx.drawImage(img, 0, 0, canvas.width, canvas.height));
+  if (backgroundImg) ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
   drawNameText();
+  [raceImg, dcImg, ...progressImgs, ...styleImgs, ...timeImgs, ...difficultyImgs, ...subJobImgs, mainJobImg].forEach(img => {
+    if (img) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  });
 }
 
 function drawNameText() {
   const name = nameInput.value;
   if (!name) return;
-  const x = parseInt(getComputedStyle(document.body).getPropertyValue("--name-area-x"));
-  const y = parseInt(getComputedStyle(document.body).getPropertyValue("--name-area-y"));
-  const width = parseInt(getComputedStyle(document.body).getPropertyValue("--name-area-width"));
-  const height = parseInt(getComputedStyle(document.body).getPropertyValue("--name-area-height"));
-  const color = getComputedStyle(document.body).getPropertyValue("--name-color").trim();
+  const x = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-x'));
+  const y = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-y'));
+  const width = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-width'));
+  const height = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-height'));
+  const color = getComputedStyle(document.body).getPropertyValue('--name-color').trim();
   const fontSize = Math.floor(height * 0.5);
   ctx.font = `${fontSize}px ${selectedFont}`;
   ctx.fillStyle = color;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(name, x + width / 2, y + height / 2);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(name, x + width / 2 - fontSize * 2, y + height / 2);
 }
 
-document.getElementById("downloadBtn").addEventListener("click", () => {
-  const link = document.createElement("a");
-  link.download = "ffxiv_card.png";
+document.getElementById('uploadImage').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+      const width = img.width * scale;
+      const height = img.height * scale;
+      const x = (canvas.width - width) / 2;
+      const y = (canvas.height - height) / 2;
+      uploadedImgState = { img, x, y, width, height, dragging: false };
+      drawCanvas();
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = 'ffxiv_card.png';
   link.href = canvas.toDataURL();
   link.click();
 });
 
-document.getElementById("templateButtons")?.addEventListener("click", e => {
-  if (e.target.tagName === "BUTTON") {
+document.getElementById('templateButtons')?.addEventListener('click', e => {
+  if (e.target.tagName === 'BUTTON') {
     const bg = e.target.dataset.bg;
     const className = e.target.dataset.class;
-    if (bg && className) setTemplateBackground(bg, className);
+    if (!bg || !className) return;
+    backgroundImg = new Image();
+    backgroundImg.src = bg;
+    backgroundImg.onload = () => {
+      document.body.className = className;
+      updateProgress();
+      updatePlayStyle();
+      updatePlayTime();
+      updateDifficulty();
+      updateMainJob();
+      updateSubJobs();
+      drawCanvas();
+    };
   }
 });
-
-function setTemplateBackground(path, templateClass) {
-  backgroundImg = new Image();
-  backgroundImg.src = path;
-  backgroundImg.onload = () => {
-    document.body.className = templateClass;
-    updatePlaystyleImages();
-    updateTimeIcons();
-    updateDifficultyIcons();
-    const race = raceSelect.value;
-    raceImg = race ? loadOverlayImage("race_icons", race) : null;
-    const dc = dcSelect.value;
-    dcImg = dc ? loadOverlayImage("dc_icons", dc) : null;
-    const mainJob = mainJobSelect.value;
-    mainJobImg = mainJob ? loadJobImage("main", mainJob) : null;
-    const selectedSub = [...subJobCheckboxes].filter(c => c.checked).map(c => c.value);
-    subJobImgs = selectedSub.map(key => loadJobImage("sub", key));
-    drawCanvas();
-  };
-}
-
-drawCanvas();
