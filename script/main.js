@@ -1,7 +1,5 @@
 // main_fixed_timeicons_v2.js - 全機能統合済み・プレイ時間修正対応版 + 改善済み + スマホ操作対応
 
-...（前略：既存コード省略）...
-
 // 追加：スマホ操作（1本指移動 + ピンチズーム）対応
 let lastTouchDist = null;
 let lastTouchMid = null;
