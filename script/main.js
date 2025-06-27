@@ -273,31 +273,11 @@ window.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  function updateTimeIcons() {
-    const template = getTemplateClass();
-    const activeKeys = [];
-    let weekdayActive = false, holidayActive = false;
+  $1
 
-    timeCheckboxes.forEach(cb => {
-      if (cb.checked) {
-        const val = cb.value;
-        const key = cb.classList.contains("weekday") ? `weekday_${val}`
-                  : cb.classList.contains("holiday") ? `holiday_${val}`
-                  : val;
-        activeKeys.push(key);
-        if (key.startsWith("weekday")) weekdayActive = true;
-        if (key.startsWith("holiday")) holidayActive = true;
-      }
-    });
-
-    if (weekdayActive) activeKeys.push("weekday");
-    if (holidayActive) activeKeys.push("holiday");
-
-    timeOtherCheckboxes.forEach(cb => {
-      if (cb.checked) activeKeys.push(cb.value);
-    });
-
-    timeImgs = activeKeys.map(key => loadOverlayImage("time_icons", key));
+  function updateDifficultyIcons() {
+    const selected = [...difficultyCheckboxes].filter(cb => cb.checked).map(cb => cb.value);
+    difficultyImgs = selected.map(key => loadOverlayImage("difficulty_icons", key));
     drawCanvas();
   }
 });
