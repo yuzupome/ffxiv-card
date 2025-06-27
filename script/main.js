@@ -162,25 +162,28 @@ function updateDifficultyIcons() {
   difficultyImgs = selected.map(key => loadOverlayImage("difficulty_icons", key));
 }
 
-document.getElementById("uploadImage").addEventListener("change", e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
-      const width = img.width * scale;
-      const height = img.height * scale;
-      const x = (canvas.width - width) / 2;
-      const y = (canvas.height - height) / 2;
-      uploadedImgState = { img, x, y, width, height, dragging: false };
-      drawCanvas();
+const uploadInput = document.getElementById("uploadImage");
+if (uploadInput) {
+  uploadInput.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+        const width = img.width * scale;
+        const height = img.height * scale;
+        const x = (canvas.width - width) / 2;
+        const y = (canvas.height - height) / 2;
+        uploadedImgState = { img, x, y, width, height, dragging: false };
+        drawCanvas();
+      };
+      img.src = reader.result;
     };
-    img.src = reader.result;
-  };
-  reader.readAsDataURL(file);
-});
+    reader.readAsDataURL(file);
+  });
+}
 
 canvas.addEventListener("mousedown", e => {
   if (!uploadedImgState) return;
