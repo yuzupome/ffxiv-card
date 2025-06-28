@@ -1,7 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (v7)
+ * FFXIV Character Card Generator Script (v8)
  *
- * アップロード画像の描画品質を向上させ、名前の描画位置を最終調整した改修版です。
+ * 名前の描画処理を改修し、長い名前がはみ出ないように自動リサイズ機能を追加。
+ * また、描画位置を正確に中央に揃えるように修正。
  */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -99,22 +100,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawNameText() {
         const name = nameInput.value;
         if (!name) return;
-        const nameArea = { x: 150, y: 150, width: 1000, height: 300 };
-        const FONT_SIZE = 200;
-        // ★座標オフセットを最終調整
-        const charWidthApproximation = FONT_SIZE * 0.5;
-        const offsetX = -4 * charWidthApproximation; // 4文字分左へ
-        const offsetY = 0.5 * FONT_SIZE; // 0.5文字分下へ
 
-        const centerX = (nameArea.x + nameArea.width / 2) + offsetX;
-        const centerY = (nameArea.y + nameArea.height / 2) + offsetY;
+        // ★名前描画エリアと最大フォントサイズを定義
+        const nameArea = { x: 150, y: 150, width: 1000, height: 300 };
+        const MAX_FONT_SIZE = 200;
+        let fontSize = MAX_FONT_SIZE;
+
+        // ★文字がエリアに収まるまでフォントサイズを小さくする
+        ctx.font = `${fontSize}px ${state.font}`;
+        while (ctx.measureText(name).width > nameArea.width && fontSize > 10) {
+            fontSize--;
+            ctx.font = `${fontSize}px ${state.font}`;
+        }
+        
+        // ★描画位置をエリアの中央に設定
+        const centerX = nameArea.x + nameArea.width / 2;
+        const centerY = nameArea.y + nameArea.height / 2;
 
         ctx.fillStyle = state.nameColor;
-        ctx.font = `${FONT_SIZE}px ${state.font}`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(name, centerX, centerY);
     }
+
 
     // --- 更新処理 ---
     async function updateAndRedraw() {
