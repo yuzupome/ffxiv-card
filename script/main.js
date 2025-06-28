@@ -1,7 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (v5)
+ * FFXIV Character Card Generator Script (v6)
  *
- * 名前の描画位置調整、アップロード画像の操作（移動・拡縮）機能を追加した改修版です。
+ * 名前の描画位置を再調整し、アップロード画像の操作が正しく機能するように
+ * イベント処理を全面的に修正した改修版です。
  */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -40,20 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 状態管理オブジェクト ---
     let state = {
-        background: null,
-        raceIcon: null, dcIcon: null, progressIcons: [], styleIcons: [],
+        background: null, raceIcon: null, dcIcon: null, progressIcons: [], styleIcons: [],
         timeIcons: [], difficultyIcons: [], mainJobIcon: null, subJobIcons: [],
         font: 'Orbitron, sans-serif', nameColor: '#ffffff'
     };
     
-    // --- ★画像操作用の状態管理 ---
+    // --- 画像操作用の状態管理 ---
     let imageTransform = {
-        img: null,
-        x: canvas.width / 2, y: canvas.height / 2,
-        scale: 1.0,
-        isDragging: false,
-        lastX: 0, lastY: 0,
-        lastTouchDistance: 0
+        img: null, x: canvas.width / 2, y: canvas.height / 2, scale: 1.0,
+        isDragging: false, lastX: 0, lastY: 0, lastTouchDistance: 0
     };
     
     // --- 画像キャッシュ ---
@@ -84,9 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function drawStretchedImage(img) {
-        if (img && img.complete && img.naturalHeight !== 0) {
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        }
+        if (img && img.complete && img.naturalHeight !== 0) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     }
     
     function drawUploadedImage() {
@@ -104,10 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!name) return;
         const nameArea = { x: 150, y: 150, width: 1000, height: 300 };
         const FONT_SIZE = 200;
-        // ★座標オフセットを定義
-        const charWidthApproximation = FONT_SIZE * 0.5; // 1文字の幅をフォントサイズの半分と仮定
-        const offsetX = -2 * charWidthApproximation; // 2文字分左へ
-        const offsetY = 0.5 * FONT_SIZE; // 0.5文字分下へ
+        // ★座標オフセットを再調整
+        const charWidthApproximation = FONT_SIZE * 0.5;
+        const offsetX = -7 * charWidthApproximation; // (2+5)文字分左へ
+        const offsetY = 1.0 * FONT_SIZE; // (0.5+0.5)文字分下へ
 
         const centerX = (nameArea.x + nameArea.width / 2) + offsetX;
         const centerY = (nameArea.y + nameArea.height / 2) + offsetY;
@@ -171,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadImage(event.target.result).then(img => {
                 if (!img) return;
                 imageTransform.img = img;
-                imageTransform.scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                imageTransform.scale = Math.min(canvas.width / img.width, canvas.height / img.height, 1);
                 imageTransform.x = canvas.width / 2;
                 imageTransform.y = canvas.height / 2;
                 drawCanvas();
@@ -184,32 +178,86 @@ document.addEventListener('DOMContentLoaded', () => {
         link.href = canvas.toDataURL('image/png'); link.click();
     });
 
-    // --- ★画像操作イベントリスナー ---
-    function getEventLocation(e) { return (e.touches && e.touches[0]) ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY }; }
-    function handleDragStart(e) { if (!imageTransform.img) return; const loc = getEventLocation(e); imageTransform.isDragging = true; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y; }
-    function handleDragMove(e) { if (!imageTransform.isDragging || !imageTransform.img) return; const loc = getEventLocation(e); imageTransform.x += loc.x - imageTransform.lastX; imageTransform.y += loc.y - imageTransform.lastY; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y; drawCanvas(); }
+    // --- ★画像操作イベントリスナー (全面改修) ---
+    function getEventLocation(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        if (e.touches && e.touches[0]) {
+            return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+        }
+        return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    }
+
+    function handleDragStart(e) {
+        if (!imageTransform.img) return;
+        const loc = getEventLocation(e);
+        imageTransform.isDragging = true;
+        imageTransform.lastX = loc.x;
+        imageTransform.lastY = loc.y;
+    }
+
+    function handleDragMove(e) {
+        if (!imageTransform.isDragging || !imageTransform.img) return;
+        const loc = getEventLocation(e);
+        const dx = loc.x - imageTransform.lastX;
+        const dy = loc.y - imageTransform.lastY;
+        imageTransform.x += dx;
+        imageTransform.y += dy;
+        imageTransform.lastX = loc.x;
+        imageTransform.lastY = loc.y;
+        drawCanvas();
+    }
+    
     function handleDragEnd() { imageTransform.isDragging = false; }
-    canvas.addEventListener('mousedown', handleDragStart);
-    canvas.addEventListener('mousemove', handleDragMove);
+
+    canvas.addEventListener('mousedown', handleDragStart, { passive: false });
+    canvas.addEventListener('mousemove', handleDragMove, { passive: false });
     canvas.addEventListener('mouseup', handleDragEnd);
     canvas.addEventListener('mouseleave', handleDragEnd);
+
     canvas.addEventListener('wheel', (e) => {
-        if (!imageTransform.img) return; e.preventDefault();
-        const newScale = imageTransform.scale * (e.deltaY < 0 ? 1.1 : 1 / 1.1);
+        if (!imageTransform.img) return;
+        e.preventDefault();
+        const scaleAmount = 1.1;
+        const newScale = e.deltaY < 0 ? imageTransform.scale * scaleAmount : imageTransform.scale / scaleAmount;
         imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
         drawCanvas();
-    });
+    }, { passive: false });
+
     canvas.addEventListener('touchstart', (e) => {
-        if (!imageTransform.img) return; e.preventDefault();
+        if (!imageTransform.img) return;
+        e.preventDefault();
         if (e.touches.length === 1) handleDragStart(e);
-        else if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy); }
-    });
+        else if (e.touches.length === 2) {
+            imageTransform.isDragging = false; // 2本指になったらドラッグは止める
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+        }
+    }, { passive: false });
+
     canvas.addEventListener('touchmove', (e) => {
-        if (!imageTransform.img) return; e.preventDefault();
-        if (e.touches.length === 1) handleDragMove(e);
-        else if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; const newDist = Math.sqrt(dx * dx + dy * dy); const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance); imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); imageTransform.lastTouchDistance = newDist; drawCanvas(); }
+        if (!imageTransform.img) return;
+        e.preventDefault();
+        if (e.touches.length === 1 && imageTransform.isDragging) handleDragMove(e);
+        else if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const newDist = Math.sqrt(dx * dx + dy * dy);
+            if(imageTransform.lastTouchDistance > 0) {
+                const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance);
+                imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
+            }
+            imageTransform.lastTouchDistance = newDist;
+            drawCanvas();
+        }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        if (e.touches.length === 0) imageTransform.isDragging = false;
+        imageTransform.lastTouchDistance = 0;
     });
-    canvas.addEventListener('touchend', (e) => { imageTransform.isDragging = false; imageTransform.lastTouchDistance = 0; });
     
     // --- 初期化 ---
     updateAndRedraw();
