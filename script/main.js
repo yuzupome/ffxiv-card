@@ -1,7 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (v16)
+ * FFXIV Character Card Generator Script (v17)
  *
- * 名前の描画座標を再測定・再定義し、正確な中央配置を実現する最終調整版。
+ * フォント読み込みを待機する処理を追加し、名前の自動リサイズ機能が
+ * 正しく動作するように修正。フォントサイズも再調整。
  */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -72,14 +73,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 描画関連関数 ---
-    function drawCanvas() {
+    async function drawCanvas() { //★非同期処理に対応
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawUploadedImage();
         drawStretchedImage(state.background);
         const allIcons = [ state.raceIcon, state.dcIcon, ...state.progressIcons, ...state.styleIcons, ...state.timeIcons, ...state.difficultyIcons, ...state.subJobIcons ];
         allIcons.forEach(icon => drawStretchedImage(icon));
         drawStretchedImage(state.mainJobIcon);
-        drawNameText();
+        await drawNameText(); //★非同期関数になったためawaitで待つ
     }
     
     function drawStretchedImage(img) {
@@ -96,13 +97,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function drawNameText() {
+    async function drawNameText() { //★非同期関数に変更
         const name = nameInput.value;
         if (!name) return;
 
-        // ★名前描画エリアの座標を再測定し、最終調整しました。
+        // ★フォントの読み込みを待つことで、正確なサイズ計算を保証する
+        try {
+            await document.fonts.load(`1em ${state.font}`);
+        } catch (e) {
+            console.error('フォントの読み込みに失敗:', e);
+            // フォントが読み込めなくても処理は続行する
+        }
+
         const nameArea = { x: 145, y: 270, width: 860, height: 120 };
-        const MAX_FONT_SIZE = 135; 
+        const MAX_FONT_SIZE = 125; // ★フォントサイズをさらに小さく調整
         let fontSize = MAX_FONT_SIZE;
 
         // 文字がエリアに収まるまでフォントサイズを自動で小さくする
@@ -112,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.font = `${fontSize}px ${state.font}`;
         }
         
-        // 描画ロジックをシンプルな中央揃えに戻して精度を向上
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
 
@@ -153,8 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
         promises.push(Promise.all(activeDifficulties.map(d => loadImage(`./assets/difficulty_icons/${prefix}_${d}.png`))).then(imgs => state.difficultyIcons = imgs.filter(Boolean)));
         const activeSubJobs = Array.from(subJobCheckboxes).filter(cb => cb.checked).map(cb => cb.value);
         promises.push(Promise.all(activeSubJobs.map(sj => loadImage(`./assets/subjob_icons/${prefix}_sub_${sj}.png`))).then(imgs => state.subJobIcons = imgs.filter(Boolean)));
+        
         await Promise.all(promises);
-        drawCanvas();
+        await drawCanvas(); //★非同期関数になったためawaitで待つ
     }
 
     // --- イベントリスナー ---
