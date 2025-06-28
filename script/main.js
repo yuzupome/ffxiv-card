@@ -193,8 +193,10 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   function loadJobImage(type, key) {
-    const folder = type === "main" ? "mainjob_icons" : "subjob_icons";
-    return loadOverlayImage(folder, `${type}_${key}`);
+  if (!key) return null;
+  const folder = type === "main" ? "mainjob_icons" : "subjob_icons";
+  return loadOverlayImage(folder, `${type}_${key}`);
+}_${key}`);
   }
 
   function getProgressImages(selected) {
@@ -238,7 +240,8 @@ window.addEventListener("DOMContentLoaded", () => {
       subJobImgs = selected.map((key) => loadJobImage("sub", key));
       progressImgs = getProgressImages(progressSelect.value);
 
-      drawCanvas();
+      setTimeout(drawCanvas, 50);
     };
+}
   }
 });
