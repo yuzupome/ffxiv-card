@@ -1,308 +1,259 @@
-// main.js - 改修版
-
+/**
+ * FFXIV Character Card Generator Script (v2)
+ *
+ * エラー耐性を高め、ロジックを単純化して安定動作を目指した改修版です。
+ */
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM要素の取得 ---
-    const canvas = document.getElementById('cardCanvas');
-    if (!canvas) {
-        console.error('Canvas element not found!');
+
+    // --- 必要なHTML要素がすべて存在するか最初に確認 ---
+    const requiredElementIds = [
+        'cardCanvas', 'nameInput', 'fontSelect', 'uploadImage', 'templateButtons',
+        'raceSelect', 'dcSelect', 'progressSelect', 'styleButtons', 'playtimeOptions',
+        'difficultyOptions', 'mainjobSelect', 'subjobSection', 'downloadBtn'
+    ];
+
+    let allElementsExist = true;
+    requiredElementIds.forEach(id => {
+        if (!document.getElementById(id)) {
+            console.error(`必須要素が見つかりません: #${id}`);
+            allElementsExist = false;
+        }
+    });
+
+    if (!allElementsExist) {
+        alert('ページの初期化に失敗しました。HTMLの要素が不足しています。');
         return;
     }
+
+    // --- DOM要素の取得 ---
+    const canvas = document.getElementById('cardCanvas');
     const ctx = canvas.getContext('2d');
     canvas.width = 3750;
     canvas.height = 2250;
 
     const nameInput = document.getElementById('nameInput');
     const fontSelect = document.getElementById('fontSelect');
+    const uploadImageInput = document.getElementById('uploadImage');
+    const templateButtons = document.querySelectorAll('#templateButtons button');
     const raceSelect = document.getElementById('raceSelect');
     const dcSelect = document.getElementById('dcSelect');
     const progressSelect = document.getElementById('progressSelect');
-    const mainJobSelect = document.getElementById('mainJobSelect');
-    const uploadImageInput = document.getElementById('uploadImage');
-    const templateButtons = document.querySelectorAll('#templateButtons button');
     const styleButtons = document.querySelectorAll('#styleButtons button');
     const playtimeCheckboxes = document.querySelectorAll('#playtimeOptions input[type="checkbox"]');
     const difficultyCheckboxes = document.querySelectorAll('#difficultyOptions input[type="checkbox"]');
+    const mainJobSelect = document.getElementById('mainjobSelect');
     const subJobCheckboxes = document.querySelectorAll('#subjobSection input[type="checkbox"]');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // --- 状態管理用の変数 ---
-    let backgroundImg = null;
-    let uploadedImgState = null;
-    let selectedFont = 'Orbitron, sans-serif';
-    let raceImg = null;
-    let dcImg = null;
-    let progressImgs = [];
-    let styleImgs = [];
-    let timeImgs = [];
-    let difficultyImgs = [];
-    let mainJobImg = null;
-    let subJobImgs = [];
-    let nameColor = '#000000'; // デフォルトは黒
+    // --- 状態管理 ---
+    let state = {
+        background: null,
+        uploadedImage: null,
+        raceIcon: null,
+        dcIcon: null,
+        progressIcons: [],
+        styleIcons: [],
+        timeIcons: [],
+        difficultyIcons: [],
+        mainJobIcon: null,
+        subJobIcons: [],
+        font: 'Orbitron, sans-serif',
+        nameColor: '#ffffff'
+    };
 
-    // --- 関数定義 ---
+    // --- 画像読み込み管理 ---
+    const imageCache = {};
 
-    // テンプレート（黒背景/白背景）の切り替え
-    function switchTemplate(templateName) {
-        document.body.className = ''; // いったんクラスをリセット
-        document.body.classList.add(templateName);
-        nameColor = (templateName === 'template-gothic-white') ? '#000000' : '#ffffff';
+    function loadImage(path) {
+        if (imageCache[path]) {
+            return imageCache[path];
+        }
+
+        const promise = new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => {
+                // エラーになった画像は読み込み失敗として扱う
+                console.warn(`画像の読み込みに失敗しました: ${path}`);
+                resolve(null); 
+            };
+            img.src = path;
+        });
+        
+        imageCache[path] = promise;
+        return promise;
     }
 
-    // テンプレートのプレフィックスを取得（画像パス用）
-    function getTemplatePrefix() {
-        return document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
-    }
 
-    // 画像を非同期で読み込む関数
-    function preloadIcon(path, callback) {
-        const img = new Image();
-        img.src = path;
-        img.onload = () => {
-            if (callback) callback(img);
-            drawCanvas(); // 画像読み込み完了後に再描画
-        };
-        img.onerror = () => {
-            console.error(`Failed to load image: ${path}`);
-        };
-        return img;
-    }
-    
-    // キャンバス全体を再描画するメイン関数
+    // --- 描画関連 ---
+
+    /**
+     * キャンバス全体を現在のstateに基づいて再描画する
+     */
     function drawCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 1. ユーザーがアップロードした画像を描画
-        if (uploadedImgState) {
-            const { img, x, y, width, height } = uploadedImgState;
-            ctx.drawImage(img, x, y, width, height);
-        }
-
-        // 2. 背景テンプレートを描画
-        if (backgroundImg) {
-            ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
-        }
+        // 描画順: 1.アップロード画像 -> 2.背景 -> 3.アイコン類 -> 4.名前
         
-        // 3. アイコン群を描画
-        // 配列を結合して一度にループ処理
-        [raceImg, dcImg, ...progressImgs, ...styleImgs, ...timeImgs, ...difficultyImgs, ...subJobImgs].forEach(img => {
-            if (img) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        });
+        // 1. アップロード画像
+        drawSpecificImage(state.uploadedImage);
 
-        // 4. メインジョブのアイコンを最前面に描画
-        if (mainJobImg) {
-            ctx.drawImage(mainJobImg, 0, 0, canvas.width, canvas.height);
-        }
+        // 2. 背景
+        drawSpecificImage(state.background);
+        
+        // 3. アイコン（メインジョブ以外）
+        const allIcons = [
+            state.raceIcon,
+            state.dcIcon,
+            ...state.progressIcons,
+            ...state.styleIcons,
+            ...state.timeIcons,
+            ...state.difficultyIcons,
+            ...state.subJobIcons
+        ];
+        allIcons.forEach(icon => drawSpecificImage(icon));
+        
+        // 3.5. メインジョブアイコンは最前面に
+        drawSpecificImage(state.mainJobIcon);
 
-        // 5. キャラクター名を描画
+        // 4. 名前
         drawNameText();
     }
-    
-    // 名前を描画する関数（★不足していたため追加）
+
+    /**
+     * 安全に画像を描画するヘルパー関数
+     * @param {HTMLImageElement} img - 描画する画像オブジェクト
+     */
+    function drawSpecificImage(img) {
+        // 画像がnullでなく、正常に読み込み完了している場合のみ描画
+        if (img && img.complete && img.naturalHeight !== 0) {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    /**
+     * 名前を描画する
+     */
     function drawNameText() {
         const name = nameInput.value;
         if (!name) return;
 
-        ctx.fillStyle = nameColor;
-        ctx.font = `200px ${selectedFont}`;
+        ctx.fillStyle = state.nameColor;
+        ctx.font = `200px ${state.font}`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // 描画位置をCSS変数から取得（なければデフォルト値）
-        const x = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-x') || '1875', 10);
-        const y = parseInt(getComputedStyle(document.body).getPropertyValue('--name-area-y') || '300', 10);
+        const x = 1875; // Canvas幅の半分
+        const y = 300;  // 固定Y座標
         
         ctx.fillText(name, x, y);
     }
-    
-    // 各種更新関数
-    function updateAllIcons() {
-        updateRace();
-        updateDc();
-        updateProgress();
-        updatePlayStyle();
-        updatePlayTime();
-        updateDifficulty();
-        updateMainJob();
-        updateSubJobs();
-        drawCanvas();
-    }
 
-    function updateRace() {
-        const val = raceSelect.value;
-        if (!val) { raceImg = null; return; }
-        const base = getTemplatePrefix();
-        // ★パスを相対パスに修正
-        raceImg = preloadIcon(`./assets/race_icons/${base}_${val}.png`);
-    }
 
-    function updateDc() {
-        const val = dcSelect.value;
-        if (!val) { dcImg = null; return; }
-        const base = getTemplatePrefix();
-        dcImg = preloadIcon(`./assets/dc_icons/${base}_${val}.png`);
-    }
-    
-    function updateProgress() {
-        const value = progressSelect?.value;
-        const base = getTemplatePrefix();
-        progressImgs = [];
-        if (!value) { drawCanvas(); return; }
+    // --- 更新処理 ---
 
-        const add = (name) => progressImgs.push(preloadIcon(`./assets/progress_icons/${base}_${name}.png`));
-        const stages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
+    /**
+     * すべての入力状態を読み取り、stateを更新して再描画する
+     */
+    async function updateAndRedraw() {
+        const prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+        state.nameColor = (prefix === 'Gothic_white') ? '#000000' : '#ffffff';
+        state.font = fontSelect.value;
         
-        if (value === 'all_clear') {
-            [...stages, 'all_clear'].forEach(add);
-        } else {
-            const index = stages.indexOf(value);
-            if (index !== -1) stages.slice(0, index + 1).forEach(add);
+        // 各アイコンの読み込みを並行して行う
+        const promises = [
+            // 背景
+            loadImage(`./assets/backgrounds/${prefix}.png`).then(img => state.background = img),
+            // 種族
+            raceSelect.value ? loadImage(`./assets/race_icons/${prefix}_${raceSelect.value}.png`).then(img => state.raceIcon = img) : (state.raceIcon = null),
+            // DC
+            dcSelect.value ? loadImage(`./assets/dc_icons/${prefix}_${dcSelect.value}.png`).then(img => state.dcIcon = img) : (state.dcIcon = null),
+            // メインジョブ
+            mainJobSelect.value ? loadImage(`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.png`).then(img => state.mainJobIcon = img) : (state.mainJobIcon = null),
+        ];
+
+        // 進行度 (複数の可能性)
+        const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
+        const selectedProgress = progressSelect.value;
+        let progressToLoad = [];
+        if (selectedProgress) {
+            if (selectedProgress === 'all_clear') {
+                progressToLoad = [...progressStages, 'all_clear'];
+            } else {
+                progressToLoad = progressStages.slice(0, progressStages.indexOf(selectedProgress) + 1);
+            }
         }
-    }
-
-    function updatePlayStyle() {
-        const base = getTemplatePrefix();
-        styleImgs = [];
-        document.querySelectorAll('#styleButtons button.active').forEach(btn => {
-            const key = btn.dataset.value;
-            styleImgs.push(preloadIcon(`./assets/style_icons/${base}_${key}.png`));
-        });
-        drawCanvas();
-    }
-    
-    function updatePlayTime() {
-        const base = getTemplatePrefix();
-        timeImgs = [];
-        const checkedTimes = document.querySelectorAll('#playtimeOptions input:checked');
-        let hasWeekday = false;
-        let hasHoliday = false;
-
-        checkedTimes.forEach(input => {
-            const key = input.value;
-            // weekday_morning, holiday_night のような詳細アイコン
-            timeImgs.push(preloadIcon(`./assets/time_icons/${base}_${input.className}_${key}.png`));
-            if (input.classList.contains('weekday')) hasWeekday = true;
-            if (input.classList.contains('holiday')) hasHoliday = true;
-        });
+        promises.push(Promise.all(progressToLoad.map(p => loadImage(`./assets/progress_icons/${prefix}_${p}.png`))).then(imgs => state.progressIcons = imgs.filter(Boolean)));
         
-        // 平日・休日の総称アイコン
-        if (hasWeekday) timeImgs.push(preloadIcon(`./assets/time_icons/${base}_weekday.png`));
-        if (hasHoliday) timeImgs.push(preloadIcon(`./assets/time_icons/${base}_holiday.png`));
+        // プレイスタイル (複数選択)
+        const activeStyles = Array.from(styleButtons).filter(btn => btn.classList.contains('active')).map(btn => btn.dataset.value);
+        promises.push(Promise.all(activeStyles.map(s => loadImage(`./assets/style_icons/${prefix}_${s}.png`))).then(imgs => state.styleIcons = imgs.filter(Boolean)));
+
+        // プレイ時間 (ロジックを単純化)
+        const timeToLoad = [];
+        if (Array.from(playtimeCheckboxes).some(cb => cb.classList.contains('weekday') && cb.checked)) timeToLoad.push('weekday');
+        if (Array.from(playtimeCheckboxes).some(cb => cb.classList.contains('holiday') && cb.checked)) timeToLoad.push('holiday');
+        if (Array.from(playtimeCheckboxes).some(cb => cb.classList.contains('other') && cb.checked)) {
+            Array.from(playtimeCheckboxes).filter(cb => cb.classList.contains('other') && cb.checked).forEach(cb => timeToLoad.push(cb.value));
+        }
+        promises.push(Promise.all(timeToLoad.map(t => loadImage(`./assets/time_icons/${prefix}_${t}.png`))).then(imgs => state.timeIcons = imgs.filter(Boolean)));
+
+        // 高難易度 (複数選択)
+        const activeDifficulties = Array.from(difficultyCheckboxes).filter(cb => cb.checked).map(cb => cb.value);
+        promises.push(Promise.all(activeDifficulties.map(d => loadImage(`./assets/difficulty_icons/${prefix}_${d}.png`))).then(imgs => state.difficultyIcons = imgs.filter(Boolean)));
         
+        // サブジョブ (複数選択)
+        const activeSubJobs = Array.from(subJobCheckboxes).filter(cb => cb.checked).map(cb => cb.value);
+        promises.push(Promise.all(activeSubJobs.map(sj => loadImage(`./assets/subjob_icons/${prefix}_sub_${sj}.png`))).then(imgs => state.subJobIcons = imgs.filter(Boolean)));
+
+        // すべての画像読み込みが終わったら、一度だけ描画する
+        await Promise.all(promises);
         drawCanvas();
     }
+
+    // --- イベントリスナーの設定 ---
     
-    function updateDifficulty() {
-        const base = getTemplatePrefix();
-        difficultyImgs = [];
-        document.querySelectorAll('#difficultyOptions input:checked').forEach(input => {
-            difficultyImgs.push(preloadIcon(`./assets/difficulty_icons/${base}_${input.value}.png`));
+    // テキストやセレクトボックスの変更
+    [nameInput, fontSelect, raceSelect, dcSelect, progressSelect, mainJobSelect].forEach(el => {
+        el.addEventListener('input', updateAndRedraw);
+    });
+
+    // ボタンやチェックボックスのクリック/変更
+    [...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes, ...subJobCheckboxes].forEach(el => {
+        el.addEventListener('click', (e) => {
+            if (e.currentTarget.type === 'button') {
+                e.currentTarget.classList.toggle('active');
+            }
+            updateAndRedraw();
         });
-        drawCanvas();
-    }
-    
-    function updateMainJob() {
-        const key = mainJobSelect.value;
-        if (!key) { mainJobImg = null; drawCanvas(); return; }
-        const base = getTemplatePrefix();
-        mainJobImg = preloadIcon(`./assets/mainjob_icons/${base}_main_${key}.png`);
-    }
+    });
 
-    function updateSubJobs() {
-        const base = getTemplatePrefix();
-        subJobImgs = [];
-        document.querySelectorAll('#subjobSection input:checked').forEach(input => {
-            subJobImgs.push(preloadIcon(`./assets/subjob_icons/${base}_sub_${input.value}.png`));
-        });
-        drawCanvas();
-    }
-
-
-    // --- イベントリスナーの設定 (★不足していたため大幅に追加) ---
-    
-    // テンプレート切り替えボタン
+    // テンプレートの切り替え
     templateButtons.forEach(button => {
         button.addEventListener('click', () => {
-            const bgPath = button.dataset.bg.replace('/ffxiv-card', '.'); // パスを修正
-            const templateClass = button.dataset.class;
-            
-            switchTemplate(templateClass);
-            backgroundImg = preloadIcon(bgPath, updateAllIcons); // 背景読み込み後に全アイコンを更新
-        });
-    });
-
-    // プレイスタイルボタン
-    styleButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            button.classList.toggle('active');
-            updatePlayStyle();
+            document.body.className = button.dataset.class;
+            updateAndRedraw();
         });
     });
     
-    // 各種チェックボックス
-    playtimeCheckboxes.forEach(cb => cb.addEventListener('change', updatePlayTime));
-    difficultyCheckboxes.forEach(cb => cb.addEventListener('change', updateDifficulty));
-    subJobCheckboxes.forEach(cb => cb.addEventListener('change', updateSubJobs));
-    
-    // 各種セレクトボックス
-    raceSelect.addEventListener('change', () => { updateRace(); drawCanvas(); });
-    dcSelect.addEventListener('change', () => { updateDc(); drawCanvas(); });
-    progressSelect.addEventListener('change', () => { updateProgress(); drawCanvas(); });
-    mainJobSelect.addEventListener('change', () => { updateMainJob(); drawCanvas(); });
-    fontSelect.addEventListener('change', () => {
-        selectedFont = fontSelect.value;
-        document.documentElement.style.setProperty('--selected-font', selectedFont);
-        drawCanvas();
-    });
-
-    // 名前入力
-    nameInput.addEventListener('input', drawCanvas);
-
     // 画像アップロード
     uploadImageInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        
         const reader = new FileReader();
         reader.onload = (event) => {
-            const img = new Image();
-            img.onload = () => {
-                // キャンバスに合うように画像のサイズと位置を計算
-                const canvasAspect = canvas.width / canvas.height;
-                const imgAspect = img.width / img.height;
-                let sx, sy, sWidth, sHeight;
-
-                if (imgAspect > canvasAspect) { // 画像が横長
-                    sHeight = img.height;
-                    sWidth = sHeight * canvasAspect;
-                    sx = (img.width - sWidth) / 2;
-                    sy = 0;
-                } else { // 画像が縦長
-                    sWidth = img.width;
-                    sHeight = sWidth / canvasAspect;
-                    sx = 0;
-                    sy = (img.height - sHeight) / 2;
-                }
-                
-                // 新しいキャンバスにトリミングして描画
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = canvas.width;
-                tempCanvas.height = canvas.height;
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
-
-                // 描画したものを新しい画像として状態を保存
-                const finalImage = new Image();
-                finalImage.onload = () => {
-                    uploadedImgState = { img: finalImage, x: 0, y: 0, width: canvas.width, height: canvas.height };
+            loadImage(event.target.result).then(img => {
+                if(img) {
+                    state.uploadedImage = img;
                     drawCanvas();
-                };
-                finalImage.src = tempCanvas.toDataURL();
-            };
-            img.src = event.target.result;
+                }
+            });
         };
         reader.readAsDataURL(file);
     });
 
-    // ダウンロードボタン
+    // ダウンロード
     downloadBtn.addEventListener('click', () => {
         const link = document.createElement('a');
         link.download = 'ffxiv_character_card.png';
@@ -310,9 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
     });
 
-    // --- 初期化処理 ---
-    // 最初に黒背景をデフォルトとして読み込む
-    const defaultBgPath = './assets/backgrounds/Gothic_black.png';
-    switchTemplate('template-gothic-black');
-    backgroundImg = preloadIcon(defaultBgPath, drawCanvas);
+    // --- 初期化 ---
+    updateAndRedraw();
 });
