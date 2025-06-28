@@ -1,4 +1,4 @@
-// main.js - DOMContentLoaded で完全ラップ済みバージョン
+// ✅ main.js - 完全統合バージョン（main (4).js ベース + 不具合修正済）
 
 window.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("cardCanvas");
@@ -29,228 +29,196 @@ window.addEventListener("DOMContentLoaded", () => {
   const difficultyCheckboxes = document.querySelectorAll(".difficulty-checkbox, .difficulty");
   const mainJobSelect = document.getElementById("mainJobSelect");
   const subJobCheckboxes = document.querySelectorAll(".subjob-checkbox, .subjob");
+  const templateButtons = document.querySelectorAll("#templateButtons button");
+  const uploadImageInput = document.getElementById("uploadImage");
+  const downloadBtn = document.getElementById("downloadBtn");
 
   fontSelect?.addEventListener("change", () => {
     selectedFont = fontSelect.value;
-    document.documentElement.style.setProperty("--selected-font", selectedFont);
     drawCanvas();
-    setTemplateBackground("/ffxiv-card/assets/backgrounds/Gothic_black.png", "template-gothic-black");
   });
 
   nameInput?.addEventListener("input", drawCanvas);
 
+  uploadImageInput?.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        uploadedImgState = {
+          img,
+          x: canvas.width / 2 - img.width / 2,
+          y: canvas.height / 2 - img.height / 2,
+          width: img.width,
+          height: img.height,
+        };
+        drawCanvas();
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  let dragging = false;
+  let dragOffsetX, dragOffsetY;
+  canvas.addEventListener("mousedown", (e) => {
+    if (!uploadedImgState) return;
+    dragging = true;
+    dragOffsetX = e.offsetX - uploadedImgState.x;
+    dragOffsetY = e.offsetY - uploadedImgState.y;
+  });
+  canvas.addEventListener("mousemove", (e) => {
+    if (!dragging || !uploadedImgState) return;
+    uploadedImgState.x = e.offsetX - dragOffsetX;
+    uploadedImgState.y = e.offsetY - dragOffsetY;
+    drawCanvas();
+  });
+  canvas.addEventListener("mouseup", () => {
+    dragging = false;
+  });
+  canvas.addEventListener("wheel", (e) => {
+    if (!uploadedImgState) return;
+    const scale = e.deltaY < 0 ? 1.05 : 0.95;
+    uploadedImgState.width *= scale;
+    uploadedImgState.height *= scale;
+    drawCanvas();
+  });
+  canvas.addEventListener("touchstart", (e) => {
+    if (!uploadedImgState || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    dragging = true;
+    dragOffsetX = touch.clientX - rect.left - uploadedImgState.x;
+    dragOffsetY = touch.clientY - rect.top - uploadedImgState.y;
+  });
+  canvas.addEventListener("touchmove", (e) => {
+    if (!dragging || !uploadedImgState || e.touches.length !== 1) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    uploadedImgState.x = touch.clientX - rect.left - dragOffsetX;
+    uploadedImgState.y = touch.clientY - rect.top - dragOffsetY;
+    drawCanvas();
+  });
+  canvas.addEventListener("touchend", () => {
+    dragging = false;
+  });
+
+  templateButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const path = btn.dataset.bg;
+      const templateClass = btn.dataset.class;
+      setTemplateBackground(path, templateClass);
+    });
+  });
+
+  downloadBtn?.addEventListener("click", () => {
+    const link = document.createElement("a");
+    link.download = "character_card.png";
+    link.href = canvas.toDataURL();
+    link.click();
+  });
+
   raceSelect?.addEventListener("change", () => {
-    const race = raceSelect.value;
-    raceImg = race ? loadOverlayImage("race_icons", race) : null;
+    raceImg = loadOverlayImage("race_icons", raceSelect.value);
+    drawCanvas();
   });
 
   dcSelect?.addEventListener("change", () => {
-    const dc = dcSelect.value;
-    dcImg = dc ? loadOverlayImage("dc_icons", dc) : null;
+    dcImg = loadOverlayImage("dc_icons", dcSelect.value);
+    drawCanvas();
   });
 
   progressSelect?.addEventListener("change", () => {
-    const selected = progressSelect.value;
-    const values = selected === "all_clear"
-      ? ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon", "all_clear"]
-      : selected === "ougon" ? ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon"]
-      : selected === "gyougetsu" ? ["shinsei", "souten", "guren", "shikkoku", "gyougetsu"]
-      : selected === "shikkoku" ? ["shinsei", "souten", "guren", "shikkoku"]
-      : selected === "guren" ? ["shinsei", "souten", "guren"]
-      : selected === "souten" ? ["shinsei", "souten"]
-      : selected === "shinsei" ? ["shinsei"]
-      : [];
-    progressImgs = values.map(val => loadOverlayImage("progress_icons", val));
+    progressImgs = getProgressImages(progressSelect.value);
+    drawCanvas();
   });
 
-  styleButtons.forEach(btn => {
+  styleButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       btn.classList.toggle("active");
       updatePlaystyleImages();
     });
   });
 
-  timeCheckboxes.forEach(cb => cb.addEventListener("change", updateTimeIcons));
-  timeOtherCheckboxes.forEach(cb => cb.addEventListener("change", updateTimeIcons));
-  difficultyCheckboxes.forEach(cb => cb.addEventListener("change", updateDifficultyIcons));
+  timeCheckboxes.forEach((cb) => cb.addEventListener("change", updateTimeIcons));
+  timeOtherCheckboxes.forEach((cb) => cb.addEventListener("change", updateTimeIcons));
+  difficultyCheckboxes.forEach((cb) => cb.addEventListener("change", updateDifficultyIcons));
 
   mainJobSelect?.addEventListener("change", () => {
-    const key = mainJobSelect.value;
-    mainJobImg = key ? loadJobImage("main", key) : null;
+    mainJobImg = loadJobImage("main", mainJobSelect.value);
+    drawCanvas();
   });
 
-  subJobCheckboxes.forEach(cb => {
+  subJobCheckboxes.forEach((cb) => {
     cb.addEventListener("change", () => {
-      const selected = [...subJobCheckboxes].filter(c => c.checked).map(c => c.value);
-      subJobImgs = selected.map(key => loadJobImage("sub", key));
-    });
-  });
-
-  const uploadInput = document.getElementById("uploadImage");
-  if (uploadInput) {
-    uploadInput.addEventListener("change", e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = new Image();
-        img.onload = () => {
-          const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
-          const width = img.width * scale;
-          const height = img.height * scale;
-          const x = (canvas.width - width) / 2;
-          const y = (canvas.height - height) / 2;
-          uploadedImgState = { img, x, y, width, height, dragging: false };
-          drawCanvas();
-        };
-        img.src = reader.result;
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  canvas.addEventListener("mousedown", e => {
-    if (!uploadedImgState) return;
-    uploadedImgState.dragging = true;
-    uploadedImgState.offsetX = e.offsetX - uploadedImgState.x;
-    uploadedImgState.offsetY = e.offsetY - uploadedImgState.y;
-  });
-
-  canvas.addEventListener("mousemove", e => {
-    if (uploadedImgState?.dragging) {
-      uploadedImgState.x = e.offsetX - uploadedImgState.offsetX;
-      uploadedImgState.y = e.offsetY - uploadedImgState.offsetY;
+      const selected = [...subJobCheckboxes].filter((c) => c.checked).map((c) => c.value);
+      subJobImgs = selected.map((key) => loadJobImage("sub", key));
       drawCanvas();
-    }
+    });
   });
 
-  canvas.addEventListener("mouseup", () => {
-    if (uploadedImgState) uploadedImgState.dragging = false;
-  });
-
-  canvas.addEventListener("wheel", e => {
+  function drawCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (backgroundImg) ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
     if (uploadedImgState) {
-      const delta = e.deltaY > 0 ? -0.05 : 0.05;
-      uploadedImgState.width *= 1 + delta;
-      uploadedImgState.height *= 1 + delta;
-      uploadedImgState.x -= (uploadedImgState.width * delta) / 2;
-      uploadedImgState.y -= (uploadedImgState.height * delta) / 2;
-      drawCanvas();
+      ctx.drawImage(uploadedImgState.img, uploadedImgState.x, uploadedImgState.y, uploadedImgState.width, uploadedImgState.height);
     }
-  });
-
-  let lastTouchDist = null;
-  canvas.addEventListener("touchstart", e => {
-    if (!uploadedImgState) return;
-    if (e.touches.length === 1) {
-      const touch = e.touches[0];
-      uploadedImgState.dragging = true;
-      uploadedImgState.offsetX = touch.clientX - uploadedImgState.x;
-      uploadedImgState.offsetY = touch.clientY - uploadedImgState.y;
-    } else if (e.touches.length === 2) {
-      lastTouchDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-    }
-  });
-
-  canvas.addEventListener("touchmove", e => {
-    if (!uploadedImgState) return;
-    if (e.touches.length === 1 && uploadedImgState.dragging) {
-      const touch = e.touches[0];
-      uploadedImgState.x = touch.clientX - uploadedImgState.offsetX;
-      uploadedImgState.y = touch.clientY - uploadedImgState.offsetY;
-      drawCanvas();
-    } else if (e.touches.length === 2) {
-      const currentDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      const delta = currentDist / lastTouchDist;
-      uploadedImgState.width *= delta;
-      uploadedImgState.height *= delta;
-      uploadedImgState.x -= (uploadedImgState.width * (delta - 1)) / 2;
-      uploadedImgState.y -= (uploadedImgState.height * (delta - 1)) / 2;
-      lastTouchDist = currentDist;
-      drawCanvas();
-    }
-    e.preventDefault();
-  });
-
-  canvas.addEventListener("touchend", () => {
-    if (uploadedImgState) uploadedImgState.dragging = false;
-    lastTouchDist = null;
-  });
-
-  document.getElementById("downloadBtn")?.addEventListener("click", () => {
-    const link = document.createElement("a");
-    link.download = "ffxiv_card.png";
-    link.href = canvas.toDataURL();
-    link.click();
-  });
-
-  document.getElementById("templateButtons")?.addEventListener("click", e => {
-    if (e.target.tagName === "BUTTON") {
-      const bg = e.target.dataset.bg;
-      const className = e.target.dataset.class;
-      if (bg && className) setTemplateBackground(bg, className);
-    }
-  });
-
-  function loadOverlayImage(dir, key) {
-    const template = getTemplateClass();
-    const img = new Image();
-    img.src = `/ffxiv-card/assets/${dir}/Gothic_${template}_${key}.png`;
-    img.onload = drawCanvas;
-    img.onerror = () => console.warn(`画像の読み込みに失敗しました: ${img.src}`);
-    return img;
+    [raceImg, dcImg, ...progressImgs, ...playstyleImgs, ...timeImgs, ...difficultyImgs, mainJobImg, ...subJobImgs]
+      .filter(Boolean)
+      .forEach((img) => ctx.drawImage(img, 0, 0, canvas.width, canvas.height));
+    drawNameText();
   }
 
-  function loadJobImage(type, key) {
-    const template = getTemplateClass();
-    const dir = type === "main" ? "mainjob_icons" : "subjob_icons";
-    const prefix = type === "main" ? "main" : "sub";
-    const img = new Image();
-    img.src = `/ffxiv-card/assets/${dir}/Gothic_${template}_${prefix}_${key}.png`;
-    img.onload = drawCanvas;
-    img.onerror = () => console.warn(`画像の読み込みに失敗しました: ${img.src}`);
-    return img;
+  function drawNameText() {
+    if (!nameInput?.value) return;
+    ctx.font = `150px ${selectedFont}`;
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(nameInput.value, canvas.width / 2 - 100, canvas.height / 2);
   }
 
   function getTemplateClass() {
     return document.body.classList.contains("template-gothic-white") ? "white" : "black";
   }
 
-  function drawCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (uploadedImgState) {
-      const { img, x, y, width, height } = uploadedImgState;
-      ctx.drawImage(img, x, y, width, height);
-    }
-    if (backgroundImg) {
-      ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
-    }
-    [raceImg, dcImg, ...progressImgs, ...playstyleImgs, ...timeImgs, ...difficultyImgs, mainJobImg, ...subJobImgs]
-      .filter(Boolean)
-      .forEach(img => ctx.drawImage(img, 0, 0, canvas.width, canvas.height));
-    drawNameText();
+  function loadOverlayImage(folder, key) {
+    const template = getTemplateClass();
+    const img = new Image();
+    img.src = `/ffxiv-card/assets/${folder}/Gothic_${template}_${key}.png`;
+    return img;
   }
 
-  function drawNameText() {
-    const name = nameInput.value;
-    if (!name) return;
-    const x = parseInt(getComputedStyle(document.body).getPropertyValue("--name-area-x"));
-    const y = parseInt(getComputedStyle(document.body).getPropertyValue("--name-area-y"));
-    const width = parseInt(getComputedStyle(document.body).getPropertyValue("--name-area-width"));
-    const height = parseInt(getComputedStyle(document.body).getPropertyValue("--name-area-height"));
-    const color = getComputedStyle(document.body).getPropertyValue("--name-color").trim();
-    const fontSize = Math.floor(height * 0.5);
-    ctx.font = `${fontSize}px ${selectedFont}`;
-    ctx.fillStyle = color;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(name, x + width / 2, y + height / 2);
+  function loadJobImage(type, key) {
+    const folder = type === "main" ? "mainjob_icons" : "subjob_icons";
+    return loadOverlayImage(folder, `${type}_${key}`);
+  }
+
+  function getProgressImages(selected) {
+    const levels = ["shinsei", "souten", "guren", "shikkoku", "gyougetsu", "ougon", "all_clear"];
+    const index = levels.indexOf(selected);
+    return index >= 0 ? levels.slice(0, index + 1).map((key) => loadOverlayImage("progress_icons", key)) : [];
+  }
+
+  function updatePlaystyleImages() {
+    const selected = [...styleButtons].filter((btn) => btn.classList.contains("active")).map((btn) => btn.dataset.value);
+    playstyleImgs = selected.map((key) => loadOverlayImage("style_icons", key));
+    drawCanvas();
+  }
+
+  function updateTimeIcons() {
+    const selected = [...timeCheckboxes, ...timeOtherCheckboxes].filter((cb) => cb.checked).map((cb) => cb.value);
+    timeImgs = selected.map((key) => loadOverlayImage("time_icons", key));
+    drawCanvas();
+  }
+
+  function updateDifficultyIcons() {
+    const selected = [...difficultyCheckboxes].filter((cb) => cb.checked).map((cb) => cb.value);
+    difficultyImgs = selected.map((key) => loadOverlayImage("difficulty_icons", key));
+    drawCanvas();
   }
 
   function setTemplateBackground(path, templateClass) {
@@ -258,59 +226,19 @@ window.addEventListener("DOMContentLoaded", () => {
     backgroundImg.src = path;
     backgroundImg.onload = () => {
       document.body.className = templateClass;
+
       updatePlaystyleImages();
       updateTimeIcons();
       updateDifficultyIcons();
-      const race = raceSelect.value;
-      raceImg = race ? loadOverlayImage("race_icons", race) : null;
-      const dc = dcSelect.value;
-      dcImg = dc ? loadOverlayImage("dc_icons", dc) : null;
-      const mainJob = mainJobSelect ? mainJobSelect.value : null;
-      mainJobImg = mainJob ? loadJobImage("main", mainJob) : null;
-      const selectedSub = [...subJobCheckboxes].filter(c => c.checked).map(c => c.value);
-      subJobImgs = selectedSub.map(key => loadJobImage("sub", key));
+
+      raceImg = loadOverlayImage("race_icons", raceSelect.value);
+      dcImg = loadOverlayImage("dc_icons", dcSelect.value);
+      mainJobImg = loadJobImage("main", mainJobSelect.value);
+      const selected = [...subJobCheckboxes].filter((c) => c.checked).map((c) => c.value);
+      subJobImgs = selected.map((key) => loadJobImage("sub", key));
+      progressImgs = getProgressImages(progressSelect.value);
+
       drawCanvas();
     };
-  }
-
-  function updateTimeIcons() {
-    const template = getTemplateClass();
-    const activeKeys = [];
-    let weekdayActive = false, holidayActive = false;
-
-    timeCheckboxes.forEach(cb => {
-      if (cb.checked) {
-        const val = cb.value;
-        const key = cb.classList.contains("weekday") ? `weekday_${val}`
-                  : cb.classList.contains("holiday") ? `holiday_${val}`
-                  : val;
-        activeKeys.push(key);
-        if (key.startsWith("weekday")) weekdayActive = true;
-        if (key.startsWith("holiday")) holidayActive = true;
-      }
-    });
-
-    if (weekdayActive) activeKeys.push("weekday");
-    if (holidayActive) activeKeys.push("holiday");
-
-    timeOtherCheckboxes.forEach(cb => {
-      if (cb.checked) activeKeys.push(cb.value);
-    });
-
-    timeImgs = activeKeys.map(key => loadOverlayImage("time_icons", key));
-    drawCanvas();
-  }
-
-  function updatePlaystyleImages() {
-    const selected = [...styleButtons].filter(btn => btn.classList.contains("active"))
-      .map(btn => btn.dataset.value?.trim()).filter(Boolean);
-    playstyleImgs = selected.map(key => loadOverlayImage("style_icons", key));
-    drawCanvas();
-  }
-
-  function updateDifficultyIcons() {
-    const selected = [...difficultyCheckboxes].filter(cb => cb.checked).map(cb => cb.value);
-    difficultyImgs = selected.map(key => loadOverlayImage("difficulty_icons", key));
-    drawCanvas();
   }
 });
