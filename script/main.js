@@ -1,5 +1,5 @@
 /**
- * FFXIV Character Card Generator Script (v8)
+ * FFXIV Character Card Generator Script (v9)
  *
  * 名前の描画処理を改修し、長い名前がはみ出ないように自動リサイズ機能を追加。
  * また、描画位置を正確に中央に揃えるように修正。
@@ -101,19 +101,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = nameInput.value;
         if (!name) return;
 
-        // ★名前描画エリアと最大フォントサイズを定義
-        const nameArea = { x: 150, y: 150, width: 1000, height: 300 };
-        const MAX_FONT_SIZE = 200;
+        // ★名前描画エリアの座標を背景画像に合わせて再調整
+        const nameArea = { x: 150, y: 350, width: 950, height: 120 };
+        const MAX_FONT_SIZE = 150; // 最大フォントサイズもエリアに合わせて調整
         let fontSize = MAX_FONT_SIZE;
 
-        // ★文字がエリアに収まるまでフォントサイズを小さくする
+        // ★文字がエリアの幅に収まるまでフォントサイズを自動で小さくする
         ctx.font = `${fontSize}px ${state.font}`;
         while (ctx.measureText(name).width > nameArea.width && fontSize > 10) {
             fontSize--;
             ctx.font = `${fontSize}px ${state.font}`;
         }
         
-        // ★描画位置をエリアの中央に設定
+        // ★描画位置をエリアの正確な中央に設定
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
 
