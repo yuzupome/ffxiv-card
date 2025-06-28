@@ -1,8 +1,7 @@
 /**
- * FFXIV Character Card Generator Script (v6)
+ * FFXIV Character Card Generator Script (v7)
  *
- * 名前の描画位置を再調整し、アップロード画像の操作が正しく機能するように
- * イベント処理を全面的に修正した改修版です。
+ * アップロード画像の描画品質を向上させ、名前の描画位置を最終調整した改修版です。
  */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -24,6 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctx = canvas.getContext('2d');
     canvas.width = 3750;
     canvas.height = 2250;
+
+    // ★描画品質を「高」に設定
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     const nameInput = document.getElementById('nameInput');
     const fontSelect = document.getElementById('fontSelect');
@@ -98,10 +101,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!name) return;
         const nameArea = { x: 150, y: 150, width: 1000, height: 300 };
         const FONT_SIZE = 200;
-        // ★座標オフセットを再調整
+        // ★座標オフセットを最終調整
         const charWidthApproximation = FONT_SIZE * 0.5;
-        const offsetX = -7 * charWidthApproximation; // (2+5)文字分左へ
-        const offsetY = 1.0 * FONT_SIZE; // (0.5+0.5)文字分下へ
+        const offsetX = -4 * charWidthApproximation; // 4文字分左へ
+        const offsetY = 0.5 * FONT_SIZE; // 0.5文字分下へ
 
         const centerX = (nameArea.x + nameArea.width / 2) + offsetX;
         const centerY = (nameArea.y + nameArea.height / 2) + offsetY;
@@ -178,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         link.href = canvas.toDataURL('image/png'); link.click();
     });
 
-    // --- ★画像操作イベントリスナー (全面改修) ---
+    // --- 画像操作イベントリスナー ---
     function getEventLocation(e) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
