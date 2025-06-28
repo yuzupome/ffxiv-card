@@ -1,8 +1,7 @@
 /**
- * FFXIV Character Card Generator Script (v3)
+ * FFXIV Character Card Generator Script (v4)
  *
- * ユーザーからのフィードバックに基づき、描画位置、画像処理、
- * 各種ロジックを修正した改修版です。
+ * プレイ時間のアイコンパス生成ロジックの不具合を修正した最終版です。
  */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -162,17 +161,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeStyles = Array.from(styleButtons).filter(btn => btn.classList.contains('active')).map(btn => btn.dataset.value);
         promises.push(Promise.all(activeStyles.map(s => loadImage(`./assets/style_icons/${prefix}_${s}.png`))).then(imgs => state.styleIcons = imgs.filter(Boolean)));
 
-        // ★プレイ時間 (ロジック修正版)
+        // ★プレイ時間 (ロジック修正版 v4)
         const timePaths = new Set();
         const checkedTimes = Array.from(playtimeCheckboxes).filter(cb => cb.checked);
         
         checkedTimes.forEach(cb => {
-            // "weekday_morning" などの個別アイコン
-            timePaths.add(`./assets/time_icons/${prefix}_${cb.className}_${cb.value}.png`);
+            let path;
+            // 「その他」の項目はファイル名に 'other' が含まれないため、分岐させる
+            if (cb.classList.contains('other')) {
+                path = `./assets/time_icons/${prefix}_${cb.value}.png`;
+            } else {
+                // 「平日」「休日」の個別アイコン
+                path = `./assets/time_icons/${prefix}_${cb.className}_${cb.value}.png`;
+            }
+            timePaths.add(path);
         });
-        // 「平日」「休日」の統括アイコン
-        if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${prefix}_weekday.png`);
-        if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.png`);
+
+        // 「平日」「休日」の統括アイコンを追加
+        if (checkedTimes.some(cb => cb.classList.contains('weekday'))) {
+            timePaths.add(`./assets/time_icons/${prefix}_weekday.png`);
+        }
+        if (checkedTimes.some(cb => cb.classList.contains('holiday'))) {
+            timePaths.add(`./assets/time_icons/${prefix}_holiday.png`);
+        }
 
         promises.push(Promise.all(Array.from(timePaths).map(path => loadImage(path))).then(imgs => state.timeIcons = imgs.filter(Boolean)));
 
