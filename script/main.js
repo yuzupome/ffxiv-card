@@ -197,6 +197,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const folder = type === "main" ? "mainjob_icons" : "subjob_icons";
   return loadOverlayImage(folder, `${type}_${key}`);
 }_${key}`);
+}_${key}`);
   }
 
   function getProgressImages(selected) {
