@@ -1,15 +1,22 @@
 /**
- * FFXIV Character Card Generator Script (v19)
+ * FFXIV Character Card Generator Script (v20)
  *
- * 選択されたフォントの読み込み完了を待ってから描画することで、
- * 名前の自動リサイズが確実に機能するように修正した最終版。
+ * 名前の描画エリアを視覚的にデバッグする機能を追加。
+ * これにより、座標のズレを正確に特定し、修正することを目指します。
  */
-document.addEventListener('DOMContentLoaded', () => { // ★asyncを削除
+document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 【重要】Google FontsをHTML側で読み込んでください ---
     // このスクリプトが正しくフォントを描画するためには、
     // HTMLファイルの<head>タグ内にGoogle Fontsの<link>タグが必要です。
     // 例: <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+    
+    // ★ページ上の全フォントが読み込み完了するのを待つ
+    try {
+        await document.fonts.ready;
+    } catch (e) {
+        console.error('フォントの読み込み中にエラーが発生しました:', e);
+    }
     
     // --- 必要なHTML要素のチェック ---
     const requiredElementIds = [ 'cardCanvas', 'nameInput', 'fontSelect', 'uploadImage', 'templateButtons', 'raceSelect', 'dcSelect', 'progressSelect', 'styleButtons', 'playtimeOptions', 'difficultyOptions', 'mainjobSelect', 'subjobSection', 'downloadBtn' ];
@@ -28,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => { // ★asyncを削除
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
+    const controls = document.getElementById('controls');
     const nameInput = document.getElementById('nameInput');
     const fontSelect = document.getElementById('fontSelect');
     const uploadImageInput = document.getElementById('uploadImage');
@@ -41,6 +49,9 @@ document.addEventListener('DOMContentLoaded', () => { // ★asyncを削除
     const mainJobSelect = document.getElementById('mainjobSelect');
     const subJobCheckboxes = document.querySelectorAll('#subjobSection input[type="checkbox"]');
     const downloadBtn = document.getElementById('downloadBtn');
+
+    // ★デバッグ用の状態管理
+    let showDebugBox = false;
 
     // --- 状態管理オブジェクト ---
     let state = {
@@ -97,11 +108,20 @@ document.addEventListener('DOMContentLoaded', () => { // ★asyncを削除
     }
 
     function drawNameText() {
+        // ★現在の座標（これをデバッグ表示で確認・調整する）
+        const nameArea = { x: 145, y: 270, width: 860, height: 120 };
+        
+        // ★デバッグ用の枠線を描画
+        if(showDebugBox) {
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.7)';
+            ctx.lineWidth = 10;
+            ctx.strokeRect(nameArea.x, nameArea.y, nameArea.width, nameArea.height);
+        }
+
         const name = nameInput.value;
         if (!name) return;
         
-        const nameArea = { x: 145, y: 270, width: 860, height: 120 };
-        const MAX_FONT_SIZE = 120; // ★フォントサイズを再調整
+        const MAX_FONT_SIZE = 120;
         let fontSize = MAX_FONT_SIZE;
 
         // 文字がエリアに収まるまでフォントサイズを自動で小さくする
@@ -126,16 +146,15 @@ document.addEventListener('DOMContentLoaded', () => { // ★asyncを削除
         state.nameColor = (prefix === 'Gothic_white') ? '#000000' : '#ffffff';
         state.font = fontSelect.value;
 
-        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-        // ★ 選択されたフォントの読み込みを待ってから描画処理に進む (最重要) ★
-        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        // 選択されたフォントの読み込みを待つ
         try {
             await document.fonts.load(`1em ${state.font}`);
         } catch (e) {
-            console.error("フォントの読み込みに失敗しました。代替フォントで描画します:", e);
+            console.error("フォントの読み込みに失敗:", e);
         }
 
         const promises = [];
+        // (画像の読み込み処理は変更なし)
         promises.push(loadImage(`./assets/backgrounds/${prefix}.png`).then(img => state.background = img));
         promises.push(raceSelect.value ? loadImage(`./assets/race_icons/${prefix}_${raceSelect.value}.png`).then(img => state.raceIcon = img) : Promise.resolve(state.raceIcon = null));
         promises.push(dcSelect.value ? loadImage(`./assets/dc_icons/${prefix}_${dcSelect.value}.png`).then(img => state.dcIcon = img) : Promise.resolve(state.dcIcon = null));
@@ -164,6 +183,19 @@ document.addEventListener('DOMContentLoaded', () => { // ★asyncを削除
         await Promise.all(promises);
         drawCanvas();
     }
+
+    // --- ★デバッグボタンの作成とイベント設定 ---
+    const debugButton = document.createElement('button');
+    debugButton.textContent = '名前の枠をデバッグ表示';
+    debugButton.style.cssText = 'padding: 5px 10px; margin-top: 10px; background-color: #c0392b; color: white; border: none; border-radius: 5px; cursor: pointer;';
+    controls.appendChild(debugButton);
+
+    debugButton.addEventListener('click', () => {
+        showDebugBox = !showDebugBox; // フラグを切り替え
+        debugButton.style.backgroundColor = showDebugBox ? '#27ae60' : '#c0392b';
+        drawCanvas(); // 再描画して枠線の表示/非表示を切り替え
+    });
+
 
     // --- イベントリスナー ---
     [nameInput, fontSelect, raceSelect, dcSelect, progressSelect, mainJobSelect].forEach(el => el.addEventListener('input', updateAndRedraw));
@@ -248,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => { // ★asyncを削除
         e.preventDefault();
         if (e.touches.length === 1) handleDragStart(e);
         else if (e.touches.length === 2) {
-            imageTransform.isDragging = false; // 2本指になったらドラッグは止める
+            imageTransform.isDragging = false;
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
@@ -256,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => { // ★asyncを削除
     }, { passive: false });
 
     canvas.addEventListener('touchmove', (e) => {
-        if (!imageTransform.img) return;
+        if (!imageTransform.isDragging || !imageTransform.img) return;
         e.preventDefault();
         if (e.touches.length === 1 && imageTransform.isDragging) handleDragMove(e);
         else if (e.touches.length === 2) {
@@ -278,8 +310,5 @@ document.addEventListener('DOMContentLoaded', () => { // ★asyncを削除
     });
     
     // --- 初期化 ---
-    // 最初にフォントが利用可能になるのを待ってから描画を開始する
-    document.fonts.ready.then(() => {
-        updateAndRedraw();
-    });
+    updateAndRedraw();
 });
