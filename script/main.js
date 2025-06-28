@@ -198,6 +198,7 @@ window.addEventListener("DOMContentLoaded", () => {
   return loadOverlayImage(folder, `${type}_${key}`);
 }_${key}`);
 }_${key}`);
+}_${key}`);
   }
 
   function getProgressImages(selected) {
