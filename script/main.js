@@ -1,7 +1,7 @@
 /**
- * FFXIV Character Card Generator Script (v12)
+ * FFXIV Character Card Generator Script (v13)
  *
- * 名前の描画座標を最終調整し、正確な中央配置を目指した改修版。
+ * 名前のX座標を左にオフセットし、右寄りの問題を解消する最終調整版。
  */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -100,8 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = nameInput.value;
         if (!name) return;
 
-        // ★名前描画エリアの座標を最終調整
-        const nameArea = { x: 150, y: 270, width: 850, height: 120 };
+        // ★名前描画エリアのX座標を左にずらして最終調整
+        const nameArea = { x: 10, y: 270, width: 850, height: 120 };
         const MAX_FONT_SIZE = 140;
         let fontSize = MAX_FONT_SIZE;
 
