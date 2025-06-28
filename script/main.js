@@ -1,16 +1,25 @@
 /**
- * FFXIV Character Card Generator Script (v17)
+ * FFXIV Character Card Generator Script (v18)
  *
- * フォント読み込みを待機する処理を追加し、名前の自動リサイズ機能が
- * 正しく動作するように修正。フォントサイズも再調整。
+ * ページ上の全フォントの読み込みを待ってから処理を開始するように修正し、
+ * 名前の自動リサイズ機能が確実に動作するようにした最終版。
  */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => { // ★非同期処理として全体を開始
 
     // --- 【重要】Google FontsをHTML側で読み込んでください ---
     // このスクリプトが正しくフォントを描画するためには、
     // HTMLファイルの<head>タグ内にGoogle Fontsの<link>タグが必要です。
     // 例: <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
 
+    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    // ★ ページ上のすべてのフォントが読み込み完了するのを待つ (最重要) ★
+    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    try {
+        await document.fonts.ready;
+    } catch (e) {
+        console.error('フォントの読み込み中にエラーが発生しました:', e);
+    }
+    
     // --- 必要なHTML要素のチェック ---
     const requiredElementIds = [ 'cardCanvas', 'nameInput', 'fontSelect', 'uploadImage', 'templateButtons', 'raceSelect', 'dcSelect', 'progressSelect', 'styleButtons', 'playtimeOptions', 'difficultyOptions', 'mainjobSelect', 'subjobSection', 'downloadBtn' ];
     if (requiredElementIds.some(id => !document.getElementById(id))) {
@@ -25,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.width = 3750;
     canvas.height = 2250;
 
-    // ★描画品質を「高」に設定
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
@@ -73,14 +81,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 描画関連関数 ---
-    async function drawCanvas() { //★非同期処理に対応
+    function drawCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawUploadedImage();
         drawStretchedImage(state.background);
         const allIcons = [ state.raceIcon, state.dcIcon, ...state.progressIcons, ...state.styleIcons, ...state.timeIcons, ...state.difficultyIcons, ...state.subJobIcons ];
         allIcons.forEach(icon => drawStretchedImage(icon));
         drawStretchedImage(state.mainJobIcon);
-        await drawNameText(); //★非同期関数になったためawaitで待つ
+        drawNameText();
     }
     
     function drawStretchedImage(img) {
@@ -97,20 +105,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function drawNameText() { //★非同期関数に変更
+    function drawNameText() { // (同期関数に戻す)
         const name = nameInput.value;
         if (!name) return;
-
-        // ★フォントの読み込みを待つことで、正確なサイズ計算を保証する
-        try {
-            await document.fonts.load(`1em ${state.font}`);
-        } catch (e) {
-            console.error('フォントの読み込みに失敗:', e);
-            // フォントが読み込めなくても処理は続行する
-        }
-
+        
         const nameArea = { x: 145, y: 270, width: 860, height: 120 };
-        const MAX_FONT_SIZE = 125; // ★フォントサイズをさらに小さく調整
+        const MAX_FONT_SIZE = 125;
         let fontSize = MAX_FONT_SIZE;
 
         // 文字がエリアに収まるまでフォントサイズを自動で小さくする
@@ -128,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.textBaseline = 'middle';
         ctx.fillText(name, centerX, centerY);
     }
-
 
     // --- 更新処理 ---
     async function updateAndRedraw() {
@@ -162,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         promises.push(Promise.all(activeSubJobs.map(sj => loadImage(`./assets/subjob_icons/${prefix}_sub_${sj}.png`))).then(imgs => state.subJobIcons = imgs.filter(Boolean)));
         
         await Promise.all(promises);
-        await drawCanvas(); //★非同期関数になったためawaitで待つ
+        drawCanvas();
     }
 
     // --- イベントリスナー ---
