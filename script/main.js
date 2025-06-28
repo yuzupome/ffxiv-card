@@ -1,7 +1,7 @@
 /**
- * FFXIV Character Card Generator Script (v15)
+ * FFXIV Character Card Generator Script (v16)
  *
- * 名前の描画座標とフォントサイズを最終微調整した改修版。
+ * 名前の描画座標を再測定・再定義し、正確な中央配置を実現する最終調整版。
  */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -100,24 +100,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = nameInput.value;
         if (!name) return;
 
-        // ★名前描画エリアのX座標を右に120px戻し、フォントサイズを4pt(約5px)小さく調整
-        const nameArea = { x: -110, y: 270, width: 850, height: 120 };
+        // ★名前描画エリアの座標を再測定し、最終調整しました。
+        const nameArea = { x: 145, y: 270, width: 860, height: 120 };
         const MAX_FONT_SIZE = 135; 
         let fontSize = MAX_FONT_SIZE;
 
-        // ★文字がエリアに収まるまでフォントサイズを小さくする
+        // 文字がエリアに収まるまでフォントサイズを自動で小さくする
         ctx.font = `${fontSize}px ${state.font}`;
         while (ctx.measureText(name).width > nameArea.width && fontSize > 10) {
             fontSize--;
             ctx.font = `${fontSize}px ${state.font}`;
         }
         
-        // ★描画ロジックをシンプルな中央揃えに戻して精度を向上
+        // 描画ロジックをシンプルな中央揃えに戻して精度を向上
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
 
         ctx.fillStyle = state.nameColor;
-        ctx.textAlign = 'center'; // ★textAlign='center' を使用
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(name, centerX, centerY);
     }
