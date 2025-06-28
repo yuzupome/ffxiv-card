@@ -1,24 +1,15 @@
 /**
- * FFXIV Character Card Generator Script (v18)
+ * FFXIV Character Card Generator Script (v19)
  *
- * ページ上の全フォントの読み込みを待ってから処理を開始するように修正し、
- * 名前の自動リサイズ機能が確実に動作するようにした最終版。
+ * 選択されたフォントの読み込み完了を待ってから描画することで、
+ * 名前の自動リサイズが確実に機能するように修正した最終版。
  */
-document.addEventListener('DOMContentLoaded', async () => { // ★非同期処理として全体を開始
+document.addEventListener('DOMContentLoaded', () => { // ★asyncを削除
 
     // --- 【重要】Google FontsをHTML側で読み込んでください ---
     // このスクリプトが正しくフォントを描画するためには、
     // HTMLファイルの<head>タグ内にGoogle Fontsの<link>タグが必要です。
     // 例: <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
-
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-    // ★ ページ上のすべてのフォントが読み込み完了するのを待つ (最重要) ★
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-    try {
-        await document.fonts.ready;
-    } catch (e) {
-        console.error('フォントの読み込み中にエラーが発生しました:', e);
-    }
     
     // --- 必要なHTML要素のチェック ---
     const requiredElementIds = [ 'cardCanvas', 'nameInput', 'fontSelect', 'uploadImage', 'templateButtons', 'raceSelect', 'dcSelect', 'progressSelect', 'styleButtons', 'playtimeOptions', 'difficultyOptions', 'mainjobSelect', 'subjobSection', 'downloadBtn' ];
@@ -105,12 +96,12 @@ document.addEventListener('DOMContentLoaded', async () => { // ★非同期処�
         }
     }
 
-    function drawNameText() { // (同期関数に戻す)
+    function drawNameText() {
         const name = nameInput.value;
         if (!name) return;
         
         const nameArea = { x: 145, y: 270, width: 860, height: 120 };
-        const MAX_FONT_SIZE = 125;
+        const MAX_FONT_SIZE = 120; // ★フォントサイズを再調整
         let fontSize = MAX_FONT_SIZE;
 
         // 文字がエリアに収まるまでフォントサイズを自動で小さくする
@@ -134,6 +125,16 @@ document.addEventListener('DOMContentLoaded', async () => { // ★非同期処�
         const prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
         state.nameColor = (prefix === 'Gothic_white') ? '#000000' : '#ffffff';
         state.font = fontSelect.value;
+
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        // ★ 選択されたフォントの読み込みを待ってから描画処理に進む (最重要) ★
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        try {
+            await document.fonts.load(`1em ${state.font}`);
+        } catch (e) {
+            console.error("フォントの読み込みに失敗しました。代替フォントで描画します:", e);
+        }
+
         const promises = [];
         promises.push(loadImage(`./assets/backgrounds/${prefix}.png`).then(img => state.background = img));
         promises.push(raceSelect.value ? loadImage(`./assets/race_icons/${prefix}_${raceSelect.value}.png`).then(img => state.raceIcon = img) : Promise.resolve(state.raceIcon = null));
@@ -277,5 +278,8 @@ document.addEventListener('DOMContentLoaded', async () => { // ★非同期処�
     });
     
     // --- 初期化 ---
-    updateAndRedraw();
+    // 最初にフォントが利用可能になるのを待ってから描画を開始する
+    document.fonts.ready.then(() => {
+        updateAndRedraw();
+    });
 });
