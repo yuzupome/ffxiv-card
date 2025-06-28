@@ -1,8 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (v9)
+ * FFXIV Character Card Generator Script (v10)
  *
- * 名前の描画処理を改修し、長い名前がはみ出ないように自動リサイズ機能を追加。
- * また、描画位置を正確に中央に揃えるように修正。
+ * 名前の描画ロジックを提案2（動的計算）に変更し、より正確な中央揃えを実現。
+ * フォントサイズも微調整。
  */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -101,26 +101,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = nameInput.value;
         if (!name) return;
 
-        // ★名前描画エリアの座標を背景画像に合わせて再調整
+        // ★名前描画エリアと最大フォントサイズを定義
         const nameArea = { x: 150, y: 350, width: 950, height: 120 };
-        const MAX_FONT_SIZE = 150; // 最大フォントサイズもエリアに合わせて調整
+        const MAX_FONT_SIZE = 140; // ★フォントサイズを少し小さく調整
         let fontSize = MAX_FONT_SIZE;
 
-        // ★文字がエリアの幅に収まるまでフォントサイズを自動で小さくする
+        // ★文字がエリアに収まるまでフォントサイズを小さくする
         ctx.font = `${fontSize}px ${state.font}`;
-        while (ctx.measureText(name).width > nameArea.width && fontSize > 10) {
+        let textMetrics = ctx.measureText(name);
+        while (textMetrics.width > nameArea.width && fontSize > 10) {
             fontSize--;
             ctx.font = `${fontSize}px ${state.font}`;
+            textMetrics = ctx.measureText(name);
         }
         
-        // ★描画位置をエリアの正確な中央に設定
-        const centerX = nameArea.x + nameArea.width / 2;
+        // ★描画開始位置を動的に計算 (提案2の実装)
+        const startX = nameArea.x + (nameArea.width - textMetrics.width) / 2;
         const centerY = nameArea.y + nameArea.height / 2;
 
         ctx.fillStyle = state.nameColor;
-        ctx.textAlign = 'center';
+        ctx.textAlign = 'left'; // ★左揃えで描画開始位置を制御
         ctx.textBaseline = 'middle';
-        ctx.fillText(name, centerX, centerY);
+        ctx.fillText(name, startX, centerY);
     }
 
 
