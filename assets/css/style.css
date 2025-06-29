@@ -77,7 +77,7 @@ h1 {
 
 #controls {
   margin: 1rem auto;
-  max-width: 1200px; /* ★サイズをCanvasに合わせる */
+  max-width: 1200px; 
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -110,14 +110,21 @@ input[type="file"] {
   background-color: #666;
 }
 
+/* ★★★ Canvasの表示サイズをCSSで制御 ★★★ */
 canvas {
   width: 100%;
-  max-width: 1200px; /* ★★★ 表示サイズを1200pxに変更 ★★★ */
+  max-width: 1200px;
   height: auto;
   display: block;
-  margin: 0 auto;
+  margin: 1rem auto; /* 上下にマージンを追加 */
   background-color: #000;
+  cursor: grab; /* カーソルを掴む形に */
 }
+
+canvas:active {
+    cursor: grabbing; /* ドラッグ中は掴んでいる形に */
+}
+
 
 body {
   --name-color: #ffffff;
