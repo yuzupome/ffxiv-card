@@ -21,170 +21,205 @@
   </div>
 
   <div id="app" class="hidden">
-    <h1>FFXIV キャラクターカード</h1>
-    <div id="controls">
-      <input type="text" id="nameInput" placeholder="名前を入力" />
-      <select id="fontSelect">
-        <option value="'Orbitron', sans-serif">Orbitron</option>
-        <option value="'Exo 2', sans-serif">Exo 2</option>
-        <option value="'Share Tech', sans-serif">Share Tech</option>
-        <option value="'Permanent Marker', cursive">Permanent Marker</option>
-        <option value="'Hachi Maru Pop', cursive">はちまるポップ</option>
-        <option value="'DotGothic16', sans-serif">ドットゴシック16</option>
-        <option value="'Dancing Script', cursive">Dancing Script</option>
-      </select>
-      <input type="file" id="uploadImage" accept="image/*" />
+    <div class="main-container">
+        <header class="main-header">
+            <h1>FFXIV Character Card Generator</h1>
+            <p>あなたの光の戦士のプロフィールカードを作成しよう！</p>
+        </header>
 
-      <div id="templateButtons">
-        <button data-class="template-gothic-black">黒背景</button>
-        <button data-class="template-gothic-white">白背景</button>
-      </div>
+        <div id="controls">
+            <!-- 基本設定 -->
+            <fieldset class="control-group">
+                <legend>基本設定</legend>
+                <div class="grid-col-2">
+                    <input type="text" id="nameInput" placeholder="キャラクター名" />
+                    <select id="fontSelect">
+                        <option value="'Orbitron', sans-serif">Orbitron</option>
+                        <option value="'Exo 2', sans-serif">Exo 2</option>
+                        <option value="'Share Tech', sans-serif">Share Tech</option>
+                        <option value="'Permanent Marker', cursive">Permanent Marker</option>
+                        <option value="'Hachi Maru Pop', cursive">はちまるポップ</option>
+                        <option value="'DotGothic16', sans-serif">ドットゴシック16</option>
+                        <option value="'Dancing Script', cursive">Dancing Script</option>
+                    </select>
+                </div>
+                <input type="file" id="uploadImage" accept="image/*" />
+                <div id="templateButtons" class="button-group">
+                    <button data-class="template-gothic-black" class="active">黒背景</button>
+                    <button data-class="template-gothic-white">白背景</button>
+                </div>
+            </fieldset>
 
-      <select id="raceSelect">
-        <option value="">種族を選択</option>
-        <option value="au_ra">アウラ</option>
-        <option value="viera">ヴィエラ</option>
-        <option value="roegadyn">ルガディン</option>
-        <option value="miqote">ミコッテ</option>
-        <option value="hyur">ヒューラン</option>
-        <option value="elezen">エレゼン</option>
-        <option value="lalafell">ララフェル</option>
-        <option value="hrothgar">ロスガル</option>
-      </select>
+            <!-- プロフィール -->
+            <fieldset class="control-group">
+                <legend>プロフィール</legend>
+                <div class="grid-col-3">
+                    <select id="raceSelect">
+                        <option value="">種族</option>
+                        <option value="au_ra">アウラ</option>
+                        <option value="viera">ヴィエラ</option>
+                        <option value="roegadyn">ルガディン</option>
+                        <option value="miqote">ミコッテ</option>
+                        <option value="hyur">ヒューラン</option>
+                        <option value="elezen">エレゼン</option>
+                        <option value="lalafell">ララフェル</option>
+                        <option value="hrothgar">ロスガル</option>
+                    </select>
+                    <select id="dcSelect">
+                        <option value="">DC</option>
+                        <option value="mana">Mana</option>
+                        <option value="gaia">Gaia</option>
+                        <option value="elemental">Elemental</option>
+                        <option value="meteor">Meteor</option>
+                    </select>
+                    <select id="progressSelect">
+                        <option value="">進行度</option>
+                        <option value="shinsei">新生</option>
+                        <option value="souten">蒼天</option>
+                        <option value="guren">紅蓮</option>
+                        <option value="shikkoku">漆黒</option>
+                        <option value="gyougetsu">暁月</option>
+                        <option value="ougon">黄金</option>
+                        <option value="all_clear">ALL CLEAR</option>
+                    </select>
+                </div>
+            </fieldset>
 
-      <select id="dcSelect">
-        <option value="">データセンターを選択</option>
-        <option value="mana">Mana（マナ）</option>
-        <option value="gaia">Gaia（ガイア）</option>
-        <option value="elemental">Elemental（エレメンタル）</option>
-        <option value="meteor">Meteor（メテオ）</option>
-      </select>
+            <!-- プレイスタイル -->
+            <fieldset class="control-group">
+                <legend>プレイスタイル</legend>
+                <div id="styleButtons" class="button-grid">
+                    <button data-value="leveling">レベリング</button>
+                    <button data-value="raid">レイド</button>
+                    <button data-value="pvp">PvP</button>
+                    <button data-value="dd">DD</button>
+                    <button data-value="hunt">モブハント</button>
+                    <button data-value="gatherer">ギャザラー</button>
+                    <button data-value="crafter">クラフター</button>
+                    <button data-value="gil">金策</button>
+                    <button data-value="map">地図</button>
+                    <button data-value="perform">演奏</button>
+                    <button data-value="roleplay">ロールプレイ</button>
+                    <button data-value="housing">ハウジング</button>
+                    <button data-value="glam">ミラプリ</button>
+                    <button data-value="screenshot">SS撮影</button>
+                    <button data-value="studio">スタジオ制作</button>
+                    <button data-value="drawing">お絵描き</button>
+                    <button data-value="streaming">配信</button>
+                </div>
+            </fieldset>
 
-      <select id="progressSelect">
-        <option value="">進行度を選択</option>
-        <option value="shinsei">新生</option>
-        <option value="souten">蒼天</option>
-        <option value="guren">紅蓮</option>
-        <option value="shikkoku">漆黒</option>
-        <option value="gyougetsu">暁月</option>
-        <option value="ougon">黄金</option>
-        <option value="all_clear">ALL CLEAR</option>
-      </select>
+            <div class="grid-col-2-gap">
+                <!-- プレイ時間 -->
+                <fieldset class="control-group">
+                    <legend>プレイ時間</legend>
+                    <div id="playtimeOptions" class="checkbox-group">
+                        <div class="time-section">
+                            <p>平日</p>
+                            <label><input type="checkbox" class="weekday" value="morning" />朝</label>
+                            <label><input type="checkbox" class="weekday" value="daytime" />昼</label>
+                            <label><input type="checkbox" class="weekday" value="night" />夜</label>
+                            <label><input type="checkbox" class="weekday" value="midnight" />深夜</label>
+                        </div>
+                        <div class="time-section">
+                            <p>休日</p>
+                            <label><input type="checkbox" class="holiday" value="morning" />朝</label>
+                            <label><input type="checkbox" class="holiday" value="daytime" />昼</label>
+                            <label><input type="checkbox" class="holiday" value="night" />夜</label>
+                            <label><input type="checkbox" class="holiday" value="midnight" />深夜</label>
+                        </div>
+                        <div class="time-section">
+                            <p>その他</p>
+                            <label><input type="checkbox" class="other" value="random" />不定期</label>
+                            <label><input type="checkbox" class="other" value="fulltime" />エオ在住</label>
+                        </div>
+                    </div>
+                </fieldset>
+                <!-- 高難易度 -->
+                <fieldset class="control-group">
+                    <legend>高難易度</legend>
+                    <div id="difficultyOptions" class="checkbox-group-single">
+                        <label><input type="checkbox" class="difficulty" value="extreme" />極</label>
+                        <label><input type="checkbox" class="difficulty" value="unreal" />幻</label>
+                        <label><input type="checkbox" class="difficulty" value="savage" />零式</label>
+                        <label><input type="checkbox" class="difficulty" value="ultimate" />絶</label>
+                    </div>
+                </fieldset>
+            </div>
+            
+            <!-- ジョブ -->
+            <fieldset class="control-group">
+                <legend>ジョブ</legend>
+                <select id="mainjobSelect">
+                    <option value="">メインジョブを選択</option>
+                    <option value="paladin">ナイト</option>
+                    <option value="warrior">戦士</option>
+                    <option value="darkknight">暗黒騎士</option>
+                    <option value="gunbreaker">ガンブレイカー</option>
+                    <option value="whitemage">白魔導士</option>
+                    <option value="scholar">学者</option>
+                    <option value="astrologian">占星術師</option>
+                    <option value="sage">賢者</option>
+                    <option value="monk">モンク</option>
+                    <option value="dragoon">竜騎士</option>
+                    <option value="ninja">忍者</option>
+                    <option value="samurai">侍</option>
+                    <option value="reaper">リーパー</option>
+                    <option value="viper">ヴァイパー</option>
+                    <option value="bard">吟遊詩人</option>
+                    <option value="machinist">機工士</option>
+                    <option value="dancer">踊り子</option>
+                    <option value="blackmage">黒魔導士</option>
+                    <option value="summoner">召喚士</option>
+                    <option value="redmage">赤魔導士</option>
+                    <option value="pictomancer">ピクトマンサー</option>
+                    <option value="bluemage">青魔導士</option>
+                </select>
+                <div id="subjobSection">
+                    <p>サブジョブ（複数選択可）</p>
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" class="subjob" value="paladin" />ナイト</label>
+                        <label><input type="checkbox" class="subjob" value="warrior" />戦士</label>
+                        <label><input type="checkbox" class="subjob" value="darkknight" />暗黒騎士</label>
+                        <label><input type="checkbox" class="subjob" value="gunbreaker" />ガンブレイカー</label>
+                        <label><input type="checkbox" class="subjob" value="whitemage" />白魔導士</label>
+                        <label><input type="checkbox" class="subjob" value="scholar" />学者</label>
+                        <label><input type="checkbox" class="subjob" value="astrologian" />占星術師</label>
+                        <label><input type="checkbox" class="subjob" value="sage" />賢者</label>
+                        <label><input type="checkbox" class="subjob" value="monk" />モンク</label>
+                        <label><input type="checkbox" class="subjob" value="dragoon" />竜騎士</label>
+                        <label><input type="checkbox" class="subjob" value="ninja" />忍者</label>
+                        <label><input type="checkbox" class="subjob" value="samurai" />侍</label>
+                        <label><input type="checkbox" class="subjob" value="reaper" />リーパー</label>
+                        <label><input type="checkbox" class="subjob" value="viper" />ヴァイパー</label>
+                        <label><input type="checkbox" class="subjob" value="bard" />吟遊詩人</label>
+                        <label><input type="checkbox" class="subjob" value="machinist" />機工士</label>
+                        <label><input type="checkbox" class="subjob" value="dancer" />踊り子</label>
+                        <label><input type="checkbox" class="subjob" value="blackmage" />黒魔導士</label>
+                        <label><input type="checkbox" class="subjob" value="summoner" />召喚士</label>
+                        <label><input type="checkbox" class="subjob" value="redmage" />赤魔導士</label>
+                        <label><input type="checkbox" class="subjob" value="pictomancer" />ピクトマンサー</label>
+                        <label><input type="checkbox" class="subjob" value="bluemage" />青魔導士</label>
+                        <label><input type="checkbox" class="subjob" value="carpenter" />木工師</label>
+                        <label><input type="checkbox" class="subjob" value="blacksmith" />鍛冶師</label>
+                        <label><input type="checkbox" class="subjob" value="armorer" />甲冑師</label>
+                        <label><input type="checkbox" class="subjob" value="goldsmith" />彫金師</label>
+                        <label><input type="checkbox" class="subjob" value="leatherworker" />革細工師</label>
+                        <label><input type="checkbox" class="subjob" value="weaver" />裁縫師</label>
+                        <label><input type="checkbox" class="subjob" value="alchemist" />錬金術師</label>
+                        <label><input type="checkbox" class="subjob" value="culinarian" />調理師</label>
+                        <label><input type="checkbox" class="subjob" value="miner" />採掘師</label>
+                        <label><input type="checkbox" class="subjob" value="botanist" />園芸師</label>
+                        <label><input type="checkbox" class="subjob" value="fisher" />漁師</label>
+                    </div>
+                </div>
+            </fieldset>
 
-      <div id="styleButtons">
-        <button data-value="leveling">レベリング</button>
-        <button data-value="raid">レイド</button>
-        <button data-value="pvp">PvP</button>
-        <button data-value="dd">DD</button>
-        <button data-value="hunt">モブハント</button>
-        <button data-value="gatherer">ギャザラー</button>
-        <button data-value="crafter">クラフター</button>
-        <button data-value="gil">金策</button>
-        <button data-value="map">地図</button>
-        <button data-value="perform">演奏</button>
-        <button data-value="roleplay">ロールプレイ</button>
-        <button data-value="housing">ハウジング</button>
-        <button data-value="glam">ミラプリ</button>
-        <button data-value="screenshot">SS撮影</button>
-        <button data-value="studio">スタジオ制作</button>
-        <button data-value="drawing">お絵描き</button>
-        <button data-value="streaming">配信</button>
-      </div>
+            <button id="downloadBtn">カードを生成</button>
+        </div>
 
-      <div id="playtimeOptions">
-        <p>プレイ時間</p>
-        <p>平日</p>
-        <label><input type="checkbox" class="weekday" value="morning" />朝</label>
-        <label><input type="checkbox" class="weekday" value="daytime" />昼</label>
-        <label><input type="checkbox" class="weekday" value="night" />夜</label>
-        <label><input type="checkbox" class="weekday" value="midnight" />深夜</label>
-        <p>休日</p>
-        <label><input type="checkbox" class="holiday" value="morning" />朝</label>
-        <label><input type="checkbox" class="holiday" value="daytime" />昼</label>
-        <label><input type="checkbox" class="holiday" value="night" />夜</label>
-        <label><input type="checkbox" class="holiday" value="midnight" />深夜</label>
-        <p>その他</p>
-        <label><input type="checkbox" class="other" value="random" />不定期</label>
-        <label><input type="checkbox" class="other" value="fulltime" />エオ在住</label>
-      </div>
-
-      <div id="difficultyOptions">
-        <p>高難易度</p>
-        <label><input type="checkbox" class="difficulty" value="extreme" />極</label>
-        <label><input type="checkbox" class="difficulty" value="unreal" />幻</label>
-        <label><input type="checkbox" class="difficulty" value="savage" />零式</label>
-        <label><input type="checkbox" class="difficulty" value="ultimate" />絶</label>
-      </div>
-
-      <select id="mainjobSelect">
-        <option value="">メインジョブを選択</option>
-        <option value="paladin">ナイト</option>
-        <option value="warrior">戦士</option>
-        <option value="darkknight">暗黒騎士</option>
-        <option value="gunbreaker">ガンブレイカー</option>
-        <option value="whitemage">白魔導士</option>
-        <option value="scholar">学者</option>
-        <option value="astrologian">占星術師</option>
-        <option value="sage">賢者</option>
-        <option value="monk">モンク</option>
-        <option value="dragoon">竜騎士</option>
-        <option value="ninja">忍者</option>
-        <option value="samurai">侍</option>
-        <option value="reaper">リーパー</option>
-        <option value="viper">ヴァイパー</option>
-        <option value="bard">吟遊詩人</option>
-        <option value="machinist">機工士</option>
-        <option value="dancer">踊り子</option>
-        <option value="blackmage">黒魔導士</option>
-        <option value="summoner">召喚士</option>
-        <option value="redmage">赤魔導士</option>
-        <option value="pictomancer">ピクトマンサー</option>
-        <option value="bluemage">青魔導士</option>
-      </select>
-
-      <div id="subjobSection">
-        <p>サブジョブ</p>
-        <label><input type="checkbox" class="subjob" value="paladin" />ナイト</label>
-        <label><input type="checkbox" class="subjob" value="warrior" />戦士</label>
-        <label><input type="checkbox" class="subjob" value="darkknight" />暗黒騎士</label>
-        <label><input type="checkbox" class="subjob" value="gunbreaker" />ガンブレイカー</label>
-        <label><input type="checkbox" class="subjob" value="whitemage" />白魔導士</label>
-        <label><input type="checkbox" class="subjob" value="scholar" />学者</label>
-        <label><input type="checkbox" class="subjob" value="astrologian" />占星術師</label>
-        <label><input type="checkbox" class="subjob" value="sage" />賢者</label>
-        <label><input type="checkbox" class="subjob" value="monk" />モンク</label>
-        <label><input type="checkbox" class="subjob" value="dragoon" />竜騎士</label>
-        <label><input type="checkbox" class="subjob" value="ninja" />忍者</label>
-        <label><input type="checkbox" class="subjob" value="samurai" />侍</label>
-        <label><input type="checkbox" class="subjob" value="reaper" />リーパー</label>
-        <label><input type="checkbox" class="subjob" value="viper" />ヴァイパー</label>
-        <label><input type="checkbox" class="subjob" value="bard" />吟遊詩人</label>
-        <label><input type="checkbox" class="subjob" value="machinist" />機工士</label>
-        <label><input type="checkbox" class="subjob" value="dancer" />踊り子</label>
-        <label><input type="checkbox" class="subjob" value="blackmage" />黒魔導士</label>
-        <label><input type="checkbox" class="subjob" value="summoner" />召喚士</label>
-        <label><input type="checkbox" class="subjob" value="redmage" />赤魔導士</label>
-        <label><input type="checkbox" class="subjob" value="pictomancer" />ピクトマンサー</label>
-        <label><input type="checkbox" class="subjob" value="bluemage" />青魔導士</label>
-        <label><input type="checkbox" class="subjob" value="carpenter" />木工師</label>
-        <label><input type="checkbox" class="subjob" value="blacksmith" />鍛冶師</label>
-        <label><input type="checkbox" class="subjob" value="armorer" />甲冑師</label>
-        <label><input type="checkbox" class="subjob" value="goldsmith" />彫金師</label>
-        <label><input type="checkbox" class="subjob" value="leatherworker" />革細工師</label>
-        <label><input type="checkbox" class="subjob" value="weaver" />裁縫師</label>
-        <label><input type="checkbox" class="subjob" value="alchemist" />錬金術師</label>
-        <label><input type="checkbox" class="subjob" value="culinarian" />調理師</label>
-        <label><input type="checkbox" class="subjob" value="miner" />採掘師</label>
-        <label><input type="checkbox" class="subjob" value="botanist" />園芸師</label>
-        <label><input type="checkbox" class="subjob" value="fisher" />漁師</label>
-      </div>
-
-      <button id="downloadBtn">PNG出力</button>
+        <canvas id="cardCanvas"></canvas>
     </div>
-
-    <!-- ★ canvasタグからwidth/height属性を削除（JSで設定するため） -->
-    <canvas id="cardCanvas"></canvas>
-  </div>
   <script src="./script/main.js"></script>
 </body>
 </html>
