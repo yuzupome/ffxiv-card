@@ -14,7 +14,6 @@
 </head>
 <body class="template-gothic-black">
 
-  <!-- ★★★ ローディング画面の構造を変更 ★★★ -->
   <div id="loader">
     <img src="./assets/favicon.png" alt="loading..." class="spinner-icon">
     <p class="loading-text">Now Loading...</p>
@@ -31,14 +30,12 @@
     </header>
 
     <div class="content-wrapper">
-        <!-- ★★★ プレビューエリア ★★★ -->
         <main class="preview-panel">
             <div class="canvas-container">
                 <canvas id="cardCanvas"></canvas>
             </div>
         </main>
 
-        <!-- ★★★ 操作パネル ★★★ -->
         <aside class="controls-panel">
             <div id="controls">
                 <div id="top-controls">
@@ -54,8 +51,9 @@
                     <p id="fileName" class="file-name-display"></p>
                 </div>
 
-                <fieldset class="control-group">
-                    <legend>キャラクター名</legend>
+                <!-- ★★★ 見出しを英語化・統合 ★★★ -->
+                <div class="control-section">
+                    <h2 class="section-title">Profile</h2>
                     <div class="grid-col-2">
                         <input type="text" id="nameInput" placeholder="表示したいキャラ名を入力" />
                         <select id="fontSelect">
@@ -69,11 +67,7 @@
                             <option value="'Dancing Script', cursive">Dancing Script</option>
                         </select>
                     </div>
-                </fieldset>
-
-                <fieldset class="control-group">
-                    <legend>プロフィール</legend>
-                    <div class="grid-col-3">
+                    <div class="grid-col-3" style="margin-top: 1rem;">
                         <select id="raceSelect">
                             <option value="">種族</option>
                             <option value="au_ra">アウラ</option> <option value="viera">ヴィエラ</option> <option value="roegadyn">ルガディン</option> <option value="miqote">ミコッテ</option> <option value="hyur">ヒューラン</option> <option value="elezen">エレゼン</option> <option value="lalafell">ララフェル</option> <option value="hrothgar">ロスガル</option>
@@ -87,68 +81,58 @@
                             <option value="shinsei">新生</option> <option value="souten">蒼天</option> <option value="guren">紅蓮</option> <option value="shikkoku">漆黒</option> <option value="gyougetsu">暁月</option> <option value="ougon">黄金</option> <option value="all_clear">ALL CLEAR</option>
                         </select>
                     </div>
-                </fieldset>
+                </div>
 
-                <fieldset class="control-group">
-                    <legend>プレイスタイル</legend>
+                <div class="control-section">
+                    <h2 class="section-title">Playstyle</h2>
                     <div id="styleButtons" class="button-grid">
                         <button data-value="leveling">レベリング</button> <button data-value="raid">レイド</button> <button data-value="pvp">PvP</button> <button data-value="dd">DD</button> <button data-value="hunt">モブハント</button> <button data-value="gatherer">ギャザラー</button> <button data-value="crafter">クラフター</button> <button data-value="gil">金策</button> <button data-value="map">地図</button> <button data-value="perform">演奏</button> <button data-value="roleplay">ロールプレイ</button> <button data-value="housing">ハウジング</button> <button data-value="glam">ミラプリ</button> <button data-value="screenshot">SS撮影</button> <button data-value="studio">スタジオ制作</button> <button data-value="drawing">お絵描き</button> <button data-value="streaming">配信</button>
                     </div>
-                </fieldset>
+                </div>
 
                 <div class="grid-col-2-gap">
-                    <fieldset class="control-group nested">
-                        <legend>プレイ時間</legend>
+                    <div class="control-section nested">
+                        <h3 class="section-title-nested">Play Time</h3>
                         <div id="playtimeOptions" class="checkbox-group">
                             <div class="time-section">
                                 <span>平日</span>
-                                <label><input type="checkbox" class="weekday" value="morning" /><span></span>朝</label>
-                                <label><input type="checkbox" class="weekday" value="daytime" /><span></span>昼</label>
-                                <label><input type="checkbox" class="weekday" value="night" /><span></span>夜</label>
-                                <label><input type="checkbox" class="weekday" value="midnight" /><span></span>深夜</label>
+                                <label><input type="checkbox" class="weekday" value="morning" /><span></span>朝</label> <label><input type="checkbox" class="weekday" value="daytime" /><span></span>昼</label> <label><input type="checkbox" class="weekday" value="night" /><span></span>夜</label> <label><input type="checkbox" class="weekday" value="midnight" /><span></span>深夜</label>
                             </div>
                             <div class="time-section">
                                 <span>休日</span>
-                                <label><input type="checkbox" class="holiday" value="morning" /><span></span>朝</label>
-                                <label><input type="checkbox" class="holiday" value="daytime" /><span></span>昼</label>
-                                <label><input type="checkbox" class="holiday" value="night" /><span></span>夜</label>
-                                <label><input type="checkbox" class="holiday" value="midnight" /><span></span>深夜</label>
+                                <label><input type="checkbox" class="holiday" value="morning" /><span></span>朝</label> <label><input type="checkbox" class="holiday" value="daytime" /><span></span>昼</label> <label><input type="checkbox" class="holiday" value="night" /><span></span>夜</label> <label><input type="checkbox" class="holiday" value="midnight" /><span></span>深夜</label>
                             </div>
                             <div class="time-section">
                                 <span>その他</span>
-                                <label><input type="checkbox" class="other" value="random" /><span></span>不定期</label>
-                                <label><input type="checkbox" class="other" value="fulltime" /><span></span>エオ在住</label>
+                                <label><input type="checkbox" class="other" value="random" /><span></span>不定期</label> <label><input type="checkbox" class="other" value="fulltime" /><span></span>エオ在住</label>
                             </div>
                         </div>
-                    </fieldset>
-                    <fieldset class="control-group nested">
-                        <legend>高難易度</legend>
+                    </div>
+                    <div class="control-section nested">
+                        <h3 class="section-title-nested">Difficulty</h3>
                         <div id="difficultyOptions" class="checkbox-group-single">
-                            <label><input type="checkbox" class="difficulty" value="extreme" /><span></span>極</label>
-                            <label><input type="checkbox" class="difficulty" value="unreal" /><span></span>幻</label>
-                            <label><input type="checkbox" class="difficulty" value="savage" /><span></span>零式</label>
-                            <label><input type="checkbox" class="difficulty" value="ultimate" /><span></span>絶</label>
+                            <label><input type="checkbox" class="difficulty" value="extreme" /><span></span>極</label> <label><input type="checkbox" class="difficulty" value="unreal" /><span></span>幻</label> <label><input type="checkbox" class="difficulty" value="savage" /><span></span>零式</label> <label><input type="checkbox" class="difficulty" value="ultimate" /><span></span>絶</label>
                         </div>
-                    </fieldset>
+                    </div>
                 </div>
             
-                <fieldset class="control-group">
-                    <legend>ジョブ</legend>
+                <div class="control-section">
+                    <h2 class="section-title">Job</h2>
                     <select id="mainjobSelect">
-                        <option value="">メインジョブを選択</option>
+                        <option value="">Main Job</option>
                         <option value="paladin">ナイト</option> <option value="warrior">戦士</option> <option value="darkknight">暗黒騎士</option> <option value="gunbreaker">ガンブレイカー</option> <option value="whitemage">白魔導士</option> <option value="scholar">学者</option> <option value="astrologian">占星術師</option> <option value="sage">賢者</option> <option value="monk">モンク</option> <option value="dragoon">竜騎士</option> <option value="ninja">忍者</option> <option value="samurai">侍</option> <option value="reaper">リーパー</option> <option value="viper">ヴァイパー</option> <option value="bard">吟遊詩人</option> <option value="machinist">機工士</option> <option value="dancer">踊り子</option> <option value="blackmage">黒魔導士</option> <option value="summoner">召喚士</option> <option value="redmage">赤魔導士</option> <option value="pictomancer">ピクトマンサー</option> <option value="bluemage">青魔導士</option>
                     </select>
                     <div id="subjobSection">
-                        <p>サブジョブ（複数選択可）</p>
+                        <h3 class="section-title-nested">Sub Job</h3>
                         <div class="button-grid">
                             <button data-value="paladin">ナイト</button> <button data-value="warrior">戦士</button> <button data-value="darkknight">暗黒騎士</button> <button data-value="gunbreaker">ガンブレイカー</button> <button data-value="whitemage">白魔導士</button> <button data-value="scholar">学者</button> <button data-value="astrologian">占星術師</button> <button data-value="sage">賢者</button> <button data-value="monk">モンク</button> <button data-value="dragoon">竜騎士</button> <button data-value="ninja">忍者</button> <button data-value="samurai">侍</button> <button data-value="reaper">リーパー</button> <button data-value="viper">ヴァイパー</button> <button data-value="bard">吟遊詩人</button> <button data-value="machinist">機工士</button> <button data-value="dancer">踊り子</button> <button data-value="blackmage">黒魔導士</button> <button data-value="summoner">召喚士</button> <button data-value="redmage">赤魔導士</button> <button data-value="pictomancer">ピクトマンサー</button> <button data-value="bluemage">青魔導士</button> <button data-value="carpenter">木工師</button> <button data-value="blacksmith">鍛冶師</button> <button data-value="armorer">甲冑師</button> <button data-value="goldsmith">彫金師</button> <button data-value="leatherworker">革細工師</button> <button data-value="weaver">裁縫師</button> <button data-value="alchemist">錬金術師</button> <button data-value="culinarian">調理師</button> <button data-value="miner">採掘師</button> <button data-value="botanist">園芸師</button> <button data-value="fisher">漁師</button>
                         </div>
                     </div>
-                </fieldset>
+                </div>
 
                 <button id="downloadBtn" class="generate-btn">
                     <img src="./assets/favicon.png" alt="generate card">
-                    <span>この内容でカードを作る！</span>
+                    <span>Create My Card!</span>
                 </button>
             </div>
         </aside>
