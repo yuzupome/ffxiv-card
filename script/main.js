@@ -1,9 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (UI Revamp Final)
+ * FFXIV Character Card Generator Script (New Templates Version)
  *
- * 新しいUIに対応するためのJavaScript。
- * - TOPに戻るボタンの表示制御
- * - カスタムファイルアップロードボタンのファイル名表示
+ * 新しい4つのテンプレート（Gothic_pink, Neon系）を追加。
+ * 背景画像の.pngと.jpg形式の違いに対応。
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -17,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const nameInput = document.getElementById('nameInput');
     const fontSelect = document.getElementById('fontSelect');
     const uploadImageInput = document.getElementById('uploadImage');
-    const fileNameDisplay = document.getElementById('fileName'); // ★ファイル名表示用
+    const fileNameDisplay = document.getElementById('fileName');
     const templateButtons = document.querySelectorAll('#templateButtons button');
     const raceSelect = document.getElementById('raceSelect');
     const dcSelect = document.getElementById('dcSelect');
@@ -28,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mainJobSelect = document.getElementById('mainjobSelect');
     const subjobButtons = document.querySelectorAll('#subjobSection .button-grid button');
     const downloadBtn = document.getElementById('downloadBtn');
-    const toTopBtn = document.getElementById('toTopBtn'); // ★TOPに戻るボタン
+    const toTopBtn = document.getElementById('toTopBtn');
 
     // --- 初期設定 ---
     canvas.width = 3750;
@@ -36,8 +35,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
-    // --- アセット定義 ---
-    const templates = ['Gothic_black', 'Gothic_white'];
+    // --- ★★★ アセット定義（新テンプレート追加） ★★★ ---
+    const templates = [
+        'Gothic_black', 'Gothic_white', 'Gothic_pink', 
+        'Neon_mono', 'Neon_duotone', 'Neon_meltdown'
+    ];
+    // ★ テンプレートごとの背景ファイル拡張子を定義
+    const templateExtensions = {
+        'Gothic_black': 'png',
+        'Gothic_white': 'png',
+        'Gothic_pink': 'jpg',
+        'Neon_mono': 'jpg',
+        'Neon_duotone': 'jpg',
+        'Neon_meltdown': 'jpg'
+    };
     const races = ['au_ra', 'viera', 'roegadyn', 'miqote', 'hyur', 'elezen', 'lalafell', 'hrothgar'];
     const dcs = ['mana', 'gaia', 'elemental', 'meteor'];
     const progresses = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'];
@@ -75,8 +86,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function preloadAllAssets() {
         const allImagePaths = new Set();
         templates.forEach(template => {
-            allImagePaths.add(`./assets/backgrounds/${template}.png`);
-            allImagePaths.add(`./assets/backgrounds/${template}_cp.png`); 
+            const ext = templateExtensions[template] || 'png'; // 拡張子を取得
+            allImagePaths.add(`./assets/backgrounds/${template}.${ext}`);
+            allImagePaths.add(`./assets/backgrounds/${template}_cp.${ext}`); 
+            
             races.forEach(item => allImagePaths.add(`./assets/race_icons/${template}_${item}.png`));
             dcs.forEach(item => allImagePaths.add(`./assets/dc_icons/${template}_${item}.png`));
             progresses.forEach(item => allImagePaths.add(`./assets/progress_icons/${template}_${item}.png`));
@@ -103,9 +116,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     function drawCard(useCopyrightBg) { 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawUploadedImage();
-        let prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+
+        let templateName = document.body.className.replace('template-', ''); // e.g., "gothic-pink"
+        // ハイフンをアンダースコアに変換してファイル名と一致させる
+        let prefix = templateName.replace('-', '_'); // e.g., "gothic_pink"
+        
         if (useCopyrightBg === true) { prefix += '_cp'; }
-        const bgImg = imageCache[`./assets/backgrounds/${prefix}.png`];
+
+        const ext = templateExtensions[prefix.replace('_cp', '')] || 'png'; // 拡張子を取得
+        const bgImg = imageCache[`./assets/backgrounds/${prefix}.${ext}`];
+        
         drawStretchedImage(bgImg);
         drawIcons();
         drawNameText();
@@ -131,7 +151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const name = nameInput.value;
         if (!name) return;
         let fontSize = MAX_FONT_SIZE;
-        const selectedFont = fontSelect.value || "'Orbitron', sans-serif"; // フォント未選択時のデフォルト
+        const selectedFont = fontSelect.value || "'Orbitron', sans-serif";
         ctx.font = `${fontSize}px ${selectedFont}`;
         while (ctx.measureText(name).width > nameArea.width && fontSize > 10) {
             fontSize--;
@@ -146,7 +166,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     function drawIcons() {
-        const prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+        let templateName = document.body.className.replace('template-', '');
+        const prefix = templateName.replace('-', '_');
+        
         const draw = (path) => {
             const img = imageCache[path];
             if (img) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -182,9 +204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     templateButtons.forEach(button => {
         button.addEventListener('click', () => { 
-            // すべてのボタンからactiveクラスを削除
             templateButtons.forEach(btn => btn.classList.remove('active'));
-            // クリックされたボタンにactiveクラスを追加
             button.classList.add('active');
             document.body.className = button.dataset.class; 
             drawCard(false); 
@@ -218,30 +238,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => drawCard(false), 100);
     });
 
-    // ★★★ TOPに戻るボタンの制御 ★★★
     const controlsPanel = document.querySelector('.controls-panel');
     if(controlsPanel) {
-        controlsPanel.onscroll = () => {
-            if (controlsPanel.scrollTop > 100) {
-                toTopBtn.classList.add('visible');
-            } else {
-                toTopBtn.classList.remove('visible');
-            }
-        };
+        controlsPanel.onscroll = () => { toTopBtn.classList.toggle('visible', controlsPanel.scrollTop > 100); };
     }
-    // ウィンドウ自体のスクロールも監視（スマホ表示用）
-    window.onscroll = () => {
-         if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
-            toTopBtn.classList.add('visible');
-        } else {
-            toTopBtn.classList.remove('visible');
-        }
-    }
+    window.onscroll = () => { toTopBtn.classList.toggle('visible', document.body.scrollTop > 100 || document.documentElement.scrollTop > 100); };
     toTopBtn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        if(controlsPanel) {
-            controlsPanel.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        if(controlsPanel) { controlsPanel.scrollTo({ top: 0, behavior: 'smooth' }); }
     });
 
     // --- 画像操作イベントリスナー ---
