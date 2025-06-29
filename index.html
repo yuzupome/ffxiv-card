@@ -8,19 +8,20 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Orbitron:wght@600&family=DotGothic16&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="./assets/css/style.css" />
 </head>
 <body class="template-gothic-black">
 
+  <!-- ★★★ ローディング画面の構造を変更 ★★★ -->
   <div id="loader">
-    <div class="spinner"></div>
-    <p>アセットを読み込み中...</p>
+    <img src="./assets/favicon.png" alt="loading..." class="spinner-icon">
+    <p class="loading-text">Now Loading...</p>
     <div class="progress-bar-container">
         <div id="progressBar"></div>
     </div>
-    <p id="progressText">0 / 0</p>
+    <p id="progressText" class="loading-text">0 / 0</p>
   </div>
 
   <div id="app" class="hidden">
@@ -40,26 +41,25 @@
         <!-- ★★★ 操作パネル ★★★ -->
         <aside class="controls-panel">
             <div id="controls">
-                <fieldset class="control-group">
-                    <legend>背景と画像</legend>
+                <div id="top-controls">
                     <div id="templateButtons" class="button-group">
                         <button data-class="template-gothic-black" class="active">黒背景</button>
                         <button data-class="template-gothic-white">白背景</button>
                     </div>
-                    <!-- ★ 画像アップロードボタンをカスタムUIに変更 ★ -->
                     <label for="uploadImage" class="file-upload-label">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                         <span>画像をアップロード</span>
                     </label>
                     <input type="file" id="uploadImage" accept="image/*" class="file-upload-input">
                     <p id="fileName" class="file-name-display"></p>
-                </fieldset>
+                </div>
 
                 <fieldset class="control-group">
-                    <legend>基本設定</legend>
+                    <legend>キャラクター名</legend>
                     <div class="grid-col-2">
-                        <input type="text" id="nameInput" placeholder="キャラクター名" />
+                        <input type="text" id="nameInput" placeholder="表示したいキャラ名を入力" />
                         <select id="fontSelect">
+                            <option value="" disabled selected>フォントを選ぶ</option>
                             <option value="'Orbitron', sans-serif">Orbitron</option>
                             <option value="'Exo 2', sans-serif">Exo 2</option>
                             <option value="'Share Tech', sans-serif">Share Tech</option>
@@ -146,10 +146,9 @@
                     </div>
                 </fieldset>
 
-                <!-- ★★★ 生成ボタンのデザインを変更 ★★★ -->
                 <button id="downloadBtn" class="generate-btn">
                     <img src="./assets/favicon.png" alt="generate card">
-                    <span>カードを生成する</span>
+                    <span>この内容でカードを作る！</span>
                 </button>
             </div>
         </aside>
@@ -160,7 +159,6 @@
         <a href="https://x.com/yypome" target="_blank" rel="noopener noreferrer">design @yypome</a>
     </footer>
 
-    <!-- ★★★ TOPに戻るボタンを追加 ★★★ -->
     <button id="toTopBtn" title="トップに戻る">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
     </button>
