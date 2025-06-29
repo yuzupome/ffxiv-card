@@ -3,7 +3,7 @@
     --surface-color: #f9fafb;
     --primary-color: #6b7280;
     --primary-hover-color: #4b5563;
-    --text-color: #111827;
+    --text-color: #374151; /* ★黒文字を少しグレーに */
     --text-secondary-color: #6b7280;
     --border-color: #e5e7eb;
 }
@@ -17,7 +17,6 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   margin: 0;
-  padding: 0;
   line-height: 1.6;
 }
 
@@ -27,7 +26,7 @@ body {
     min-height: 100vh;
 }
 
-/* ★★★ ローディング画面 ★★★ */
+/* ローディング画面 */
 #loader {
   position: fixed; inset: 0; background-color: var(--bg-color);
   display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -51,8 +50,7 @@ body {
 #progressBar { width: 0%; height: 100%; background-color: var(--primary-color); transition: width 0.2s linear; }
 #app.hidden { display: none; }
 
-
-/* ★★★ ヘッダー ★★★ */
+/* ヘッダー */
 .site-header {
     display: flex;
     align-items: center;
@@ -71,13 +69,13 @@ body {
 }
 .header-title {
     margin: 0;
-    font-size: clamp(1rem, 4vw, 1.25rem); /* 画面幅に応じてサイズを調整 */
+    font-size: clamp(1rem, 4vw, 1.25rem);
     font-weight: 600;
-    font-family: 'Orbitron', sans-serif; /* 目立つフォントに変更 */
-    white-space: nowrap; /* 折り返しを防ぐ */
+    font-family: 'Orbitron', sans-serif;
+    white-space: nowrap;
 }
 
-/* ★★★ メインレイアウト（固定プレビュー用） ★★★ */
+/* メインレイアウト */
 .content-wrapper {
     display: grid;
     grid-template-columns: 1fr;
@@ -86,56 +84,72 @@ body {
     max-width: 1800px;
     margin: 0 auto;
     flex-grow: 1;
+    align-items: flex-start;
 }
-
-.preview-panel {
-    position: sticky; /* ★常に固定するようにベーススタイルに定義 */
-    top: 85px; 
-    z-index: 1; /* ★ z-indexを追加して重なり順を制御 */
-}
-
-/* PC用の2カラムレイアウト */
 @media (min-width: 1024px) {
     .content-wrapper {
         grid-template-columns: 1fr 480px;
-        align-items: flex-start;
+    }
+    .preview-panel {
+        position: sticky;
+        top: 85px;
     }
     .controls-panel {
         height: calc(100vh - 85px - 4rem);
         overflow-y: auto;
-        padding-right: 1rem; 
+        padding-right: 1rem;
     }
 }
+.preview-panel {
+    z-index: 1;
+}
+.canvas-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+canvas {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    background-color: #000;
+    cursor: grab;
+    display: block;
+    border: 1px solid var(--border-color);
+}
+canvas:active {
+    cursor: grabbing;
+}
+#controls {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
 
-.canvas-container { width: 100%; max-width: 1200px; margin: 0 auto; }
-canvas { width: 100%; height: auto; border-radius: 12px; background-color: #000; cursor: grab; display: block; border: 1px solid var(--border-color); }
-canvas:active { cursor: grabbing; }
-#controls { display: flex; flex-direction: column; gap: 2rem; }
-
-/* ★★★ 新しいセクションタイトル ★★★ */
+/* 新しいセクションのスタイル */
 .control-section {
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color);
 }
-.control-section:first-child {
+#controls .control-section:first-child { /* #controls内の最初のセクション */
     border-top: none;
     padding-top: 0;
 }
 .section-title, .section-title-nested {
     font-family: 'Orbitron', sans-serif;
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 600;
     margin: 0 0 1.5rem 0;
     color: var(--text-color);
 }
 .section-title-nested {
-    font-size: 1rem;
+    font-size: 0.9rem;
     margin-bottom: 1rem;
     color: var(--text-secondary-color);
 }
 
 
-/* ★★★ フォーム要素（旧fieldset, legendを削除） ★★★ */
+/* フォーム要素 */
 #top-controls {
     display: flex;
     flex-direction: column;
@@ -157,8 +171,6 @@ input[type="text"]:focus, select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.2);
 }
-
-/* ファイルアップロードボタン */
 .file-upload-label {
     display: flex;
     align-items: center;
@@ -211,8 +223,6 @@ input[type="text"]:focus, select:focus {
 .button-group button, .button-grid button { background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-secondary-color); padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease; }
 .button-group button:hover, .button-grid button:hover { border-color: var(--primary-hover-color); color: var(--primary-hover-color); }
 .button-group button.active, .button-grid button.active { background-color: var(--primary-color); border-color: var(--primary-color); color: white; }
-
-/* 生成ボタン */
 .generate-btn {
     display: flex; align-items: center; justify-content: center; gap: 0.75rem;
     width: 100%;
@@ -229,10 +239,11 @@ input[type="text"]:focus, select:focus {
 .generate-btn:hover img { transform: rotate(-15deg) scale(1.1); }
 
 /* チェックボックス */
-.checkbox-group { display: flex; justify-content: space-between; gap: 0.5rem; text-align: left; flex-wrap: wrap; }
+.checkbox-group { display: flex; flex-direction: column; gap: 0.75rem; }
+.time-section { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.time-section > span:first-child { font-weight: 500; color: var(--text-secondary-color); font-size: 0.9rem; width: 50px; text-align: right; flex-shrink: 0; }
+.options-row { display: flex; flex-wrap: wrap; gap: 1rem; }
 .checkbox-group-single { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 1.5rem; }
-.time-section { display: flex; flex-direction: column; flex: 1; min-width: 80px; }
-.time-section span:first-of-type { font-weight: 500; color: var(--text-secondary-color); font-size: 0.9rem; display: block; margin-bottom: 0.5rem; text-align: center;}
 .checkbox-group label, .checkbox-group-single label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.95rem; }
 input[type="checkbox"] { display: none; }
 input[type="checkbox"] + span { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border-color); border-radius: 5px; transition: all 0.2s ease; position: relative; }
@@ -260,5 +271,5 @@ input[type="checkbox"]:checked + span::after { content: '✓'; color: white; pos
     .site-header { padding: 1rem; }
     .content-wrapper { padding: 1rem; }
     .grid-col-2, .grid-col-3, .grid-col-2-gap { grid-template-columns: 1fr; }
-    .checkbox-group { justify-content: flex-start; }
+    .time-section { flex-direction: column; align-items: flex-start; }
 }
