@@ -1,5 +1,5 @@
 /**
- * FFXIV Character Card Generator Script (v24)
+ * FFXIV Character Card Generator Script (v25)
  *
  * ユーザーのフィードバックに基づき、名前の描画エリアのX座標を最終調整。
  */
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function drawNameText() {
         // ★座標をユーザーの指示に基づき最終調整
-        const nameArea = { x: 113, y: 270, width: 680, height: 120 };
+        const nameArea = { x: 103, y: 270, width: 680, height: 120 };
         
         // ★デバッグ用の枠線を描画
         if(showDebugBox) {
