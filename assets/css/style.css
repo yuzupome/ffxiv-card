@@ -1,16 +1,15 @@
 :root {
-    --bg-color: #ffffff; /* 背景を白に */
-    --surface-color: #f9fafb; /* 項目の背景を薄いグレーに */
-    --primary-color: #6b7280; /* ★選択色をグレーに */
-    --primary-hover-color: #4b5563; /* ホバー時の色も調整 */
-    --text-color: #111827; /* テキストを黒に */
-    --text-secondary-color: #6b7280; /* サブテキストをグレーに */
-    --border-color: #e5e7eb; /* 枠線を薄いグレーに */
+    --bg-color: #ffffff;
+    --surface-color: #f9fafb;
+    --primary-color: #6b7280;
+    --primary-hover-color: #4b5563;
+    --text-color: #111827;
+    --text-secondary-color: #6b7280;
+    --border-color: #e5e7eb;
 }
 
-/* ★★★ 基本設定とリセット ★★★ */
 *, *::before, *::after {
-    box-sizing: border-box; /* ★幅の計算基準を統一 */
+    box-sizing: border-box;
 }
 
 body {
@@ -18,8 +17,14 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   margin: 0;
-  padding: 2rem;
+  padding: 0;
   line-height: 1.6;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 /* ★★★ ローディング画面 ★★★ */
@@ -37,28 +42,38 @@ body {
 #app.hidden { display: none; }
 
 
+/* ★★★ ヘッダー ★★★ */
+.site-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+.header-logo {
+    width: 32px;
+    height: 32px;
+}
+.header-title {
+    margin: 0;
+    font-size: clamp(1rem, 4vw, 1.25rem); /* 画面幅に応じてサイズを調整 */
+    font-weight: 600;
+    font-family: 'Orbitron', sans-serif; /* 目立つフォントに変更 */
+    white-space: nowrap; /* 折り返しを防ぐ */
+}
+
 /* ★★★ メインレイアウト ★★★ */
 .main-container {
-    max-width: 1200px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 1400px;
     margin: 0 auto;
-}
-
-.main-header {
-    text-align: left;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.main-header h1 {
-    margin: 0;
-    font-size: 1.8rem;
-    font-weight: 600;
-}
-
-.main-header p {
-    margin: 0.25rem 0 0;
-    color: var(--text-secondary-color);
+    flex-grow: 1;
 }
 
 #top-controls {
@@ -73,9 +88,10 @@ canvas {
     max-width: 1200px;
     height: auto;
     border-radius: 12px;
-    background-color: #000; /* Canvasの背景は黒のまま */
+    background-color: #000;
     cursor: grab;
-    margin-bottom: 2rem;
+    margin: 0 auto 2rem;
+    display: block;
     border: 1px solid var(--border-color);
 }
 canvas:active { cursor: grabbing; }
@@ -84,8 +100,9 @@ canvas:active { cursor: grabbing; }
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
-
 
 /* ★★★ フォーム要素 ★★★ */
 .control-group {
@@ -116,7 +133,7 @@ input[type="text"], select {
 input[type="text"]:focus, select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.3); /* 影もグレー系に */
+    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.3);
 }
 
 input[type="file"] {
@@ -220,11 +237,34 @@ input[type="checkbox"]:checked + span::after {
 #subjobSection p { margin: 0 0 1rem; font-weight: 500; }
 #subjobSection .button-grid { gap: 0.75rem; }
 
+/* ★★★ フッター ★★★ */
+.site-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary-color);
+}
+.site-footer a {
+    color: var(--text-secondary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.site-footer a:hover {
+    color: var(--primary-hover-color);
+}
+.site-footer svg {
+    width: 18px;
+    height: 18px;
+}
+
 
 /* ★★★ レスポンシブ対応 ★★★ */
 @media (max-width: 768px) {
-    body { padding: 1rem; }
-    .main-container { padding: 0; } /* スマホではコンテナのパディングをなくす */
+    .main-container { padding: 1rem; }
+    .site-header { padding: 1rem; }
     .grid-col-2, .grid-col-3, .grid-col-2-gap { grid-template-columns: 1fr; }
     #top-controls { flex-direction: column; align-items: stretch; }
 }
