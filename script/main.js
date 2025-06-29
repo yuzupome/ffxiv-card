@@ -1,7 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (Copyright Swap Version)
+ * FFXIV Character Card Generator Script (Copyright Swap Fix)
  *
- * PNG出力時にのみ、著作権表記ありの背景画像に差し替える機能を追加。
+ * 描画時の背景画像指定をより厳密にし、ダウンロード後の再描画処理を追加して、
+ * プレビュー画面で著作権表記ありの背景が表示される問題を確実に修正する。
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -26,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const subJobCheckboxes = document.querySelectorAll('#subjobSection input[type="checkbox"]');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // --- ★★★ 初期設定: Canvasサイズとスケーリング比率 ★★★ ---
+    // --- 初期設定: Canvasサイズとスケーリング比率 ---
     const BASE_WIDTH = 3750;
     const NEW_WIDTH = 1200;
     const SCALE_FACTOR = NEW_WIDTH / BASE_WIDTH;
@@ -76,7 +77,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function preloadAllAssets() {
         const allImagePaths = new Set();
         templates.forEach(template => {
-            // ★通常用と著作権表記ありの両方をプリロード対象に追加
             allImagePaths.add(`./assets/backgrounds/${template}.png`);
             allImagePaths.add(`./assets/backgrounds/${template}_cp.png`); 
             
@@ -108,10 +108,9 @@ document.addEventListener('DOMContentLoaded', async () => {
      * @param {CanvasRenderingContext2D} targetCtx - 描画対象のコンテキスト
      * @param {boolean} useCopyrightBg - 著作権表記ありの背景を使うか
      */
-    function drawCard(targetCtx, useCopyrightBg = false) {
+    function drawCard(targetCtx, useCopyrightBg) { // ★デフォルト引数を削除
         targetCtx.clearRect(0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
         
-        // ユーザーアップロード画像
         if (imageTransform.img && imageTransform.img.complete && imageTransform.img.naturalHeight !== 0) {
             targetCtx.save();
             targetCtx.translate(imageTransform.x, imageTransform.y);
@@ -120,17 +119,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             targetCtx.restore();
         }
         
-        // 背景
         let prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
-        if (useCopyrightBg) {
-            prefix += '_cp'; // ★書き出し時はサフィックスを追加
+        if (useCopyrightBg === true) { // ★厳密に比較
+            prefix += '_cp';
         }
         const bgImg = imageCache[`./assets/backgrounds/${prefix}.png`];
         if (bgImg) targetCtx.drawImage(bgImg, 0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
 
-        // アイコン
         drawIcons(targetCtx);
-        // 名前
         drawNameText(targetCtx);
     }
     
@@ -140,7 +136,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             width: 665 * SCALE_FACTOR, height: 120 * SCALE_FACTOR 
         };
         const MAX_FONT_SIZE = 120 * SCALE_FACTOR;
-
         const name = nameInput.value;
         if (!name) return;
         
@@ -175,9 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const toLoad = progressSelect.value === 'all_clear' ? [...stages, 'all_clear'] : stages.slice(0, stages.indexOf(progressSelect.value) + 1);
             toLoad.forEach(p => draw(`./assets/progress_icons/${prefix}_${p}.png`));
         }
-        styleButtons.forEach(btn => {
-            if (btn.classList.contains('active')) draw(`./assets/style_icons/${prefix}_${btn.dataset.value}.png`);
-        });
+        styleButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/style_icons/${prefix}_${btn.dataset.value}.png`); });
         const timePaths = new Set();
         const checkedTimes = Array.from(playtimeCheckboxes).filter(cb => cb.checked);
         checkedTimes.forEach(cb => timePaths.add(`./assets/time_icons/${prefix}_${cb.className}_${cb.value}.png`));
@@ -195,12 +188,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const eventType = (el.tagName === 'SELECT' || el.type === 'text') ? 'input' : 'click';
         el.addEventListener(eventType, (e) => {
             if (e.currentTarget.tagName === 'BUTTON') { e.currentTarget.classList.toggle('active'); }
-            drawCard(ctx);
+            drawCard(ctx, false); // ★常に「通常用」で描画
         });
     });
     
     templateButtons.forEach(button => {
-        button.addEventListener('click', () => { document.body.className = button.dataset.class; drawCard(ctx); });
+        button.addEventListener('click', () => { document.body.className = button.dataset.class; drawCard(ctx, false); }); // ★常に「通常用」で描画
     });
     
     uploadImageInput.addEventListener('change', (e) => {
@@ -213,16 +206,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 imageTransform.scale = Math.min(canvas.width / img.width, canvas.height / img.height, 1);
                 imageTransform.x = canvas.width / 2;
                 imageTransform.y = canvas.height / 2;
-                drawCard(ctx);
+                drawCard(ctx, false); // ★常に「通常用」で描画
             };
             img.src = event.target.result;
         };
         reader.readAsDataURL(file);
     });
 
-    // ★★★ ダウンロード処理を修正 ★★★
     downloadBtn.addEventListener('click', async () => {
-        // 1. オフスクリーン（見えない）Canvasを作成
         const offscreenCanvas = document.createElement('canvas');
         offscreenCanvas.width = canvas.width;
         offscreenCanvas.height = canvas.height;
@@ -230,16 +221,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         offscreenCtx.imageSmoothingEnabled = true;
         offscreenCtx.imageSmoothingQuality = 'high';
 
-        // 2. オフスクリーンCanvasに著作権表記ありで描画
-        console.log("書き出し用に再描画します...");
-        drawCard(offscreenCtx, true);
-        console.log("再描画完了。");
+        drawCard(offscreenCtx, true); // ★書き出し用を描画
 
-        // 3. オフスクリーンCanvasから画像を生成してダウンロード
         const link = document.createElement('a');
         link.download = 'ffxiv_character_card.png';
         link.href = offscreenCanvas.toDataURL('image/png');
         link.click();
+        
+        // ★ ダウンロード後にメインの表示を再描画（念のため）
+        setTimeout(() => drawCard(ctx, false), 100);
     });
 
     // --- 画像操作イベントリスナー ---
@@ -257,7 +247,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const dx = loc.x - imageTransform.lastX; const dy = loc.y - imageTransform.lastY;
         imageTransform.x += dx; imageTransform.y += dy;
         imageTransform.lastX = loc.x; imageTransform.lastY = loc.y;
-        drawCard(ctx);
+        drawCard(ctx, false); // ★常に「通常用」で描画
     }
     function handleDragEnd() { imageTransform.isDragging = false; }
     canvas.addEventListener('mousedown', handleDragStart, { passive: false });
@@ -268,7 +258,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!imageTransform.img) return; e.preventDefault();
         const scaleAmount = 1.1; const newScale = e.deltaY < 0 ? imageTransform.scale * scaleAmount : imageTransform.scale / scaleAmount;
         imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
-        drawCard(ctx);
+        drawCard(ctx, false); // ★常に「通常用」で描画
     }, { passive: false });
     canvas.addEventListener('touchstart', (e) => {
         if (!imageTransform.img) return; e.preventDefault();
@@ -290,7 +280,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
             }
             imageTransform.lastTouchDistance = newDist;
-            drawCard(ctx);
+            drawCard(ctx, false); // ★常に「通常用」で描画
         }
     }, { passive: false });
     canvas.addEventListener('touchend', (e) => {
@@ -308,7 +298,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loaderElement.classList.add('hidden');
         setTimeout(() => {
             appElement.classList.remove('hidden');
-            drawCard(ctx);
+            drawCard(ctx, false); // ★常に「通常用」で描画
         }, 300);
     }
 
