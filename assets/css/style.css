@@ -136,10 +136,10 @@ canvas:active { cursor: grabbing; }
 
 /* ★★★ フォーム要素 ★★★ */
 #top-controls {
-    padding-bottom: 1.5rem; /* Profileとのマージンを調整 */
+    padding-bottom: 1.0rem; /* Profileとのマージンを調整 */
 }
 #top-controls .button-group {
-    margin-bottom: 3px; /* ★ボタン間のマージンを追加 */
+    margin-bottom: 5px; /* ★ボタン間のマージンを追加 */
 }
 input[type="text"], select { width: 100%; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 0.75rem; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease; }
 input[type="text"]:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.2); }
