@@ -1,8 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (Diagnostic Version)
+ * FFXIV Character Card Generator Script (Path Fix Version)
  *
- * 起動時の読み込み処理に詳細なログを追加し、問題の特定を容易にする。
- * 必須アセットの読み込みに失敗した場合は、アラートを表示して処理を停止する。
+ * GitHub Pagesの環境で正しく動作するように、すべてのアセットパスを
+ * サイトのルートディレクトリからの絶対パスに修正。
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -38,6 +38,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const subJobCheckboxes = document.querySelectorAll('#subjobSection input[type="checkbox"]');
     const downloadBtn = document.getElementById('downloadBtn');
 
+    // ★ パスのプレフィックスを定義
+    const assetPathPrefix = '/ffxiv-card';
+
     // --- アセットの定義 ---
     const templates = ['Gothic_black', 'Gothic_white'];
     const races = ['au_ra', 'viera', 'roegadyn', 'miqote', 'hyur', 'elezen', 'lalafell', 'hrothgar'];
@@ -69,15 +72,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("バックグラウンドでのアセット読み込みを開始します。");
         const allImagePaths = new Set();
         templates.forEach(template => {
-            races.forEach(item => allImagePaths.add(`./assets/race_icons/${template}_${item}.png`));
-            dcs.forEach(item => allImagePaths.add(`./assets/dc_icons/${template}_${item}.png`));
-            progresses.forEach(item => allImagePaths.add(`./assets/progress_icons/${template}_${item}.png`));
-            styles.forEach(item => allImagePaths.add(`./assets/style_icons/${template}_${item}.png`));
-            playtimes.forEach(item => allImagePaths.add(`./assets/time_icons/${template}_${item}.png`));
-            difficulties.forEach(item => allImagePaths.add(`./assets/difficulty_icons/${template}_${item}.png`));
+            races.forEach(item => allImagePaths.add(`${assetPathPrefix}/assets/race_icons/${template}_${item}.png`));
+            dcs.forEach(item => allImagePaths.add(`${assetPathPrefix}/assets/dc_icons/${template}_${item}.png`));
+            progresses.forEach(item => allImagePaths.add(`${assetPathPrefix}/assets/progress_icons/${template}_${item}.png`));
+            styles.forEach(item => allImagePaths.add(`${assetPathPrefix}/assets/style_icons/${template}_${item}.png`));
+            playtimes.forEach(item => allImagePaths.add(`${assetPathPrefix}/assets/time_icons/${template}_${item}.png`));
+            difficulties.forEach(item => allImagePaths.add(`${assetPathPrefix}/assets/difficulty_icons/${template}_${item}.png`));
             jobs.forEach(item => {
-                allImagePaths.add(`./assets/mainjob_icons/${template}_main_${item}.png`);
-                allImagePaths.add(`./assets/subjob_icons/${template}_sub_${item}.png`);
+                allImagePaths.add(`${assetPathPrefix}/assets/mainjob_icons/${template}_main_${item}.png`);
+                allImagePaths.add(`${assetPathPrefix}/assets/subjob_icons/${template}_sub_${item}.png`);
             });
         });
         allImagePaths.forEach(path => loadImage(path));
@@ -94,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawUploadedImage();
         const prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
-        drawStretchedImage(imageCache[`./assets/backgrounds/${prefix}.png`]);
+        drawStretchedImage(imageCache[`${assetPathPrefix}/assets/backgrounds/${prefix}.png`]);
         drawIcons();
         drawNameText();
     }
@@ -135,31 +138,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     function drawIcons() {
         const prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
-        if (raceSelect.value) drawStretchedImage(imageCache[`./assets/race_icons/${prefix}_${raceSelect.value}.png`]);
-        if (dcSelect.value) drawStretchedImage(imageCache[`./assets/dc_icons/${prefix}_${dcSelect.value}.png`]);
+        if (raceSelect.value) drawStretchedImage(imageCache[`${assetPathPrefix}/assets/race_icons/${prefix}_${raceSelect.value}.png`]);
+        if (dcSelect.value) drawStretchedImage(imageCache[`${assetPathPrefix}/assets/dc_icons/${prefix}_${dcSelect.value}.png`]);
         if (progressSelect.value) {
             const stages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
             const toLoad = progressSelect.value === 'all_clear' ? [...stages, 'all_clear'] : stages.slice(0, stages.indexOf(progressSelect.value) + 1);
-            toLoad.forEach(p => drawStretchedImage(imageCache[`./assets/progress_icons/${prefix}_${p}.png`]));
+            toLoad.forEach(p => drawStretchedImage(imageCache[`${assetPathPrefix}/assets/progress_icons/${prefix}_${p}.png`]));
         }
         styleButtons.forEach(btn => {
-            if (btn.classList.contains('active')) drawStretchedImage(imageCache[`./assets/style_icons/${prefix}_${btn.dataset.value}.png`]);
+            if (btn.classList.contains('active')) drawStretchedImage(imageCache[`${assetPathPrefix}/assets/style_icons/${prefix}_${btn.dataset.value}.png`]);
         });
         const timePaths = new Set();
         const checkedTimes = Array.from(playtimeCheckboxes).filter(cb => cb.checked);
         checkedTimes.forEach(cb => {
-            timePaths.add(`./assets/time_icons/${prefix}_${cb.className}_${cb.value}.png`);
+            timePaths.add(`${assetPathPrefix}/assets/time_icons/${prefix}_${cb.className}_${cb.value}.png`);
         });
-        if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${prefix}_weekday.png`);
-        if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.png`);
+        if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`${assetPathPrefix}/assets/time_icons/${prefix}_weekday.png`);
+        if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`${assetPathPrefix}/assets/time_icons/${prefix}_holiday.png`);
         timePaths.forEach(path => drawStretchedImage(imageCache[path]));
         difficultyCheckboxes.forEach(cb => {
-            if (cb.checked) drawStretchedImage(imageCache[`./assets/difficulty_icons/${prefix}_${cb.value}.png`]);
+            if (cb.checked) drawStretchedImage(imageCache[`${assetPathPrefix}/assets/difficulty_icons/${prefix}_${cb.value}.png`]);
         });
         subJobCheckboxes.forEach(cb => {
-            if (cb.checked) drawStretchedImage(imageCache[`./assets/subjob_icons/${prefix}_sub_${cb.value}.png`]);
+            if (cb.checked) drawStretchedImage(imageCache[`${assetPathPrefix}/assets/subjob_icons/${prefix}_sub_${cb.value}.png`]);
         });
-        if (mainJobSelect.value) drawStretchedImage(imageCache[`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.png`]);
+        if (mainJobSelect.value) drawStretchedImage(imageCache[`${assetPathPrefix}/assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.png`]);
     }
 
     // --- イベントリスナー ---
@@ -256,11 +259,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         imageTransform.lastTouchDistance = 0;
     });
 
-    // --- ★★★ 初期化処理 (診断機能強化版) ★★★ ---
+    // --- ★★★ 初期化処理 (パス修正版) ★★★ ---
     async function initialize() {
         console.log("初期化処理を開始します。");
         
-        console.log("ステップ1: フォントの読み込みを待機しています...");
         try {
             await document.fonts.ready;
             console.log("✓ フォントの準備が完了しました。");
@@ -270,28 +272,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        console.log("ステップ2: 必須となる背景画像の読み込みを開始します...");
         const criticalAssets = [
-            loadImage('./assets/backgrounds/Gothic_black.png'),
-            loadImage('./assets/backgrounds/Gothic_white.png')
+            loadImage(`${assetPathPrefix}/assets/backgrounds/Gothic_black.png`),
+            loadImage(`${assetPathPrefix}/assets/backgrounds/Gothic_white.png`)
         ];
         const [bgBlack, bgWhite] = await Promise.all(criticalAssets);
 
         if (!bgBlack || !bgWhite) {
-            console.error("致命的エラー: 背景画像の読み込みに失敗しました。");
-            alert("背景画像の読み込みに失敗しました。ファイルパスが正しいか確認してください。（例: ./assets/backgrounds/Gothic_black.png）");
+            alert("背景画像の読み込みに失敗しました。ファイルパスが正しいか確認してください。 (例: /ffxiv-card/assets/backgrounds/Gothic_black.png)");
             loaderElement.innerHTML = "<p style='color:red;'>必須ファイルの読み込みに失敗しました。<br>ファイル構成を確認してください。</p>";
             return; // 処理を停止
         }
-        console.log("✓ 背景画像の読み込みが完了しました。");
-
-        console.log("ステップ3: アプリケーションを表示します。");
+        
         loaderElement.classList.add('hidden');
         appElement.classList.remove('hidden');
         
         drawCanvas();
         
-        // 4. バックグラウンドでのアセット読み込みを開始
         preloadAllAssetsInBackground();
     }
 
