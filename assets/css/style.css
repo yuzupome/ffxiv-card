@@ -1,10 +1,16 @@
 :root {
-    --bg-color: #1a1a1a;
-    --surface-color: #2c2c2c;
-    --primary-color: #3d8bfd;
-    --text-color: #e0e0e0;
-    --text-secondary-color: #a0a0a0;
-    --border-color: #444444;
+    --bg-color: #ffffff; /* 背景を白に */
+    --surface-color: #f9fafb; /* 項目の背景を薄いグレーに */
+    --primary-color: #6b7280; /* ★選択色をグレーに */
+    --primary-hover-color: #4b5563; /* ホバー時の色も調整 */
+    --text-color: #111827; /* テキストを黒に */
+    --text-secondary-color: #6b7280; /* サブテキストをグレーに */
+    --border-color: #e5e7eb; /* 枠線を薄いグレーに */
+}
+
+/* ★★★ 基本設定とリセット ★★★ */
+*, *::before, *::after {
+    box-sizing: border-box; /* ★幅の計算基準を統一 */
 }
 
 body {
@@ -23,9 +29,9 @@ body {
   z-index: 9999; transition: opacity 0.5s ease-out;
 }
 #loader.hidden { opacity: 0; pointer-events: none; }
-.spinner { width: 56px; height: 56px; border-radius: 50%; border: 9px solid var(--surface-color); border-right-color: var(--primary-color); animation: spinner-d3wgkg 1s infinite linear; margin-bottom: 20px; }
+.spinner { width: 56px; height: 56px; border-radius: 50%; border: 9px solid var(--border-color); border-right-color: var(--primary-color); animation: spinner-d3wgkg 1s infinite linear; margin-bottom: 20px; }
 @keyframes spinner-d3wgkg { to { transform: rotate(1turn); } }
-.progress-bar-container { width: 80%; max-width: 400px; height: 10px; background-color: var(--surface-color); border-radius: 5px; overflow: hidden; margin-bottom: 10px;}
+.progress-bar-container { width: 80%; max-width: 400px; height: 10px; background-color: var(--border-color); border-radius: 5px; overflow: hidden; margin-bottom: 10px;}
 #progressBar { width: 0%; height: 100%; background-color: var(--primary-color); transition: width 0.1s linear; }
 #progressText { font-size: 0.9rem; color: var(--text-secondary-color); }
 #app.hidden { display: none; }
@@ -33,19 +39,15 @@ body {
 
 /* ★★★ メインレイアウト ★★★ */
 .main-container {
-    display: grid;
-    grid-template-columns: 400px 1fr;
-    gap: 2rem;
-    max-width: 1700px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
 .main-header {
-    grid-column: 1 / -1; /* 全幅 */
     text-align: left;
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .main-header h1 {
@@ -59,10 +61,11 @@ body {
     color: var(--text-secondary-color);
 }
 
-#controls {
+#top-controls {
     display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
 }
 
 canvas {
@@ -70,10 +73,19 @@ canvas {
     max-width: 1200px;
     height: auto;
     border-radius: 12px;
-    background-color: #000;
+    background-color: #000; /* Canvasの背景は黒のまま */
     cursor: grab;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
 }
 canvas:active { cursor: grabbing; }
+
+#controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
 
 /* ★★★ フォーム要素 ★★★ */
 .control-group {
@@ -81,6 +93,7 @@ canvas:active { cursor: grabbing; }
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 1.5rem;
+    text-align: left;
 }
 
 legend {
@@ -103,17 +116,18 @@ input[type="text"], select {
 input[type="text"]:focus, select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(61, 139, 253, 0.3);
+    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.3); /* 影もグレー系に */
 }
 
 input[type="file"] {
-    width: 100%;
+    flex-grow: 1;
     background: var(--bg-color);
     border: 1px dashed var(--border-color);
-    padding: 1rem;
+    padding: 0.6rem;
     border-radius: 8px;
     color: var(--text-secondary-color);
     cursor: pointer;
+    text-align: center;
     transition: all 0.2s ease;
 }
 input[type="file"]:hover { border-color: var(--primary-color); }
@@ -126,24 +140,25 @@ input[type="file"]::file-selector-button { display: none; }
 
 
 /* ★★★ ボタン ★★★ */
-#templateButtons.button-group, #styleButtons.button-grid {
+.button-group, .button-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
 }
 
 .button-group button, .button-grid button {
-    background-color: transparent;
+    background-color: var(--bg-color);
     border: 1px solid var(--border-color);
     color: var(--text-secondary-color);
     padding: 0.5rem 1rem;
     border-radius: 20px;
     cursor: pointer;
+    font-size: 0.9rem;
     transition: all 0.2s ease;
 }
 .button-group button:hover, .button-grid button:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
+    border-color: var(--primary-hover-color);
+    color: var(--primary-hover-color);
 }
 .button-group button.active, .button-grid button.active {
     background-color: var(--primary-color);
@@ -168,10 +183,10 @@ input[type="file"]::file-selector-button { display: none; }
 
 
 /* ★★★ チェックボックス ★★★ */
-.checkbox-group { display: flex; justify-content: space-between; gap: 1rem; }
-.checkbox-group-single, .checkbox-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-.time-section p { margin: 0 0 0.5rem; font-weight: 500; color: var(--text-secondary-color); font-size: 0.9rem; }
-.checkbox-group label, .checkbox-group-single label, .checkbox-grid label {
+.checkbox-group { display: flex; justify-content: space-around; gap: 1rem; text-align: center; }
+.checkbox-group-single { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1.5rem; height: 100%;}
+.time-section span:first-of-type { font-weight: 500; color: var(--text-secondary-color); font-size: 0.9rem; display: block; margin-bottom: 0.75rem;}
+.checkbox-group label, .checkbox-group-single label {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -201,18 +216,15 @@ input[type="checkbox"]:checked + span::after {
     font-weight: bold;
 }
 
-#subjobSection p { margin: 0 0 1rem; font-weight: 500; text-align: left; }
-.checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem; }
+#mainjobSelect { margin-bottom: 1.5rem; }
+#subjobSection p { margin: 0 0 1rem; font-weight: 500; }
+#subjobSection .button-grid { gap: 0.75rem; }
 
 
 /* ★★★ レスポンシブ対応 ★★★ */
-@media (max-width: 1200px) {
-    .main-container {
-        grid-template-columns: 1fr;
-    }
-}
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     body { padding: 1rem; }
+    .main-container { padding: 0; } /* スマホではコンテナのパディングをなくす */
     .grid-col-2, .grid-col-3, .grid-col-2-gap { grid-template-columns: 1fr; }
-    .checkbox-group { flex-direction: column; }
+    #top-controls { flex-direction: column; align-items: stretch; }
 }
