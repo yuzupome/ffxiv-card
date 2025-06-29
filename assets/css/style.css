@@ -77,8 +77,9 @@ body {
 }
 
 .preview-panel {
-    position: sticky; /* ★常に固定するようにベーススタイルに定義 */
+    position: sticky;
     top: 85px; 
+    z-index: 1; /* ★ z-indexを追加して重なり順を制御 */
 }
 
 /* PC用の2カラムレイアウト */
