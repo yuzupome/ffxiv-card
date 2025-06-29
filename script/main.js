@@ -1,8 +1,7 @@
 /**
- * FFXIV Character Card Generator Script (v20)
+ * FFXIV Character Card Generator Script (v21)
  *
- * 名前の描画エリアを視覚的にデバッグする機能を追加。
- * これにより、座標のズレを正確に特定し、修正することを目指します。
+ * ユーザーのフィードバックに基づき、名前の描画エリアの座標と幅を最終調整。
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -108,8 +107,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function drawNameText() {
-        // ★現在の座標（これをデバッグ表示で確認・調整する）
-        const nameArea = { x: 145, y: 270, width: 860, height: 120 };
+        // ★座標をユーザーの指示に基づき最終調整
+        const nameArea = { x: 133, y: 270, width: 800, height: 120 };
         
         // ★デバッグ用の枠線を描画
         if(showDebugBox) {
