@@ -17,6 +17,7 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   margin: 0;
+  padding: 0;
   line-height: 1.6;
 }
 
@@ -90,7 +91,7 @@ body {
 .preview-panel {
     position: sticky; /* ★常に固定するようにベーススタイルに定義 */
     top: 85px; 
-    z-index: 1;
+    z-index: 1; /* ★ z-indexを追加して重なり順を制御 */
 }
 
 /* PC用の2カラムレイアウト */
@@ -115,7 +116,6 @@ canvas:active { cursor: grabbing; }
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color);
 }
-/* ★ Profileの上の罫線を削除するルール ★ */
 #controls > .control-section:first-of-type {
     border-top: none;
     padding-top: 0;
@@ -136,10 +136,10 @@ canvas:active { cursor: grabbing; }
 
 /* ★★★ フォーム要素 ★★★ */
 #top-controls {
-    padding-bottom: 1.0rem; /* Profileとのマージンを調整 */
+    padding-bottom: 1.5rem; 
 }
 #top-controls .button-group {
-    margin-bottom: 0.8rem; /* ★ご要望の通り、3pt相当のマージンに修正 */
+    margin-bottom: 1rem; 
 }
 input[type="text"], select { width: 100%; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 0.75rem; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease; }
 input[type="text"]:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.2); }
