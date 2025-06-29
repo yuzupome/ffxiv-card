@@ -1,8 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (Copyright Swap Fix v2)
+ * FFXIV Character Card Generator Script (High-Resolution Export Version)
  *
- * 描画時の背景画像指定をより厳密にし、ダウンロード後の再描画処理を追加して、
- * プレビュー画面で著作権表記ありの背景が表示される問題を確実に修正する。
+ * Canvasの内部解像度を常に高解像度(3750x2250)で保持し、
+ * CSSで表示サイズを制御することで、見た目と出力品質を両立させる。
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -27,13 +27,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const subJobCheckboxes = document.querySelectorAll('#subjobSection input[type="checkbox"]');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // --- 初期設定: Canvasサイズとスケーリング比率 ---
-    const BASE_WIDTH = 3750;
-    const NEW_WIDTH = 1200;
-    const SCALE_FACTOR = NEW_WIDTH / BASE_WIDTH;
-
-    canvas.width = NEW_WIDTH;
-    canvas.height = 2250 * SCALE_FACTOR;
+    // --- ★★★ 初期設定: Canvasの内部解像度を最大化 ★★★ ---
+    canvas.width = 3750;
+    canvas.height = 2250;
     
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
@@ -79,7 +75,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         templates.forEach(template => {
             allImagePaths.add(`./assets/backgrounds/${template}.png`);
             allImagePaths.add(`./assets/backgrounds/${template}_cp.png`); 
-            
             races.forEach(item => allImagePaths.add(`./assets/race_icons/${template}_${item}.png`));
             dcs.forEach(item => allImagePaths.add(`./assets/dc_icons/${template}_${item}.png`));
             progresses.forEach(item => allImagePaths.add(`./assets/progress_icons/${template}_${item}.png`));
@@ -103,64 +98,65 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- 描画関数 ---
-    /**
-     * 指定されたコンテキストにカードを描画する
-     * @param {CanvasRenderingContext2D} targetCtx - 描画対象のコンテキスト
-     * @param {boolean} useCopyrightBg - 著作権表記ありの背景を使うか
-     */
-    function drawCard(targetCtx, useCopyrightBg) { 
-        targetCtx.clearRect(0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
+    function drawCard(useCopyrightBg) { 
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        if (imageTransform.img && imageTransform.img.complete && imageTransform.img.naturalHeight !== 0) {
-            targetCtx.save();
-            targetCtx.translate(imageTransform.x, imageTransform.y);
-            targetCtx.scale(imageTransform.scale, imageTransform.scale);
-            targetCtx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
-            targetCtx.restore();
-        }
+        drawUploadedImage();
         
         let prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
         if (useCopyrightBg === true) {
             prefix += '_cp';
         }
         const bgImg = imageCache[`./assets/backgrounds/${prefix}.png`];
-        if (bgImg) targetCtx.drawImage(bgImg, 0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
+        drawStretchedImage(bgImg);
 
-        drawIcons(targetCtx);
-        drawNameText(targetCtx);
+        drawIcons();
+        drawNameText();
     }
     
-    function drawNameText(targetCtx) {
-        const nameArea = { 
-            x: 98 * SCALE_FACTOR, y: 270 * SCALE_FACTOR, 
-            width: 665 * SCALE_FACTOR, height: 120 * SCALE_FACTOR 
-        };
-        const MAX_FONT_SIZE = 120 * SCALE_FACTOR;
+    function drawStretchedImage(img) {
+        if (img && img.complete && img.naturalHeight !== 0) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
+    
+    function drawUploadedImage() {
+        if (imageTransform.img && imageTransform.img.complete && imageTransform.img.naturalHeight !== 0) {
+            ctx.save();
+            ctx.translate(imageTransform.x, imageTransform.y);
+            ctx.scale(imageTransform.scale, imageTransform.scale);
+            ctx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
+            ctx.restore();
+        }
+    }
+
+    function drawNameText() {
+        // ★★★ 座標とフォントサイズを元の高解像度基準に戻す ★★★
+        const nameArea = { x: 98, y: 270, width: 665, height: 120 };
+        const MAX_FONT_SIZE = 120;
         const name = nameInput.value;
         if (!name) return;
         
         let fontSize = MAX_FONT_SIZE;
         const selectedFont = fontSelect.value;
-        targetCtx.font = `${fontSize}px ${selectedFont}`;
+        ctx.font = `${fontSize}px ${selectedFont}`;
 
-        while (targetCtx.measureText(name).width > nameArea.width && fontSize > 10) {
+        while (ctx.measureText(name).width > nameArea.width && fontSize > 10) {
             fontSize--;
-            targetCtx.font = `${fontSize}px ${selectedFont}`;
+            ctx.font = `${fontSize}px ${selectedFont}`;
         }
         
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
-        targetCtx.fillStyle = document.body.classList.contains('template-gothic-white') ? '#000000' : '#ffffff';
-        targetCtx.textAlign = 'center';
-        targetCtx.textBaseline = 'middle';
-        targetCtx.fillText(name, centerX, centerY);
+        ctx.fillStyle = document.body.classList.contains('template-gothic-white') ? '#000000' : '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(name, centerX, centerY);
     }
     
-    function drawIcons(targetCtx) {
+    function drawIcons() {
         const prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
         const draw = (path) => {
             const img = imageCache[path];
-            if (img) targetCtx.drawImage(img, 0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
+            if (img) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         };
 
         if (raceSelect.value) draw(`./assets/race_icons/${prefix}_${raceSelect.value}.png`);
@@ -188,12 +184,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const eventType = (el.tagName === 'SELECT' || el.type === 'text') ? 'input' : 'click';
         el.addEventListener(eventType, (e) => {
             if (e.currentTarget.tagName === 'BUTTON') { e.currentTarget.classList.toggle('active'); }
-            drawCard(ctx, false);
+            drawCard(false);
         });
     });
     
     templateButtons.forEach(button => {
-        button.addEventListener('click', () => { document.body.className = button.dataset.class; drawCard(ctx, false); });
+        button.addEventListener('click', () => { document.body.className = button.dataset.class; drawCard(false); });
     });
     
     uploadImageInput.addEventListener('change', (e) => {
@@ -206,27 +202,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 imageTransform.scale = Math.min(canvas.width / img.width, canvas.height / img.height, 1);
                 imageTransform.x = canvas.width / 2;
                 imageTransform.y = canvas.height / 2;
-                drawCard(ctx, false);
+                drawCard(false);
             };
             img.src = event.target.result;
         };
         reader.readAsDataURL(file);
     });
 
+    // ★★★ ダウンロード処理を簡素化 ★★★
     downloadBtn.addEventListener('click', async () => {
-        const offscreenCanvas = document.createElement('canvas');
-        offscreenCanvas.width = canvas.width;
-        offscreenCanvas.height = canvas.height;
-        const offscreenCtx = offscreenCanvas.getContext('2d');
-        offscreenCtx.imageSmoothingEnabled = true;
-        offscreenCtx.imageSmoothingQuality = 'high';
-
-        drawCard(offscreenCtx, true);
+        // 一時的に著作権表記ありで再描画
+        drawCard(true);
 
         const link = document.createElement('a');
         link.download = 'ffxiv_character_card.png';
-        link.href = offscreenCanvas.toDataURL('image/png');
+        link.href = canvas.toDataURL('image/png');
         link.click();
+        
+        // 描画を通常のものに戻す
+        setTimeout(() => drawCard(false), 100);
     });
 
     // --- 画像操作イベントリスナー ---
@@ -244,7 +238,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const dx = loc.x - imageTransform.lastX; const dy = loc.y - imageTransform.lastY;
         imageTransform.x += dx; imageTransform.y += dy;
         imageTransform.lastX = loc.x; imageTransform.lastY = loc.y;
-        drawCard(ctx, false);
+        drawCard(false);
     }
     function handleDragEnd() { imageTransform.isDragging = false; }
     canvas.addEventListener('mousedown', handleDragStart, { passive: false });
@@ -255,7 +249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!imageTransform.img) return; e.preventDefault();
         const scaleAmount = 1.1; const newScale = e.deltaY < 0 ? imageTransform.scale * scaleAmount : imageTransform.scale / scaleAmount;
         imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
-        drawCard(ctx, false);
+        drawCard(false);
     }, { passive: false });
     canvas.addEventListener('touchstart', (e) => {
         if (!imageTransform.img) return; e.preventDefault();
@@ -277,7 +271,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
             }
             imageTransform.lastTouchDistance = newDist;
-            drawCard(ctx, false);
+            drawCard(false);
         }
     }, { passive: false });
     canvas.addEventListener('touchend', (e) => {
@@ -295,7 +289,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loaderElement.classList.add('hidden');
         setTimeout(() => {
             appElement.classList.remove('hidden');
-            drawCard(ctx, false);
+            drawCard(false);
         }, 300);
     }
 
