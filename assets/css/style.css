@@ -77,7 +77,7 @@ h1 {
 
 #controls {
   margin: 1rem auto;
-  max-width: 900px;
+  max-width: 1200px; /* ★サイズをCanvasに合わせる */
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -112,7 +112,7 @@ input[type="file"] {
 
 canvas {
   width: 100%;
-  max-width: 900px;
+  max-width: 1200px; /* ★★★ 表示サイズを1200pxに変更 ★★★ */
   height: auto;
   display: block;
   margin: 0 auto;
