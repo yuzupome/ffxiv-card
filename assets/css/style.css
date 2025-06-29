@@ -1,195 +1,218 @@
+:root {
+    --bg-color: #1a1a1a;
+    --surface-color: #2c2c2c;
+    --primary-color: #3d8bfd;
+    --text-color: #e0e0e0;
+    --text-secondary-color: #a0a0a0;
+    --border-color: #444444;
+}
+
 body {
-  font-family: sans-serif;
-  background-color: #1e1e1e;
-  color: #fff;
-  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
   margin: 0;
-  padding: 0;
+  padding: 2rem;
+  line-height: 1.6;
 }
 
-/* ★★★ ローディング画面のスタイル ★★★ */
+/* ★★★ ローディング画面 ★★★ */
 #loader {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(30, 30, 30, 0.95);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  color: #fff;
-  transition: opacity 0.5s ease-out;
+  position: fixed; inset: 0; background-color: var(--bg-color);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  z-index: 9999; transition: opacity 0.5s ease-out;
+}
+#loader.hidden { opacity: 0; pointer-events: none; }
+.spinner { width: 56px; height: 56px; border-radius: 50%; border: 9px solid var(--surface-color); border-right-color: var(--primary-color); animation: spinner-d3wgkg 1s infinite linear; margin-bottom: 20px; }
+@keyframes spinner-d3wgkg { to { transform: rotate(1turn); } }
+.progress-bar-container { width: 80%; max-width: 400px; height: 10px; background-color: var(--surface-color); border-radius: 5px; overflow: hidden; margin-bottom: 10px;}
+#progressBar { width: 0%; height: 100%; background-color: var(--primary-color); transition: width 0.1s linear; }
+#progressText { font-size: 0.9rem; color: var(--text-secondary-color); }
+#app.hidden { display: none; }
+
+
+/* ★★★ メインレイアウト ★★★ */
+.main-container {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 2rem;
+    max-width: 1700px;
+    margin: 0 auto;
 }
 
-#loader.hidden {
-    opacity: 0;
-    pointer-events: none;
+.main-header {
+    grid-column: 1 / -1; /* 全幅 */
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
 }
 
-.spinner {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 9px solid #444;
-  border-right-color: #fff;
-  animation: spinner-d3wgkg 1s infinite linear;
-  margin-bottom: 20px;
+.main-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
 }
 
-@keyframes spinner-d3wgkg {
-  to {
-    transform: rotate(1turn);
-  }
-}
-
-.progress-bar-container {
-    width: 80%;
-    max-width: 400px;
-    height: 20px;
-    background-color: #444;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 10px;
-}
-
-#progressBar {
-    width: 0%;
-    height: 100%;
-    background-color: #3498db;
-    transition: width 0.1s linear;
-}
-
-#progressText {
-    font-size: 0.9rem;
-    color: #ccc;
-}
-
-#app.hidden {
-  display: none;
-}
-/* ★★★ ローディング画面ここまで ★★★ */
-
-
-h1 {
-  margin-top: 1rem;
-  font-size: 1.5rem;
+.main-header p {
+    margin: 0.25rem 0 0;
+    color: var(--text-secondary-color);
 }
 
 #controls {
-  margin: 1rem auto;
-  max-width: 1200px; 
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-input[type="text"],
-select,
-button {
-  font-size: 1rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: 4px;
-  border: 1px solid #ccc;
+canvas {
+    width: 100%;
+    max-width: 1200px;
+    height: auto;
+    border-radius: 12px;
+    background-color: #000;
+    cursor: grab;
+}
+canvas:active { cursor: grabbing; }
+
+/* ★★★ フォーム要素 ★★★ */
+.control-group {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+legend {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 0 0.5rem;
+    margin-left: 1rem;
+}
+
+input[type="text"], select {
+    width: 100%;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+input[type="text"]:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(61, 139, 253, 0.3);
 }
 
 input[type="file"] {
-  border: none;
-  background: none;
-  color: #fff;
+    width: 100%;
+    background: var(--bg-color);
+    border: 1px dashed var(--border-color);
+    padding: 1rem;
+    border-radius: 8px;
+    color: var(--text-secondary-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+input[type="file"]:hover { border-color: var(--primary-color); }
+input[type="file"]::file-selector-button { display: none; }
+
+/* ★★★ グリッドレイアウト ★★★ */
+.grid-col-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.grid-col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.grid-col-2-gap { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+
+/* ★★★ ボタン ★★★ */
+#templateButtons.button-group, #styleButtons.button-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
-#templateButtons button {
-  background-color: #444;
-  color: #fff;
-  border: none;
-  cursor: pointer;
+.button-group button, .button-grid button {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary-color);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.button-group button:hover, .button-grid button:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+.button-group button.active, .button-grid button.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
 }
 
-#templateButtons button:hover {
-  background-color: #666;
+#downloadBtn {
+    width: 100%;
+    background-color: #27ae60;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.2s ease;
+}
+#downloadBtn:hover { background-color: #2ecc71; }
+
+
+/* ★★★ チェックボックス ★★★ */
+.checkbox-group { display: flex; justify-content: space-between; gap: 1rem; }
+.checkbox-group-single, .checkbox-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.time-section p { margin: 0 0 0.5rem; font-weight: 500; color: var(--text-secondary-color); font-size: 0.9rem; }
+.checkbox-group label, .checkbox-group-single label, .checkbox-grid label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+input[type="checkbox"] { display: none; }
+input[type="checkbox"] + span {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 2px solid var(--border-color);
+    border-radius: 5px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+input[type="checkbox"]:checked + span {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+input[type="checkbox"]:checked + span::after {
+    content: '✓';
+    color: white;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    font-weight: bold;
 }
 
-/* ★★★ Canvasの表示サイズをCSSで制御 ★★★ */
-canvas {
-  width: 100%;
-  max-width: 1200px;
-  height: auto;
-  display: block;
-  margin: 1rem auto; /* 上下にマージンを追加 */
-  background-color: #000;
-  cursor: grab; /* カーソルを掴む形に */
+#subjobSection p { margin: 0 0 1rem; font-weight: 500; text-align: left; }
+.checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem; }
+
+
+/* ★★★ レスポンシブ対応 ★★★ */
+@media (max-width: 1200px) {
+    .main-container {
+        grid-template-columns: 1fr;
+    }
 }
-
-canvas:active {
-    cursor: grabbing; /* ドラッグ中は掴んでいる形に */
-}
-
-
-body {
-  --name-color: #ffffff;
-}
-
-body.template-gothic-white {
-  --name-color: #000000;
-}
-
-#styleButtons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-#styleButtons button {
-  padding: 0.4rem 0.8rem;
-  border: 1px solid #ccc;
-  background: #f4f4f4;
-  color: #000;
-  cursor: pointer;
-  border-radius: 6px;
-  font-size: 0.95rem;
-}
-
-#styleButtons button.active {
-  background: #0066cc;
-  color: #fff;
-  border-color: #004999;
-}
-
-#mainjobSelect {
-  display: block;
-  margin: 10px auto;
-  font-size: 16px;
-  padding: 5px 10px;
-  width: 80%;
-  max-width: 400px;
-}
-
-#subjobSection {
-  margin: 10px auto;
-  max-width: 900px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  font-size: 14px;
-}
-
-#subjobSection label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background: #f9f9f9;
-  cursor: pointer;
-  user-select: none;
-}
-
-#subjobSection input[type="checkbox"] {
-  transform: scale(1.1);
-  cursor: pointer;
+@media (max-width: 600px) {
+    body { padding: 1rem; }
+    .grid-col-2, .grid-col-3, .grid-col-2-gap { grid-template-columns: 1fr; }
+    .checkbox-group { flex-direction: column; }
 }
