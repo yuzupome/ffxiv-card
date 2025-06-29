@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FFXIV キャラクターカード</title>
+  <title>FFXIV Character Card Generator</title>
+  <!-- ★★★ ファビコンの設定 ★★★ -->
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=DotGothic16&family=Exo+2&family=Hachi+Maru+Pop&family=Orbitron&family=Permanent+Marker&family=Share+Tech&display=swap" rel="stylesheet">
@@ -21,13 +24,13 @@
   </div>
 
   <div id="app" class="hidden">
-    <div class="main-container">
-        <header class="main-header">
-            <h1>FFXIV Character Card Generator</h1>
-            <p>あなたの光の戦士のプロフィールカードを作成しよう！</p>
-        </header>
+    <!-- ★★★ ヘッダーを新設 ★★★ -->
+    <header class="site-header">
+        <img src="./assets/favicon.png" alt="logo" class="header-logo">
+        <h1 class="header-title">FFXIV Character Card Generator</h1>
+    </header>
 
-        <!-- ★ ご要望の順序に再配置 ★ -->
+    <div class="main-container">
         <div id="top-controls">
             <div id="templateButtons" class="button-group">
                 <button data-class="template-gothic-black" class="active">黒背景</button>
@@ -181,7 +184,6 @@
                     <option value="pictomancer">ピクトマンサー</option>
                     <option value="bluemage">青魔導士</option>
                 </select>
-                <!-- ★★★ サブジョブをボタン形式に変更 ★★★ -->
                 <div id="subjobSection">
                     <p>サブジョブ（複数選択可）</p>
                     <div class="button-grid">
@@ -225,6 +227,14 @@
             <button id="downloadBtn">カードを生成</button>
         </div>
     </div>
+
+    <!-- ★★★ フッターを新設 ★★★ -->
+    <footer class="site-footer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+        <a href="https://x.com/yypome" target="_blank" rel="noopener noreferrer">design @yypome</a>
+    </footer>
+
+  </div>
   <script src="./script/main.js"></script>
 </body>
 </html>
