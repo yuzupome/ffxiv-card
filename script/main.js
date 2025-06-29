@@ -1,8 +1,9 @@
 /**
- * FFXIV Character Card Generator Script (High-Resolution Export Version)
+ * FFXIV Character Card Generator Script (High-Resolution Export v2)
  *
- * Canvasの内部解像度を常に高解像度(3750x2250)で保持し、
+ * Canvasの内部解像度を高解像度(3750x2250)で保持し、
  * CSSで表示サイズを制御することで、見た目と出力品質を両立させる。
+ * ユーザーの操作は表示サイズに基づいて計算され、内部の高解像度Canvasに反映される。
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -129,7 +130,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function drawNameText() {
-        // ★★★ 座標とフォントサイズを元の高解像度基準に戻す ★★★
         const nameArea = { x: 98, y: 270, width: 665, height: 120 };
         const MAX_FONT_SIZE = 120;
         const name = nameInput.value;
@@ -158,7 +158,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const img = imageCache[path];
             if (img) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         };
-
         if (raceSelect.value) draw(`./assets/race_icons/${prefix}_${raceSelect.value}.png`);
         if (dcSelect.value) draw(`./assets/dc_icons/${prefix}_${dcSelect.value}.png`);
         if (progressSelect.value) {
@@ -209,17 +208,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         reader.readAsDataURL(file);
     });
 
-    // ★★★ ダウンロード処理を簡素化 ★★★
-    downloadBtn.addEventListener('click', async () => {
-        // 一時的に著作権表記ありで再描画
+    downloadBtn.addEventListener('click', () => {
         drawCard(true);
-
         const link = document.createElement('a');
         link.download = 'ffxiv_character_card.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
-        
-        // 描画を通常のものに戻す
         setTimeout(() => drawCard(false), 100);
     });
 
