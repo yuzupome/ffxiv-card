@@ -1,5 +1,5 @@
 /**
- * FFXIV Character Card Generator Script (Copyright Swap Fix)
+ * FFXIV Character Card Generator Script (Copyright Swap Fix v2)
  *
  * 描画時の背景画像指定をより厳密にし、ダウンロード後の再描画処理を追加して、
  * プレビュー画面で著作権表記ありの背景が表示される問題を確実に修正する。
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
      * @param {CanvasRenderingContext2D} targetCtx - 描画対象のコンテキスト
      * @param {boolean} useCopyrightBg - 著作権表記ありの背景を使うか
      */
-    function drawCard(targetCtx, useCopyrightBg) { // ★デフォルト引数を削除
+    function drawCard(targetCtx, useCopyrightBg) { 
         targetCtx.clearRect(0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
         
         if (imageTransform.img && imageTransform.img.complete && imageTransform.img.naturalHeight !== 0) {
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         let prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
-        if (useCopyrightBg === true) { // ★厳密に比較
+        if (useCopyrightBg === true) {
             prefix += '_cp';
         }
         const bgImg = imageCache[`./assets/backgrounds/${prefix}.png`];
@@ -188,12 +188,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const eventType = (el.tagName === 'SELECT' || el.type === 'text') ? 'input' : 'click';
         el.addEventListener(eventType, (e) => {
             if (e.currentTarget.tagName === 'BUTTON') { e.currentTarget.classList.toggle('active'); }
-            drawCard(ctx, false); // ★常に「通常用」で描画
+            drawCard(ctx, false);
         });
     });
     
     templateButtons.forEach(button => {
-        button.addEventListener('click', () => { document.body.className = button.dataset.class; drawCard(ctx, false); }); // ★常に「通常用」で描画
+        button.addEventListener('click', () => { document.body.className = button.dataset.class; drawCard(ctx, false); });
     });
     
     uploadImageInput.addEventListener('change', (e) => {
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 imageTransform.scale = Math.min(canvas.width / img.width, canvas.height / img.height, 1);
                 imageTransform.x = canvas.width / 2;
                 imageTransform.y = canvas.height / 2;
-                drawCard(ctx, false); // ★常に「通常用」で描画
+                drawCard(ctx, false);
             };
             img.src = event.target.result;
         };
@@ -221,15 +221,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         offscreenCtx.imageSmoothingEnabled = true;
         offscreenCtx.imageSmoothingQuality = 'high';
 
-        drawCard(offscreenCtx, true); // ★書き出し用を描画
+        drawCard(offscreenCtx, true);
 
         const link = document.createElement('a');
         link.download = 'ffxiv_character_card.png';
         link.href = offscreenCanvas.toDataURL('image/png');
         link.click();
-        
-        // ★ ダウンロード後にメインの表示を再描画（念のため）
-        setTimeout(() => drawCard(ctx, false), 100);
     });
 
     // --- 画像操作イベントリスナー ---
@@ -247,7 +244,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const dx = loc.x - imageTransform.lastX; const dy = loc.y - imageTransform.lastY;
         imageTransform.x += dx; imageTransform.y += dy;
         imageTransform.lastX = loc.x; imageTransform.lastY = loc.y;
-        drawCard(ctx, false); // ★常に「通常用」で描画
+        drawCard(ctx, false);
     }
     function handleDragEnd() { imageTransform.isDragging = false; }
     canvas.addEventListener('mousedown', handleDragStart, { passive: false });
@@ -258,7 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!imageTransform.img) return; e.preventDefault();
         const scaleAmount = 1.1; const newScale = e.deltaY < 0 ? imageTransform.scale * scaleAmount : imageTransform.scale / scaleAmount;
         imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
-        drawCard(ctx, false); // ★常に「通常用」で描画
+        drawCard(ctx, false);
     }, { passive: false });
     canvas.addEventListener('touchstart', (e) => {
         if (!imageTransform.img) return; e.preventDefault();
@@ -280,7 +277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
             }
             imageTransform.lastTouchDistance = newDist;
-            drawCard(ctx, false); // ★常に「通常用」で描画
+            drawCard(ctx, false);
         }
     }, { passive: false });
     canvas.addEventListener('touchend', (e) => {
@@ -298,7 +295,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loaderElement.classList.add('hidden');
         setTimeout(() => {
             appElement.classList.remove('hidden');
-            drawCard(ctx, false); // ★常に「通常用」で描画
+            drawCard(ctx, false);
         }, 300);
     }
 
