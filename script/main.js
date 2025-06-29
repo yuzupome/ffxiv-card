@@ -1,7 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (Performance Optimized Version)
+ * FFXIV Character Card Generator Script (Hybrid Loading Version)
  *
- * 全てのアセットを最初にプリロードすることで、UI操作後の描画を高速化。
+ * 最初に最低限のアセットのみを読み込んでアプリを起動し、
+ * 残りのアセットはバックグラウンドでプリロードすることで、起動時間と応答性を両立させる。
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -50,37 +51,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 画像キャッシュ ---
     const imageCache = {};
 
-    /**
-     * 単一の画像を読み込み、キャッシュに保存する
-     * @param {string} path - 画像のパス
-     * @returns {Promise<HTMLImageElement>}
-     */
     function loadImage(path) {
-        if (!path) return Promise.resolve(null);
-        if (imageCache[path]) return Promise.resolve(imageCache[path]);
-        
+        if (!path || imageCache[path]) return Promise.resolve(imageCache[path] || null);
         return new Promise((resolve) => {
             const img = new Image();
             img.crossOrigin = "Anonymous";
-            img.onload = () => {
-                imageCache[path] = img; // 成功時のみキャッシュ
-                resolve(img);
-            };
-            img.onerror = () => {
-                // 失敗した場合はキャッシュせず、nullを返す
-                console.warn(`画像の読み込みに失敗: ${path}`);
-                resolve(null);
-            };
+            img.onload = () => { imageCache[path] = img; resolve(img); };
+            img.onerror = () => { console.warn(`画像の読み込みに失敗: ${path}`); resolve(null); };
             img.src = path;
         });
     }
 
     /**
-     * 全てのアセットをプリロードする
+     * ★ 全てのアセットをバックグラウンドでプリロードする
      */
-    async function preloadAllAssets() {
+    function preloadAllAssetsInBackground() {
         const allImagePaths = new Set();
-        
         templates.forEach(template => {
             allImagePaths.add(`./assets/backgrounds/${template}.png`);
             races.forEach(item => allImagePaths.add(`./assets/race_icons/${template}_${item}.png`));
@@ -95,12 +81,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
         
-        const promises = Array.from(allImagePaths).map(path => loadImage(path));
-        
-        // フォントの読み込みもここで行う
-        promises.push(document.fonts.ready);
-
-        await Promise.all(promises);
+        // Promise.allは使わず、個別にロードを開始してUIをブロックしない
+        allImagePaths.forEach(path => loadImage(path));
     }
 
     // --- 状態管理 ---
@@ -110,24 +92,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- 描画関数 ---
-    
-    /**
-     * Canvas全体を再描画する
-     */
     function drawCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // 1. ユーザーアップロード画像
         drawUploadedImage();
-
-        // 2. 背景
         const prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
         drawStretchedImage(imageCache[`./assets/backgrounds/${prefix}.png`]);
-
-        // 3. 各種アイコン
         drawIcons();
-        
-        // 4. 名前
         drawNameText();
     }
     
@@ -164,34 +134,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
-
         ctx.fillStyle = document.body.classList.contains('template-gothic-white') ? '#000000' : '#ffffff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(name, centerX, centerY);
     }
     
-    /**
-     * 全てのアイコンを描画する
-     */
     function drawIcons() {
         const prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
-
-        // 種族
         if (raceSelect.value) drawStretchedImage(imageCache[`./assets/race_icons/${prefix}_${raceSelect.value}.png`]);
-        // DC
         if (dcSelect.value) drawStretchedImage(imageCache[`./assets/dc_icons/${prefix}_${dcSelect.value}.png`]);
-        // 進行度
         if (progressSelect.value) {
             const stages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
             const toLoad = progressSelect.value === 'all_clear' ? [...stages, 'all_clear'] : stages.slice(0, stages.indexOf(progressSelect.value) + 1);
             toLoad.forEach(p => drawStretchedImage(imageCache[`./assets/progress_icons/${prefix}_${p}.png`]));
         }
-        // プレイスタイル
         styleButtons.forEach(btn => {
             if (btn.classList.contains('active')) drawStretchedImage(imageCache[`./assets/style_icons/${prefix}_${btn.dataset.value}.png`]);
         });
-        // プレイ時間
         const timePaths = new Set();
         const checkedTimes = Array.from(playtimeCheckboxes).filter(cb => cb.checked);
         checkedTimes.forEach(cb => {
@@ -200,15 +160,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${prefix}_weekday.png`);
         if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.png`);
         timePaths.forEach(path => drawStretchedImage(imageCache[path]));
-        // 高難易度
         difficultyCheckboxes.forEach(cb => {
             if (cb.checked) drawStretchedImage(imageCache[`./assets/difficulty_icons/${prefix}_${cb.value}.png`]);
         });
-        // サブジョブ
         subJobCheckboxes.forEach(cb => {
             if (cb.checked) drawStretchedImage(imageCache[`./assets/subjob_icons/${prefix}_sub_${cb.value}.png`]);
         });
-        // メインジョブ (最後に描画)
         if (mainJobSelect.value) drawStretchedImage(imageCache[`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.png`]);
     }
 
@@ -216,18 +173,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const allInputs = [nameInput, fontSelect, raceSelect, dcSelect, progressSelect, mainJobSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes, ...subJobCheckboxes];
     allInputs.forEach(el => {
         el.addEventListener('input', (e) => {
-             // ボタンの場合は active クラスをトグルする
-            if (e.currentTarget.tagName === 'BUTTON') {
-                e.currentTarget.classList.toggle('active');
-            }
-            drawCanvas(); // 状態更新は不要、直接再描画
+            if (e.currentTarget.tagName === 'BUTTON') e.currentTarget.classList.toggle('active');
+            drawCanvas();
         });
-        // クリックイベントも追加（チェックボックスやボタンのため）
         if(el.type === 'checkbox' || el.tagName === 'BUTTON') {
             el.addEventListener('click', (e) => {
-                 if (e.currentTarget.tagName === 'BUTTON') {
-                    e.currentTarget.classList.toggle('active');
-                 }
+                 if (e.currentTarget.tagName === 'BUTTON') e.currentTarget.classList.toggle('active');
                 drawCanvas();
             });
         }
@@ -269,9 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-        if (e.touches && e.touches[0]) {
-            return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
-        }
+        if (e.touches && e.touches[0]) return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
         return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
     }
     function handleDragStart(e) {
@@ -294,8 +243,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     canvas.addEventListener('mouseleave', handleDragEnd);
     canvas.addEventListener('wheel', (e) => {
         if (!imageTransform.img) return; e.preventDefault();
-        const scaleAmount = 1.1;
-        const newScale = e.deltaY < 0 ? imageTransform.scale * scaleAmount : imageTransform.scale / scaleAmount;
+        const scaleAmount = 1.1; const newScale = e.deltaY < 0 ? imageTransform.scale * scaleAmount : imageTransform.scale / scaleAmount;
         imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
         drawCanvas();
     }, { passive: false });
@@ -327,10 +275,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         imageTransform.lastTouchDistance = 0;
     });
 
-    // --- 初期化処理 ---
-    await preloadAllAssets(); // 全てのアセットをプリロード
-    loaderElement.classList.add('hidden'); // ローディング画面を非表示
-    appElement.classList.remove('hidden'); // アプリ本体を表示
-    drawCanvas(); // 初期描画
+    // --- ★★★ 初期化処理 ★★★ ---
+    async function initialize() {
+        // 1. 起動に最低限必要なアセットのみを待機
+        await Promise.all([
+            loadImage('./assets/backgrounds/Gothic_black.png'),
+            loadImage('./assets/backgrounds/Gothic_white.png'),
+            document.fonts.ready
+        ]);
+        
+        // 2. ローディング画面を消してアプリを表示
+        loaderElement.classList.add('hidden');
+        appElement.classList.remove('hidden');
+        
+        // 3. 初回描画
+        drawCanvas();
+        
+        // 4. 残りの全アセットをバックグラウンドで読み込み開始
+        preloadAllAssetsInBackground();
+    }
 
+    initialize();
 });
