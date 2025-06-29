@@ -1,9 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (High-Resolution Export v2)
+ * FFXIV Character Card Generator Script (Subjob UI Fix)
  *
- * Canvasの内部解像度を高解像度(3750x2250)で保持し、
- * CSSで表示サイズを制御することで、見た目と出力品質を両立させる。
- * ユーザーの操作は表示サイズに基づいて計算され、内部の高解像度Canvasに反映される。
+ * ボタン形式になったサブジョブの選択が正しく機能するように、
+ * イベントリスナーと描画ロジックを修正。
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -25,10 +24,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const playtimeCheckboxes = document.querySelectorAll('#playtimeOptions input[type="checkbox"]');
     const difficultyCheckboxes = document.querySelectorAll('#difficultyOptions input[type="checkbox"]');
     const mainJobSelect = document.getElementById('mainjobSelect');
-    const subJobCheckboxes = document.querySelectorAll('#subjobSection input[type="checkbox"]');
+    // ★★★ サブジョブの要素をボタンとして取得 ★★★
+    const subjobButtons = document.querySelectorAll('#subjobSection .button-grid button');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // --- ★★★ 初期設定: Canvasの内部解像度を最大化 ★★★ ---
+    // --- 初期設定 ---
     canvas.width = 3750;
     canvas.height = 2250;
     
@@ -44,7 +44,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const playtimes = ['weekday', 'weekday_morning', 'weekday_daytime', 'weekday_night', 'weekday_midnight', 'holiday', 'holiday_morning', 'holiday_daytime', 'holiday_night', 'holiday_midnight', 'random', 'fulltime'];
     const difficulties = ['extreme', 'unreal', 'savage', 'ultimate'];
     const mainJobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
-    const allSubJobs = Array.from(subJobCheckboxes).map(cb => cb.value);
+    // ★★★ サブジョブのリストをボタンから生成 ★★★
+    const allSubJobs = Array.from(subjobButtons).map(btn => btn.dataset.value);
     
     // --- 画像キャッシュ ---
     const imageCache = {};
@@ -101,16 +102,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 描画関数 ---
     function drawCard(useCopyrightBg) { 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
         drawUploadedImage();
-        
         let prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
-        if (useCopyrightBg === true) {
-            prefix += '_cp';
-        }
+        if (useCopyrightBg === true) { prefix += '_cp'; }
         const bgImg = imageCache[`./assets/backgrounds/${prefix}.png`];
         drawStretchedImage(bgImg);
-
         drawIcons();
         drawNameText();
     }
@@ -134,16 +130,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const MAX_FONT_SIZE = 120;
         const name = nameInput.value;
         if (!name) return;
-        
         let fontSize = MAX_FONT_SIZE;
         const selectedFont = fontSelect.value;
         ctx.font = `${fontSize}px ${selectedFont}`;
-
         while (ctx.measureText(name).width > nameArea.width && fontSize > 10) {
             fontSize--;
             ctx.font = `${fontSize}px ${selectedFont}`;
         }
-        
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
         ctx.fillStyle = document.body.classList.contains('template-gothic-white') ? '#000000' : '#ffffff';
@@ -173,12 +166,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.png`);
         timePaths.forEach(path => draw(path));
         difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/difficulty_icons/${prefix}_${cb.value}.png`); });
-        subJobCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/subjob_icons/${prefix}_sub_${cb.value}.png`); });
+        
+        // ★★★ サブジョブの描画ロジックをボタンに対応 ★★★
+        subjobButtons.forEach(btn => {
+            if (btn.classList.contains('active')) {
+                draw(`./assets/subjob_icons/${prefix}_sub_${btn.dataset.value}.png`);
+            }
+        });
+
         if (mainJobSelect.value) draw(`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.png`);
     }
 
     // --- イベントリスナー ---
-    const allInputs = [nameInput, fontSelect, raceSelect, dcSelect, progressSelect, mainJobSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes, ...subJobCheckboxes];
+    // ★★★ イベントリスナーの対象にサブジョブボタンを追加 ★★★
+    const allInputs = [nameInput, fontSelect, raceSelect, dcSelect, progressSelect, mainJobSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes, ...subjobButtons];
     allInputs.forEach(el => {
         const eventType = (el.tagName === 'SELECT' || el.type === 'text') ? 'input' : 'click';
         el.addEventListener(eventType, (e) => {
@@ -208,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         reader.readAsDataURL(file);
     });
 
-    downloadBtn.addEventListener('click', () => {
+    downloadBtn.addEventListener('click', async () => {
         drawCard(true);
         const link = document.createElement('a');
         link.download = 'ffxiv_character_card.png';
