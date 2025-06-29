@@ -1,8 +1,9 @@
 /**
- * FFXIV Character Card Generator Script (Subjob UI Fix)
+ * FFXIV Character Card Generator Script (UI Revamp)
  *
- * ボタン形式になったサブジョブの選択が正しく機能するように、
- * イベントリスナーと描画ロジックを修正。
+ * 新しいUIに対応するためのJavaScript。
+ * - TOPに戻るボタンの表示制御
+ * - カスタムファイルアップロードボタンのファイル名表示
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const nameInput = document.getElementById('nameInput');
     const fontSelect = document.getElementById('fontSelect');
     const uploadImageInput = document.getElementById('uploadImage');
+    const fileNameDisplay = document.getElementById('fileName'); // ★ファイル名表示用
     const templateButtons = document.querySelectorAll('#templateButtons button');
     const raceSelect = document.getElementById('raceSelect');
     const dcSelect = document.getElementById('dcSelect');
@@ -24,14 +26,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const playtimeCheckboxes = document.querySelectorAll('#playtimeOptions input[type="checkbox"]');
     const difficultyCheckboxes = document.querySelectorAll('#difficultyOptions input[type="checkbox"]');
     const mainJobSelect = document.getElementById('mainjobSelect');
-    // ★★★ サブジョブの要素をボタンとして取得 ★★★
     const subjobButtons = document.querySelectorAll('#subjobSection .button-grid button');
     const downloadBtn = document.getElementById('downloadBtn');
+    const toTopBtn = document.getElementById('toTopBtn'); // ★TOPに戻るボタン
 
     // --- 初期設定 ---
     canvas.width = 3750;
     canvas.height = 2250;
-    
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
@@ -44,7 +45,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const playtimes = ['weekday', 'weekday_morning', 'weekday_daytime', 'weekday_night', 'weekday_midnight', 'holiday', 'holiday_morning', 'holiday_daytime', 'holiday_night', 'holiday_midnight', 'random', 'fulltime'];
     const difficulties = ['extreme', 'unreal', 'savage', 'ultimate'];
     const mainJobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
-    // ★★★ サブジョブのリストをボタンから生成 ★★★
     const allSubJobs = Array.from(subjobButtons).map(btn => btn.dataset.value);
     
     // --- 画像キャッシュ ---
@@ -166,19 +166,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.png`);
         timePaths.forEach(path => draw(path));
         difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/difficulty_icons/${prefix}_${cb.value}.png`); });
-        
-        // ★★★ サブジョブの描画ロジックをボタンに対応 ★★★
-        subjobButtons.forEach(btn => {
-            if (btn.classList.contains('active')) {
-                draw(`./assets/subjob_icons/${prefix}_sub_${btn.dataset.value}.png`);
-            }
-        });
-
+        subjobButtons.forEach(btn => { if (btn.classList.contains('active')) { draw(`./assets/subjob_icons/${prefix}_sub_${btn.dataset.value}.png`); } });
         if (mainJobSelect.value) draw(`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.png`);
     }
 
     // --- イベントリスナー ---
-    // ★★★ イベントリスナーの対象にサブジョブボタンを追加 ★★★
     const allInputs = [nameInput, fontSelect, raceSelect, dcSelect, progressSelect, mainJobSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes, ...subjobButtons];
     allInputs.forEach(el => {
         const eventType = (el.tagName === 'SELECT' || el.type === 'text') ? 'input' : 'click';
@@ -193,7 +185,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     uploadImageInput.addEventListener('change', (e) => {
-        const file = e.target.files[0]; if (!file) return;
+        const file = e.target.files[0]; if (!file) { fileNameDisplay.textContent = ''; return; }
+        fileNameDisplay.textContent = file.name; // ★ファイル名を表示
         const reader = new FileReader();
         reader.onload = (event) => {
             const img = new Image();
@@ -218,63 +211,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => drawCard(false), 100);
     });
 
+    // ★★★ TOPに戻るボタンの制御 ★★★
+    window.onscroll = () => {
+        if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+            toTopBtn.classList.add('visible');
+        } else {
+            toTopBtn.classList.remove('visible');
+        }
+    };
+    toTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
     // --- 画像操作イベントリスナー ---
     function getEventLocation(e) {
         const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
         if (e.touches && e.touches[0]) return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
         return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
     }
-    function handleDragStart(e) {
-        if (!imageTransform.img) return; const loc = getEventLocation(e);
-        imageTransform.isDragging = true; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y;
-    }
-    function handleDragMove(e) {
-        if (!imageTransform.isDragging || !imageTransform.img) return; const loc = getEventLocation(e);
-        const dx = loc.x - imageTransform.lastX; const dy = loc.y - imageTransform.lastY;
-        imageTransform.x += dx; imageTransform.y += dy;
-        imageTransform.lastX = loc.x; imageTransform.lastY = loc.y;
-        drawCard(false);
-    }
+    function handleDragStart(e) { if (!imageTransform.img) return; e.preventDefault(); const loc = getEventLocation(e); imageTransform.isDragging = true; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y; }
+    function handleDragMove(e) { if (!imageTransform.isDragging) return; e.preventDefault(); const loc = getEventLocation(e); const dx = loc.x - imageTransform.lastX; const dy = loc.y - imageTransform.lastY; imageTransform.x += dx; imageTransform.y += dy; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y; drawCard(false); }
     function handleDragEnd() { imageTransform.isDragging = false; }
     canvas.addEventListener('mousedown', handleDragStart, { passive: false });
     canvas.addEventListener('mousemove', handleDragMove, { passive: false });
     canvas.addEventListener('mouseup', handleDragEnd);
     canvas.addEventListener('mouseleave', handleDragEnd);
-    canvas.addEventListener('wheel', (e) => {
-        if (!imageTransform.img) return; e.preventDefault();
-        const scaleAmount = 1.1; const newScale = e.deltaY < 0 ? imageTransform.scale * scaleAmount : imageTransform.scale / scaleAmount;
-        imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
-        drawCard(false);
-    }, { passive: false });
-    canvas.addEventListener('touchstart', (e) => {
-        if (!imageTransform.img) return; e.preventDefault();
-        if (e.touches.length === 1) handleDragStart(e);
-        else if (e.touches.length === 2) {
-            imageTransform.isDragging = false;
-            const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY;
-            imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
-        }
-    }, { passive: false });
-    canvas.addEventListener('touchmove', (e) => {
-        if (!imageTransform.img) return; e.preventDefault();
-        if (e.touches.length === 1 && imageTransform.isDragging) handleDragMove(e);
-        else if (e.touches.length === 2) {
-            const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY;
-            const newDist = Math.sqrt(dx * dx + dy * dy);
-            if(imageTransform.lastTouchDistance > 0) {
-                const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance);
-                imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
-            }
-            imageTransform.lastTouchDistance = newDist;
-            drawCard(false);
-        }
-    }, { passive: false });
-    canvas.addEventListener('touchend', (e) => {
-        if (e.touches.length === 0) imageTransform.isDragging = false;
-        imageTransform.lastTouchDistance = 0;
-    });
+    canvas.addEventListener('wheel', (e) => { if (!imageTransform.img) return; e.preventDefault(); const scaleAmount = 1.1; const newScale = e.deltaY < 0 ? imageTransform.scale * scaleAmount : imageTransform.scale / scaleAmount; imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); drawCard(false); }, { passive: false });
+    canvas.addEventListener('touchstart', (e) => { if (!imageTransform.img) return; e.preventDefault(); if (e.touches.length === 1) handleDragStart(e); else if (e.touches.length === 2) { imageTransform.isDragging = false; const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy); } }, { passive: false });
+    canvas.addEventListener('touchmove', (e) => { if (!imageTransform.img) return; e.preventDefault(); if (e.touches.length === 1 && imageTransform.isDragging) handleDragMove(e); else if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; const newDist = Math.sqrt(dx * dx + dy * dy); if(imageTransform.lastTouchDistance > 0) { const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance); imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); } imageTransform.lastTouchDistance = newDist; drawCard(false); } }, { passive: false });
+    canvas.addEventListener('touchend', (e) => { if (e.touches.length === 0) imageTransform.isDragging = false; imageTransform.lastTouchDistance = 0; });
 
-    // --- ★★★ 初期化処理 ★★★ ---
+    // --- 初期化処理 ---
     async function initialize() {
         console.log("初期化処理を開始します。");
         await document.fonts.ready;
