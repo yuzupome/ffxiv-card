@@ -1,8 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (Final Version)
+ * FFXIV Character Card Generator Script (Final Version - Subjob Fix)
  *
- * 全アセットをプリロードし、プログレスバーで進捗を表示する方式に変更。
- * GitHub Pages環境でも安定して動作するように、すべてのアセットパスを相対パスで統一。
+ * 全てのサブジョブ（クラフター・ギャザラーを含む）が正しくプリロードされるように
+ * アセット定義のロジックを修正。
  */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -41,7 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const styles = Array.from(styleButtons).map(b => b.dataset.value);
     const playtimes = ['weekday', 'weekday_morning', 'weekday_daytime', 'weekday_night', 'weekday_midnight', 'holiday', 'holiday_morning', 'holiday_daytime', 'holiday_night', 'holiday_midnight', 'random', 'fulltime'];
     const difficulties = ['extreme', 'unreal', 'savage', 'ultimate'];
-    const jobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
+    const mainJobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
+    // ★★★ サブジョブのリストをHTMLのチェックボックスから直接生成するよう修正 ★★★
+    const allSubJobs = Array.from(subJobCheckboxes).map(cb => cb.value);
     
     // --- 画像キャッシュ ---
     const imageCache = {};
@@ -86,8 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
             styles.forEach(item => allImagePaths.add(`./assets/style_icons/${template}_${item}.png`));
             playtimes.forEach(item => allImagePaths.add(`./assets/time_icons/${template}_${item}.png`));
             difficulties.forEach(item => allImagePaths.add(`./assets/difficulty_icons/${template}_${item}.png`));
-            jobs.forEach(item => {
+            
+            // ★ メインジョブとサブジョブの読み込みロジックを分離・修正
+            mainJobs.forEach(item => {
                 allImagePaths.add(`./assets/mainjob_icons/${template}_main_${item}.png`);
+            });
+            allSubJobs.forEach(item => {
                 allImagePaths.add(`./assets/subjob_icons/${template}_sub_${item}.png`);
             });
         });
