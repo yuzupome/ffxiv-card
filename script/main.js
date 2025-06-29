@@ -1,5 +1,5 @@
 /**
- * FFXIV Character Card Generator Script (UI Revamp)
+ * FFXIV Character Card Generator Script (UI Revamp Final)
  *
  * 新しいUIに対応するためのJavaScript。
  * - TOPに戻るボタンの表示制御
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const name = nameInput.value;
         if (!name) return;
         let fontSize = MAX_FONT_SIZE;
-        const selectedFont = fontSelect.value;
+        const selectedFont = fontSelect.value || "'Orbitron', sans-serif"; // フォント未選択時のデフォルト
         ctx.font = `${fontSize}px ${selectedFont}`;
         while (ctx.measureText(name).width > nameArea.width && fontSize > 10) {
             fontSize--;
@@ -181,12 +181,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     templateButtons.forEach(button => {
-        button.addEventListener('click', () => { document.body.className = button.dataset.class; drawCard(false); });
+        button.addEventListener('click', () => { 
+            // すべてのボタンからactiveクラスを削除
+            templateButtons.forEach(btn => btn.classList.remove('active'));
+            // クリックされたボタンにactiveクラスを追加
+            button.classList.add('active');
+            document.body.className = button.dataset.class; 
+            drawCard(false); 
+        });
     });
     
     uploadImageInput.addEventListener('change', (e) => {
         const file = e.target.files[0]; if (!file) { fileNameDisplay.textContent = ''; return; }
-        fileNameDisplay.textContent = file.name; // ★ファイル名を表示
+        fileNameDisplay.textContent = file.name;
         const reader = new FileReader();
         reader.onload = (event) => {
             const img = new Image();
@@ -212,15 +219,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ★★★ TOPに戻るボタンの制御 ★★★
+    const controlsPanel = document.querySelector('.controls-panel');
+    if(controlsPanel) {
+        controlsPanel.onscroll = () => {
+            if (controlsPanel.scrollTop > 100) {
+                toTopBtn.classList.add('visible');
+            } else {
+                toTopBtn.classList.remove('visible');
+            }
+        };
+    }
+    // ウィンドウ自体のスクロールも監視（スマホ表示用）
     window.onscroll = () => {
-        if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+         if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
             toTopBtn.classList.add('visible');
         } else {
             toTopBtn.classList.remove('visible');
         }
-    };
+    }
     toTopBtn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        if(controlsPanel) {
+            controlsPanel.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     });
 
     // --- 画像操作イベントリスナー ---
@@ -241,7 +262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     canvas.addEventListener('touchmove', (e) => { if (!imageTransform.img) return; e.preventDefault(); if (e.touches.length === 1 && imageTransform.isDragging) handleDragMove(e); else if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; const newDist = Math.sqrt(dx * dx + dy * dy); if(imageTransform.lastTouchDistance > 0) { const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance); imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); } imageTransform.lastTouchDistance = newDist; drawCard(false); } }, { passive: false });
     canvas.addEventListener('touchend', (e) => { if (e.touches.length === 0) imageTransform.isDragging = false; imageTransform.lastTouchDistance = 0; });
 
-    // --- 初期化処理 ---
+    // --- ★★★ 初期化処理 ★★★ ---
     async function initialize() {
         console.log("初期化処理を開始します。");
         await document.fonts.ready;
