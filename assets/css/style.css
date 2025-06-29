@@ -75,17 +75,22 @@ body {
     margin: 0 auto;
     flex-grow: 1;
 }
+
+.preview-panel {
+    position: sticky; /* ★常に固定するようにベーススタイルに定義 */
+    top: 85px; 
+}
+
 /* PC用の2カラムレイアウト */
 @media (min-width: 1024px) {
     .content-wrapper {
         grid-template-columns: 1fr 480px;
-    }
-    .preview-panel {
-        position: sticky; /* ★ヘッダー下に追従して固定 */
-        top: 85px; 
+        align-items: flex-start;
     }
     .controls-panel {
-        /* このパネルがスクロールする */
+        height: calc(100vh - 85px - 4rem);
+        overflow-y: auto;
+        padding-right: 1rem; 
     }
 }
 
@@ -99,7 +104,7 @@ canvas:active { cursor: grabbing; }
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    margin-bottom: 0.5rem; /* ★マージンを1/3に縮小 */
+    margin-bottom: 0.5rem;
 }
 
 .control-group { background-color: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: left; }
@@ -161,7 +166,7 @@ input[type="checkbox"]:checked + span::after { content: '✓'; color: white; pos
 /* レスポンシブ対応 */
 @media (max-width: 1023px) {
     .content-wrapper { grid-template-columns: 1fr; }
-    .preview-panel { position: static; }
+    /* ★★★ `position: static` のルールを完全に削除 ★★★ */
 }
 @media (max-width: 600px) {
     .site-header { padding: 1rem; }
