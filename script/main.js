@@ -1,8 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (New Templates Version)
+ * FFXIV Character Card Generator Script (Extension Fix Version)
  *
- * 新しい4つのテンプレート（Gothic_pink, Neon系）を追加。
- * 背景画像の.pngと.jpg形式の違いに対応。
+ * 全ての背景画像の拡張子を.pngとして扱うように修正し、
+ * 新テンプレートが正しく読み込まれるように対応。
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -40,15 +40,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         'Gothic_black', 'Gothic_white', 'Gothic_pink', 
         'Neon_mono', 'Neon_duotone', 'Neon_meltdown'
     ];
-    // ★ テンプレートごとの背景ファイル拡張子を定義
-    const templateExtensions = {
-        'Gothic_black': 'png',
-        'Gothic_white': 'png',
-        'Gothic_pink': 'jpg',
-        'Neon_mono': 'jpg',
-        'Neon_duotone': 'jpg',
-        'Neon_meltdown': 'jpg'
-    };
     const races = ['au_ra', 'viera', 'roegadyn', 'miqote', 'hyur', 'elezen', 'lalafell', 'hrothgar'];
     const dcs = ['mana', 'gaia', 'elemental', 'meteor'];
     const progresses = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'];
@@ -78,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const img = new Image();
             img.crossOrigin = "Anonymous";
             img.onload = () => { imageCache[path] = img; updateProgress(); resolve(img); };
-            img.onerror = () => { console.error(`画像の読み込みに失敗: ${path}`); updateProgress(); resolve(null); };
+            img.onerror = () => { console.warn(`画像の読み込みに失敗: ${path}`); updateProgress(); resolve(null); };
             img.src = path;
         });
     }
@@ -86,9 +77,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function preloadAllAssets() {
         const allImagePaths = new Set();
         templates.forEach(template => {
-            const ext = templateExtensions[template] || 'png'; // 拡張子を取得
-            allImagePaths.add(`./assets/backgrounds/${template}.${ext}`);
-            allImagePaths.add(`./assets/backgrounds/${template}_cp.${ext}`); 
+            // ★ 全ての背景画像の拡張子を.pngとして扱うように修正
+            allImagePaths.add(`./assets/backgrounds/${template}.png`);
+            allImagePaths.add(`./assets/backgrounds/${template}_cp.png`); 
             
             races.forEach(item => allImagePaths.add(`./assets/race_icons/${template}_${item}.png`));
             dcs.forEach(item => allImagePaths.add(`./assets/dc_icons/${template}_${item}.png`));
@@ -117,14 +108,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawUploadedImage();
 
-        let templateName = document.body.className.replace('template-', ''); // e.g., "gothic-pink"
-        // ハイフンをアンダースコアに変換してファイル名と一致させる
-        let prefix = templateName.replace('-', '_'); // e.g., "gothic_pink"
+        let templateName = document.body.className.replace('template-', '');
+        let prefix = templateName.replace(/-/g, '_'); // CSSクラス名のハイフンをアンダースコアに変換
         
         if (useCopyrightBg === true) { prefix += '_cp'; }
 
-        const ext = templateExtensions[prefix.replace('_cp', '')] || 'png'; // 拡張子を取得
-        const bgImg = imageCache[`./assets/backgrounds/${prefix}.${ext}`];
+        // ★ 全ての背景画像の拡張子を.pngとして扱うように修正
+        const bgImg = imageCache[`./assets/backgrounds/${prefix}.png`];
         
         drawStretchedImage(bgImg);
         drawIcons();
@@ -167,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     function drawIcons() {
         let templateName = document.body.className.replace('template-', '');
-        const prefix = templateName.replace('-', '_');
+        const prefix = templateName.replace(/-/g, '_');
         
         const draw = (path) => {
             const img = imageCache[path];
