@@ -1,8 +1,7 @@
 /**
- * FFXIV Character Card Generator Script (Scaled Version)
+ * FFXIV Character Card Generator Script (Copyright Swap Version)
  *
- * 出力画像のサイズを1200x720に変更し、それに合わせて
- * 全ての描画座標とフォントサイズをスケーリングしたバージョン。
+ * PNG出力時にのみ、著作権表記ありの背景画像に差し替える機能を追加。
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -30,10 +29,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- ★★★ 初期設定: Canvasサイズとスケーリング比率 ★★★ ---
     const BASE_WIDTH = 3750;
     const NEW_WIDTH = 1200;
-    const SCALE_FACTOR = NEW_WIDTH / BASE_WIDTH; // 縮小比率を計算 (0.32)
+    const SCALE_FACTOR = NEW_WIDTH / BASE_WIDTH;
 
     canvas.width = NEW_WIDTH;
-    canvas.height = 2250 * SCALE_FACTOR; // アスペクト比を維持 (720)
+    canvas.height = 2250 * SCALE_FACTOR;
     
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
@@ -77,7 +76,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function preloadAllAssets() {
         const allImagePaths = new Set();
         templates.forEach(template => {
+            // ★通常用と著作権表記ありの両方をプリロード対象に追加
             allImagePaths.add(`./assets/backgrounds/${template}.png`);
+            allImagePaths.add(`./assets/backgrounds/${template}_cp.png`); 
+            
             races.forEach(item => allImagePaths.add(`./assets/race_icons/${template}_${item}.png`));
             dcs.forEach(item => allImagePaths.add(`./assets/dc_icons/${template}_${item}.png`));
             progresses.forEach(item => allImagePaths.add(`./assets/progress_icons/${template}_${item}.png`));
@@ -101,36 +103,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- 描画関数 ---
-    function drawCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawUploadedImage();
-        const prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
-        drawStretchedImage(imageCache[`./assets/backgrounds/${prefix}.png`]);
-        drawIcons();
-        drawNameText();
-    }
-    
-    function drawStretchedImage(img) {
-        if (img && img.complete && img.naturalHeight !== 0) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    }
-    
-    function drawUploadedImage() {
+    /**
+     * 指定されたコンテキストにカードを描画する
+     * @param {CanvasRenderingContext2D} targetCtx - 描画対象のコンテキスト
+     * @param {boolean} useCopyrightBg - 著作権表記ありの背景を使うか
+     */
+    function drawCard(targetCtx, useCopyrightBg = false) {
+        targetCtx.clearRect(0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
+        
+        // ユーザーアップロード画像
         if (imageTransform.img && imageTransform.img.complete && imageTransform.img.naturalHeight !== 0) {
-            ctx.save();
-            ctx.translate(imageTransform.x, imageTransform.y);
-            ctx.scale(imageTransform.scale, imageTransform.scale);
-            ctx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
-            ctx.restore();
+            targetCtx.save();
+            targetCtx.translate(imageTransform.x, imageTransform.y);
+            targetCtx.scale(imageTransform.scale, imageTransform.scale);
+            targetCtx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
+            targetCtx.restore();
         }
-    }
+        
+        // 背景
+        let prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+        if (useCopyrightBg) {
+            prefix += '_cp'; // ★書き出し時はサフィックスを追加
+        }
+        const bgImg = imageCache[`./assets/backgrounds/${prefix}.png`];
+        if (bgImg) targetCtx.drawImage(bgImg, 0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
 
-    function drawNameText() {
-        // ★★★ 座標とフォントサイズをスケーリング ★★★
+        // アイコン
+        drawIcons(targetCtx);
+        // 名前
+        drawNameText(targetCtx);
+    }
+    
+    function drawNameText(targetCtx) {
         const nameArea = { 
-            x: 98 * SCALE_FACTOR, 
-            y: 270 * SCALE_FACTOR, 
-            width: 665 * SCALE_FACTOR, 
-            height: 120 * SCALE_FACTOR 
+            x: 98 * SCALE_FACTOR, y: 270 * SCALE_FACTOR, 
+            width: 665 * SCALE_FACTOR, height: 120 * SCALE_FACTOR 
         };
         const MAX_FONT_SIZE = 120 * SCALE_FACTOR;
 
@@ -139,67 +146,63 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         let fontSize = MAX_FONT_SIZE;
         const selectedFont = fontSelect.value;
-        ctx.font = `${fontSize}px ${selectedFont}`;
+        targetCtx.font = `${fontSize}px ${selectedFont}`;
 
-        while (ctx.measureText(name).width > nameArea.width && fontSize > 10) {
+        while (targetCtx.measureText(name).width > nameArea.width && fontSize > 10) {
             fontSize--;
-            ctx.font = `${fontSize}px ${selectedFont}`;
+            targetCtx.font = `${fontSize}px ${selectedFont}`;
         }
         
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
-        ctx.fillStyle = document.body.classList.contains('template-gothic-white') ? '#000000' : '#ffffff';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(name, centerX, centerY);
+        targetCtx.fillStyle = document.body.classList.contains('template-gothic-white') ? '#000000' : '#ffffff';
+        targetCtx.textAlign = 'center';
+        targetCtx.textBaseline = 'middle';
+        targetCtx.fillText(name, centerX, centerY);
     }
     
-    function drawIcons() {
+    function drawIcons(targetCtx) {
         const prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
-        if (raceSelect.value) drawStretchedImage(imageCache[`./assets/race_icons/${prefix}_${raceSelect.value}.png`]);
-        if (dcSelect.value) drawStretchedImage(imageCache[`./assets/dc_icons/${prefix}_${dcSelect.value}.png`]);
+        const draw = (path) => {
+            const img = imageCache[path];
+            if (img) targetCtx.drawImage(img, 0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
+        };
+
+        if (raceSelect.value) draw(`./assets/race_icons/${prefix}_${raceSelect.value}.png`);
+        if (dcSelect.value) draw(`./assets/dc_icons/${prefix}_${dcSelect.value}.png`);
         if (progressSelect.value) {
             const stages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
             const toLoad = progressSelect.value === 'all_clear' ? [...stages, 'all_clear'] : stages.slice(0, stages.indexOf(progressSelect.value) + 1);
-            toLoad.forEach(p => drawStretchedImage(imageCache[`./assets/progress_icons/${prefix}_${p}.png`]));
+            toLoad.forEach(p => draw(`./assets/progress_icons/${prefix}_${p}.png`));
         }
         styleButtons.forEach(btn => {
-            if (btn.classList.contains('active')) drawStretchedImage(imageCache[`./assets/style_icons/${prefix}_${btn.dataset.value}.png`]);
+            if (btn.classList.contains('active')) draw(`./assets/style_icons/${prefix}_${btn.dataset.value}.png`);
         });
         const timePaths = new Set();
         const checkedTimes = Array.from(playtimeCheckboxes).filter(cb => cb.checked);
-        checkedTimes.forEach(cb => {
-            timePaths.add(`./assets/time_icons/${prefix}_${cb.className}_${cb.value}.png`);
-        });
+        checkedTimes.forEach(cb => timePaths.add(`./assets/time_icons/${prefix}_${cb.className}_${cb.value}.png`));
         if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${prefix}_weekday.png`);
         if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.png`);
-        timePaths.forEach(path => drawStretchedImage(imageCache[path]));
-        difficultyCheckboxes.forEach(cb => {
-            if (cb.checked) drawStretchedImage(imageCache[`./assets/difficulty_icons/${prefix}_${cb.value}.png`]);
-        });
-        subJobCheckboxes.forEach(cb => {
-            if (cb.checked) drawStretchedImage(imageCache[`./assets/subjob_icons/${prefix}_sub_${cb.value}.png`]);
-        });
-        if (mainJobSelect.value) drawStretchedImage(imageCache[`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.png`]);
+        timePaths.forEach(path => draw(path));
+        difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/difficulty_icons/${prefix}_${cb.value}.png`); });
+        subJobCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/subjob_icons/${prefix}_sub_${cb.value}.png`); });
+        if (mainJobSelect.value) draw(`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.png`);
     }
 
     // --- イベントリスナー ---
     const allInputs = [nameInput, fontSelect, raceSelect, dcSelect, progressSelect, mainJobSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes, ...subJobCheckboxes];
     allInputs.forEach(el => {
-        el.addEventListener('input', (e) => {
+        const eventType = (el.tagName === 'SELECT' || el.type === 'text') ? 'input' : 'click';
+        el.addEventListener(eventType, (e) => {
             if (e.currentTarget.tagName === 'BUTTON') { e.currentTarget.classList.toggle('active'); }
-            drawCanvas();
+            drawCard(ctx);
         });
-        if(el.type === 'checkbox' || el.tagName === 'BUTTON') {
-            el.addEventListener('click', (e) => {
-                 if (e.currentTarget.tagName === 'BUTTON') { e.currentTarget.classList.toggle('active'); }
-                drawCanvas();
-            });
-        }
     });
+    
     templateButtons.forEach(button => {
-        button.addEventListener('click', () => { document.body.className = button.dataset.class; drawCanvas(); });
+        button.addEventListener('click', () => { document.body.className = button.dataset.class; drawCard(ctx); });
     });
+    
     uploadImageInput.addEventListener('change', (e) => {
         const file = e.target.files[0]; if (!file) return;
         const reader = new FileReader();
@@ -210,15 +213,33 @@ document.addEventListener('DOMContentLoaded', async () => {
                 imageTransform.scale = Math.min(canvas.width / img.width, canvas.height / img.height, 1);
                 imageTransform.x = canvas.width / 2;
                 imageTransform.y = canvas.height / 2;
-                drawCanvas();
+                drawCard(ctx);
             };
             img.src = event.target.result;
         };
         reader.readAsDataURL(file);
     });
-    downloadBtn.addEventListener('click', () => {
-        const link = document.createElement('a'); link.download = 'ffxiv_character_card.png';
-        link.href = canvas.toDataURL('image/png'); link.click();
+
+    // ★★★ ダウンロード処理を修正 ★★★
+    downloadBtn.addEventListener('click', async () => {
+        // 1. オフスクリーン（見えない）Canvasを作成
+        const offscreenCanvas = document.createElement('canvas');
+        offscreenCanvas.width = canvas.width;
+        offscreenCanvas.height = canvas.height;
+        const offscreenCtx = offscreenCanvas.getContext('2d');
+        offscreenCtx.imageSmoothingEnabled = true;
+        offscreenCtx.imageSmoothingQuality = 'high';
+
+        // 2. オフスクリーンCanvasに著作権表記ありで描画
+        console.log("書き出し用に再描画します...");
+        drawCard(offscreenCtx, true);
+        console.log("再描画完了。");
+
+        // 3. オフスクリーンCanvasから画像を生成してダウンロード
+        const link = document.createElement('a');
+        link.download = 'ffxiv_character_card.png';
+        link.href = offscreenCanvas.toDataURL('image/png');
+        link.click();
     });
 
     // --- 画像操作イベントリスナー ---
@@ -236,7 +257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const dx = loc.x - imageTransform.lastX; const dy = loc.y - imageTransform.lastY;
         imageTransform.x += dx; imageTransform.y += dy;
         imageTransform.lastX = loc.x; imageTransform.lastY = loc.y;
-        drawCanvas();
+        drawCard(ctx);
     }
     function handleDragEnd() { imageTransform.isDragging = false; }
     canvas.addEventListener('mousedown', handleDragStart, { passive: false });
@@ -247,7 +268,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!imageTransform.img) return; e.preventDefault();
         const scaleAmount = 1.1; const newScale = e.deltaY < 0 ? imageTransform.scale * scaleAmount : imageTransform.scale / scaleAmount;
         imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
-        drawCanvas();
+        drawCard(ctx);
     }, { passive: false });
     canvas.addEventListener('touchstart', (e) => {
         if (!imageTransform.img) return; e.preventDefault();
@@ -269,7 +290,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
             }
             imageTransform.lastTouchDistance = newDist;
-            drawCanvas();
+            drawCard(ctx);
         }
     }, { passive: false });
     canvas.addEventListener('touchend', (e) => {
@@ -287,7 +308,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loaderElement.classList.add('hidden');
         setTimeout(() => {
             appElement.classList.remove('hidden');
-            drawCanvas();
+            drawCard(ctx);
         }, 300);
     }
 
