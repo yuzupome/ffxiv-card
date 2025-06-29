@@ -1,8 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (Final Version - Subjob Fix)
+ * FFXIV Character Card Generator Script (Scaled Version)
  *
- * 全てのサブジョブ（クラフター・ギャザラーを含む）が正しくプリロードされるように
- * アセット定義のロジックを修正。
+ * 出力画像のサイズを1200x720に変更し、それに合わせて
+ * 全ての描画座標とフォントサイズをスケーリングしたバージョン。
  */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -27,9 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const subJobCheckboxes = document.querySelectorAll('#subjobSection input[type="checkbox"]');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // --- 初期設定 ---
-    canvas.width = 3750;
-    canvas.height = 2250;
+    // --- ★★★ 初期設定: Canvasサイズとスケーリング比率 ★★★ ---
+    const BASE_WIDTH = 3750;
+    const NEW_WIDTH = 1200;
+    const SCALE_FACTOR = NEW_WIDTH / BASE_WIDTH; // 縮小比率を計算 (0.32)
+
+    canvas.width = NEW_WIDTH;
+    canvas.height = 2250 * SCALE_FACTOR; // アスペクト比を維持 (720)
+    
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
@@ -42,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const playtimes = ['weekday', 'weekday_morning', 'weekday_daytime', 'weekday_night', 'weekday_midnight', 'holiday', 'holiday_morning', 'holiday_daytime', 'holiday_night', 'holiday_midnight', 'random', 'fulltime'];
     const difficulties = ['extreme', 'unreal', 'savage', 'ultimate'];
     const mainJobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
-    // ★★★ サブジョブのリストをHTMLのチェックボックスから直接生成するよう修正 ★★★
     const allSubJobs = Array.from(subJobCheckboxes).map(cb => cb.value);
     
     // --- 画像キャッシュ ---
@@ -64,16 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Promise((resolve) => {
             const img = new Image();
             img.crossOrigin = "Anonymous";
-            img.onload = () => {
-                imageCache[path] = img;
-                updateProgress();
-                resolve(img);
-            };
-            img.onerror = () => {
-                console.error(`画像の読み込みに失敗: ${path}`);
-                updateProgress(); // 失敗してもプログレスは進める
-                resolve(null);
-            };
+            img.onload = () => { imageCache[path] = img; updateProgress(); resolve(img); };
+            img.onerror = () => { console.error(`画像の読み込みに失敗: ${path}`); updateProgress(); resolve(null); };
             img.src = path;
         });
     }
@@ -88,21 +84,13 @@ document.addEventListener('DOMContentLoaded', () => {
             styles.forEach(item => allImagePaths.add(`./assets/style_icons/${template}_${item}.png`));
             playtimes.forEach(item => allImagePaths.add(`./assets/time_icons/${template}_${item}.png`));
             difficulties.forEach(item => allImagePaths.add(`./assets/difficulty_icons/${template}_${item}.png`));
-            
-            // ★ メインジョブとサブジョブの読み込みロジックを分離・修正
-            mainJobs.forEach(item => {
-                allImagePaths.add(`./assets/mainjob_icons/${template}_main_${item}.png`);
-            });
-            allSubJobs.forEach(item => {
-                allImagePaths.add(`./assets/subjob_icons/${template}_sub_${item}.png`);
-            });
+            mainJobs.forEach(item => allImagePaths.add(`./assets/mainjob_icons/${template}_main_${item}.png`));
+            allSubJobs.forEach(item => allImagePaths.add(`./assets/subjob_icons/${template}_sub_${item}.png`));
         });
         
         totalAssetCount = allImagePaths.size;
         progressText.textContent = `0 / ${totalAssetCount}`;
-
         const promises = Array.from(allImagePaths).map(path => loadImage(path));
-        
         await Promise.all(promises);
     }
 
@@ -137,17 +125,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawNameText() {
-        const nameArea = { x: 98, y: 270, width: 665, height: 120 };
+        // ★★★ 座標とフォントサイズをスケーリング ★★★
+        const nameArea = { 
+            x: 98 * SCALE_FACTOR, 
+            y: 270 * SCALE_FACTOR, 
+            width: 665 * SCALE_FACTOR, 
+            height: 120 * SCALE_FACTOR 
+        };
+        const MAX_FONT_SIZE = 120 * SCALE_FACTOR;
+
         const name = nameInput.value;
         if (!name) return;
-        const MAX_FONT_SIZE = 120;
+        
         let fontSize = MAX_FONT_SIZE;
         const selectedFont = fontSelect.value;
         ctx.font = `${fontSize}px ${selectedFont}`;
+
         while (ctx.measureText(name).width > nameArea.width && fontSize > 10) {
             fontSize--;
             ctx.font = `${fontSize}px ${selectedFont}`;
         }
+        
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
         ctx.fillStyle = document.body.classList.contains('template-gothic-white') ? '#000000' : '#ffffff';
@@ -282,18 +280,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- ★★★ 初期化処理 ★★★ ---
     async function initialize() {
         console.log("初期化処理を開始します。");
-        
         await document.fonts.ready;
         console.log("✓ フォントの準備が完了しました。");
-        
         await preloadAllAssets();
         console.log("✓ 全てのアセットのプリロードが完了しました。");
-        
         loaderElement.classList.add('hidden');
         setTimeout(() => {
             appElement.classList.remove('hidden');
             drawCanvas();
-        }, 300); // フェードアウトを待つ
+        }, 300);
     }
 
     initialize();
