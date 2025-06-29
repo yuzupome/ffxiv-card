@@ -1,8 +1,8 @@
 /**
- * FFXIV Character Card Generator Script (Hybrid Loading Version)
+ * FFXIV Character Card Generator Script (Diagnostic Version)
  *
- * 最初に最低限のアセットのみを読み込んでアプリを起動し、
- * 残りのアセットはバックグラウンドでプリロードすることで、起動時間と応答性を両立させる。
+ * 起動時の読み込み処理に詳細なログを追加し、問題の特定を容易にする。
+ * 必須アセットの読み込みに失敗した場合は、アラートを表示して処理を停止する。
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const requiredElementIds = [ 'app', 'loader', 'cardCanvas', 'nameInput', 'fontSelect', 'uploadImage', 'templateButtons', 'raceSelect', 'dcSelect', 'progressSelect', 'styleButtons', 'playtimeOptions', 'difficultyOptions', 'mainjobSelect', 'subjobSection', 'downloadBtn' ];
     if (requiredElementIds.some(id => !document.getElementById(id))) {
         console.error('必須要素が見つかりません。HTMLのIDを確認してください。');
-        alert('ページの初期化に失敗しました。');
+        alert('ページの初期化に失敗しました。HTMLファイルが破損している可能性があります。');
         return;
     }
 
@@ -57,18 +57,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             const img = new Image();
             img.crossOrigin = "Anonymous";
             img.onload = () => { imageCache[path] = img; resolve(img); };
-            img.onerror = () => { console.warn(`画像の読み込みに失敗: ${path}`); resolve(null); };
+            img.onerror = () => {
+                console.error(`画像の読み込みに失敗しました: ${path}`);
+                resolve(null); // エラー時もnullでresolveする
+            };
             img.src = path;
         });
     }
 
-    /**
-     * ★ 全てのアセットをバックグラウンドでプリロードする
-     */
     function preloadAllAssetsInBackground() {
+        console.log("バックグラウンドでのアセット読み込みを開始します。");
         const allImagePaths = new Set();
         templates.forEach(template => {
-            allImagePaths.add(`./assets/backgrounds/${template}.png`);
             races.forEach(item => allImagePaths.add(`./assets/race_icons/${template}_${item}.png`));
             dcs.forEach(item => allImagePaths.add(`./assets/dc_icons/${template}_${item}.png`));
             progresses.forEach(item => allImagePaths.add(`./assets/progress_icons/${template}_${item}.png`));
@@ -80,8 +80,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 allImagePaths.add(`./assets/subjob_icons/${template}_sub_${item}.png`);
             });
         });
-        
-        // Promise.allは使わず、個別にロードを開始してUIをブロックしない
         allImagePaths.forEach(path => loadImage(path));
     }
 
@@ -102,9 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     function drawStretchedImage(img) {
-        if (img && img.complete && img.naturalHeight !== 0) {
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        }
+        if (img && img.complete && img.naturalHeight !== 0) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     }
     
     function drawUploadedImage() {
@@ -121,17 +117,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const nameArea = { x: 98, y: 270, width: 665, height: 120 };
         const name = nameInput.value;
         if (!name) return;
-        
         const MAX_FONT_SIZE = 120;
         let fontSize = MAX_FONT_SIZE;
         const selectedFont = fontSelect.value;
-        
         ctx.font = `${fontSize}px ${selectedFont}`;
         while (ctx.measureText(name).width > nameArea.width && fontSize > 10) {
             fontSize--;
             ctx.font = `${fontSize}px ${selectedFont}`;
         }
-        
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
         ctx.fillStyle = document.body.classList.contains('template-gothic-white') ? '#000000' : '#ffffff';
@@ -183,14 +176,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     });
-
     templateButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            document.body.className = button.dataset.class;
-            drawCanvas();
-        });
+        button.addEventListener('click', () => { document.body.className = button.dataset.class; drawCanvas(); });
     });
-    
     uploadImageInput.addEventListener('change', (e) => {
         const file = e.target.files[0]; if (!file) return;
         const reader = new FileReader();
@@ -207,30 +195,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
         reader.readAsDataURL(file);
     });
-
     downloadBtn.addEventListener('click', () => {
-        const link = document.createElement('a');
-        link.download = 'ffxiv_character_card.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        const link = document.createElement('a'); link.download = 'ffxiv_character_card.png';
+        link.href = canvas.toDataURL('image/png'); link.click();
     });
 
-    // --- 画像操作イベントリスナー (変更なし) ---
+    // --- 画像操作イベントリスナー ---
     function getEventLocation(e) {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
         if (e.touches && e.touches[0]) return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
         return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
     }
     function handleDragStart(e) {
-        if (!imageTransform.img) return;
-        const loc = getEventLocation(e);
+        if (!imageTransform.img) return; const loc = getEventLocation(e);
         imageTransform.isDragging = true; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y;
     }
     function handleDragMove(e) {
-        if (!imageTransform.isDragging || !imageTransform.img) return;
-        const loc = getEventLocation(e);
+        if (!imageTransform.isDragging || !imageTransform.img) return; const loc = getEventLocation(e);
         const dx = loc.x - imageTransform.lastX; const dy = loc.y - imageTransform.lastY;
         imageTransform.x += dx; imageTransform.y += dy;
         imageTransform.lastX = loc.x; imageTransform.lastY = loc.y;
@@ -275,23 +256,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         imageTransform.lastTouchDistance = 0;
     });
 
-    // --- ★★★ 初期化処理 ★★★ ---
+    // --- ★★★ 初期化処理 (診断機能強化版) ★★★ ---
     async function initialize() {
-        // 1. 起動に最低限必要なアセットのみを待機
-        await Promise.all([
-            loadImage('./assets/backgrounds/Gothic_black.png'),
-            loadImage('./assets/backgrounds/Gothic_white.png'),
-            document.fonts.ready
-        ]);
+        console.log("初期化処理を開始します。");
         
-        // 2. ローディング画面を消してアプリを表示
+        console.log("ステップ1: フォントの読み込みを待機しています...");
+        try {
+            await document.fonts.ready;
+            console.log("✓ フォントの準備が完了しました。");
+        } catch (fontError) {
+            console.error("致命的エラー: フォントの読み込みに失敗しました。", fontError);
+            alert("フォントの読み込みに失敗しました。インターネット接続を確認してください。");
+            return;
+        }
+
+        console.log("ステップ2: 必須となる背景画像の読み込みを開始します...");
+        const criticalAssets = [
+            loadImage('./assets/backgrounds/Gothic_black.png'),
+            loadImage('./assets/backgrounds/Gothic_white.png')
+        ];
+        const [bgBlack, bgWhite] = await Promise.all(criticalAssets);
+
+        if (!bgBlack || !bgWhite) {
+            console.error("致命的エラー: 背景画像の読み込みに失敗しました。");
+            alert("背景画像の読み込みに失敗しました。ファイルパスが正しいか確認してください。（例: ./assets/backgrounds/Gothic_black.png）");
+            loaderElement.innerHTML = "<p style='color:red;'>必須ファイルの読み込みに失敗しました。<br>ファイル構成を確認してください。</p>";
+            return; // 処理を停止
+        }
+        console.log("✓ 背景画像の読み込みが完了しました。");
+
+        console.log("ステップ3: アプリケーションを表示します。");
         loaderElement.classList.add('hidden');
         appElement.classList.remove('hidden');
         
-        // 3. 初回描画
         drawCanvas();
         
-        // 4. 残りの全アセットをバックグラウンドで読み込み開始
+        // 4. バックグラウンドでのアセット読み込みを開始
         preloadAllAssetsInBackground();
     }
 
