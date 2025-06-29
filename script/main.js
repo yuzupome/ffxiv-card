@@ -1,29 +1,18 @@
 /**
- * FFXIV Character Card Generator Script (Path Fix v2)
+ * FFXIV Character Card Generator Script (Final Version)
  *
- * GitHub Pagesの環境で正しく動作するように、すべてのアセットパスを
- * HTMLからの相対パスに修正。
+ * 全アセットをプリロードし、プログレスバーで進捗を表示する方式に変更。
+ * GitHub Pages環境でも安定して動作するように、すべてのアセットパスを相対パスで統一。
  */
-document.addEventListener('DOMContentLoaded', async () => {
-
-    // --- 必要なHTML要素のチェック ---
-    const requiredElementIds = [ 'app', 'loader', 'cardCanvas', 'nameInput', 'fontSelect', 'uploadImage', 'templateButtons', 'raceSelect', 'dcSelect', 'progressSelect', 'styleButtons', 'playtimeOptions', 'difficultyOptions', 'mainjobSelect', 'subjobSection', 'downloadBtn' ];
-    if (requiredElementIds.some(id => !document.getElementById(id))) {
-        console.error('必須要素が見つかりません。HTMLのIDを確認してください。');
-        alert('ページの初期化に失敗しました。HTMLファイルが破損している可能性があります。');
-        return;
-    }
+document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM要素の取得 ---
     const appElement = document.getElementById('app');
     const loaderElement = document.getElementById('loader');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
     const canvas = document.getElementById('cardCanvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = 3750;
-    canvas.height = 2250;
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-
     const nameInput = document.getElementById('nameInput');
     const fontSelect = document.getElementById('fontSelect');
     const uploadImageInput = document.getElementById('uploadImage');
@@ -38,7 +27,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const subJobCheckboxes = document.querySelectorAll('#subjobSection input[type="checkbox"]');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // --- アセットの定義 ---
+    // --- 初期設定 ---
+    canvas.width = 3750;
+    canvas.height = 2250;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    // --- アセット定義 ---
     const templates = ['Gothic_black', 'Gothic_white'];
     const races = ['au_ra', 'viera', 'roegadyn', 'miqote', 'hyur', 'elezen', 'lalafell', 'hrothgar'];
     const dcs = ['mana', 'gaia', 'elemental', 'meteor'];
@@ -47,28 +42,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     const playtimes = ['weekday', 'weekday_morning', 'weekday_daytime', 'weekday_night', 'weekday_midnight', 'holiday', 'holiday_morning', 'holiday_daytime', 'holiday_night', 'holiday_midnight', 'random', 'fulltime'];
     const difficulties = ['extreme', 'unreal', 'savage', 'ultimate'];
     const jobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
-
+    
     // --- 画像キャッシュ ---
     const imageCache = {};
 
+    // --- プリロード処理 ---
+    let loadedAssetCount = 0;
+    let totalAssetCount = 0;
+
+    function updateProgress() {
+        loadedAssetCount++;
+        const percent = Math.round((loadedAssetCount / totalAssetCount) * 100);
+        progressBar.style.width = `${percent}%`;
+        progressText.textContent = `${loadedAssetCount} / ${totalAssetCount}`;
+    }
+
     function loadImage(path) {
-        if (!path || imageCache[path]) return Promise.resolve(imageCache[path] || null);
+        if (!path) return Promise.resolve(null);
         return new Promise((resolve) => {
             const img = new Image();
             img.crossOrigin = "Anonymous";
-            img.onload = () => { imageCache[path] = img; resolve(img); };
+            img.onload = () => {
+                imageCache[path] = img;
+                updateProgress();
+                resolve(img);
+            };
             img.onerror = () => {
-                console.error(`画像の読み込みに失敗しました: ${path}`);
-                resolve(null); // エラー時もnullでresolveする
+                console.error(`画像の読み込みに失敗: ${path}`);
+                updateProgress(); // 失敗してもプログレスは進める
+                resolve(null);
             };
             img.src = path;
         });
     }
 
-    function preloadAllAssetsInBackground() {
-        console.log("バックグラウンドでのアセット読み込みを開始します。");
+    async function preloadAllAssets() {
         const allImagePaths = new Set();
         templates.forEach(template => {
+            allImagePaths.add(`./assets/backgrounds/${template}.png`);
             races.forEach(item => allImagePaths.add(`./assets/race_icons/${template}_${item}.png`));
             dcs.forEach(item => allImagePaths.add(`./assets/dc_icons/${template}_${item}.png`));
             progresses.forEach(item => allImagePaths.add(`./assets/progress_icons/${template}_${item}.png`));
@@ -80,7 +91,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 allImagePaths.add(`./assets/subjob_icons/${template}_sub_${item}.png`);
             });
         });
-        allImagePaths.forEach(path => loadImage(path));
+        
+        totalAssetCount = allImagePaths.size;
+        progressText.textContent = `0 / ${totalAssetCount}`;
+
+        const promises = Array.from(allImagePaths).map(path => loadImage(path));
+        
+        await Promise.all(promises);
     }
 
     // --- 状態管理 ---
@@ -166,12 +183,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const allInputs = [nameInput, fontSelect, raceSelect, dcSelect, progressSelect, mainJobSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes, ...subJobCheckboxes];
     allInputs.forEach(el => {
         el.addEventListener('input', (e) => {
-            if (e.currentTarget.tagName === 'BUTTON') e.currentTarget.classList.toggle('active');
+            if (e.currentTarget.tagName === 'BUTTON') { e.currentTarget.classList.toggle('active'); }
             drawCanvas();
         });
         if(el.type === 'checkbox' || el.tagName === 'BUTTON') {
             el.addEventListener('click', (e) => {
-                 if (e.currentTarget.tagName === 'BUTTON') e.currentTarget.classList.toggle('active');
+                 if (e.currentTarget.tagName === 'BUTTON') { e.currentTarget.classList.toggle('active'); }
                 drawCanvas();
             });
         }
@@ -256,37 +273,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         imageTransform.lastTouchDistance = 0;
     });
 
-    // --- ★★★ 初期化処理 (パス修正版) ★★★ ---
+    // --- ★★★ 初期化処理 ★★★ ---
     async function initialize() {
         console.log("初期化処理を開始します。");
         
-        try {
-            await document.fonts.ready;
-            console.log("✓ フォントの準備が完了しました。");
-        } catch (fontError) {
-            console.error("致命的エラー: フォントの読み込みに失敗しました。", fontError);
-            alert("フォントの読み込みに失敗しました。インターネット接続を確認してください。");
-            return;
-        }
-
-        const criticalAssets = [
-            loadImage(`./assets/backgrounds/Gothic_black.png`),
-            loadImage(`./assets/backgrounds/Gothic_white.png`)
-        ];
-        const [bgBlack, bgWhite] = await Promise.all(criticalAssets);
-
-        if (!bgBlack || !bgWhite) {
-            alert("背景画像の読み込みに失敗しました。ファイルパスが正しいか確認してください。 (例: ./assets/backgrounds/Gothic_black.png)");
-            loaderElement.innerHTML = "<p style='color:red;'>必須ファイルの読み込みに失敗しました。<br>ファイル構成を確認してください。</p>";
-            return; // 処理を停止
-        }
+        await document.fonts.ready;
+        console.log("✓ フォントの準備が完了しました。");
+        
+        await preloadAllAssets();
+        console.log("✓ 全てのアセットのプリロードが完了しました。");
         
         loaderElement.classList.add('hidden');
-        appElement.classList.remove('hidden');
-        
-        drawCanvas();
-        
-        preloadAllAssetsInBackground();
+        setTimeout(() => {
+            appElement.classList.remove('hidden');
+            drawCanvas();
+        }, 300); // フェードアウトを待つ
     }
 
     initialize();
