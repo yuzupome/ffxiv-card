@@ -4,7 +4,7 @@
  * 出力画像のサイズを1200x720に変更し、それに合わせて
  * 全ての描画座標とフォントサイズをスケーリングしたバージョン。
  */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
     // --- DOM要素の取得 ---
     const appElement = document.getElementById('app');
