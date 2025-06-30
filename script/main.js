@@ -1,8 +1,8 @@
 /**
  * FFXIV Character Card Generator Script (New Templates Final Version)
  *
- * 全てのテンプレート（Gothic系, Neon系）に対応。
- * 背景画像の拡張子をすべて.pngとして扱うように修正。
+ * 全10種類のテンプレートに対応。
+ * テンプレート選択UIをプルダウンに変更したことに伴い、イベントリスナーとロジックを修正。
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -17,7 +17,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const fontSelect = document.getElementById('fontSelect');
     const uploadImageInput = document.getElementById('uploadImage');
     const fileNameDisplay = document.getElementById('fileName');
-    const templateButtons = document.querySelectorAll('#templateButtons button');
+    // ★★★ テンプレート選択UIをプルダウンに変更 ★★★
+    const templateSelect = document.getElementById('templateSelect');
     const raceSelect = document.getElementById('raceSelect');
     const dcSelect = document.getElementById('dcSelect');
     const progressSelect = document.getElementById('progressSelect');
@@ -35,10 +36,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
-    // --- ★★★ アセット定義（新テンプレート追加） ★★★ ---
+    // --- ★★★ アセット定義（全10テンプレート） ★★★ ---
     const templates = [
         'Gothic_black', 'Gothic_white', 'Gothic_pink', 
-        'Neon_mono', 'Neon_duotone', 'Neon_meltdown'
+        'Neon_mono', 'Neon_duotone', 'Neon_meltdown',
+        'Water', 'Wafu', 'Wood', 'China'
     ];
     const races = ['au_ra', 'viera', 'roegadyn', 'miqote', 'hyur', 'elezen', 'lalafell', 'hrothgar'];
     const dcs = ['mana', 'gaia', 'elemental', 'meteor'];
@@ -51,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // --- 画像キャッシュと状態管理 ---
     const imageCache = {};
-    let currentTemplatePrefix = 'Gothic_black'; // ★現在のテンプレート名を保持
+    let currentTemplatePrefix = 'Gothic_black';
     let imageTransform = {
         img: null, x: canvas.width / 2, y: canvas.height / 2, scale: 1.0,
         isDragging: false, lastX: 0, lastY: 0, lastTouchDistance: 0
@@ -82,7 +84,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function preloadAllAssets() {
         const allImagePaths = new Set();
         templates.forEach(template => {
-            // ★ 全ての背景画像の拡張子を.pngとして扱うように修正
             allImagePaths.add(`./assets/backgrounds/${template}.png`);
             allImagePaths.add(`./assets/backgrounds/${template}_cp.png`); 
             
@@ -110,7 +111,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         let prefix = currentTemplatePrefix;
         if (useCopyrightBg === true) { prefix += '_cp'; }
         
-        // ★ 全ての背景画像の拡張子を.pngとして扱うように修正
         const bgImg = imageCache[`./assets/backgrounds/${prefix}.png`];
         
         drawStretchedImage(bgImg);
@@ -146,7 +146,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
-        // ★ 色の決定ロジックを修正
         ctx.fillStyle = currentTemplatePrefix.includes('white') ? '#000000' : '#ffffff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -188,13 +187,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
-    templateButtons.forEach(button => {
-        button.addEventListener('click', () => { 
-            templateButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            currentTemplatePrefix = button.dataset.template;
-            drawCard(false); 
-        });
+    // ★★★ テンプレート選択のイベントリスナーをプルダウンに変更 ★★★
+    templateSelect.addEventListener('change', () => { 
+        currentTemplatePrefix = templateSelect.value;
+        drawCard(false); 
     });
     
     uploadImageInput.addEventListener('change', (e) => {
@@ -249,7 +245,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     canvas.addEventListener('mouseleave', handleDragEnd);
     canvas.addEventListener('wheel', (e) => { if (!imageTransform.img) return; e.preventDefault(); const scaleAmount = 1.1; const newScale = e.deltaY < 0 ? imageTransform.scale * scaleAmount : imageTransform.scale / scaleAmount; imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); drawCard(false); }, { passive: false });
     canvas.addEventListener('touchstart', (e) => { if (!imageTransform.img) return; e.preventDefault(); if (e.touches.length === 1) handleDragStart(e); else if (e.touches.length === 2) { imageTransform.isDragging = false; const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy); } }, { passive: false });
-    canvas.addEventListener('touchmove', (e) => { if (!imageTransform.img) return; e.preventDefault(); if (e.touches.length === 1 && imageTransform.isDragging) handleDragMove(e); else if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; const newDist = Math.sqrt(dx * dx + dy * dy); if(imageTransform.lastTouchDistance > 0) { const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance); imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); } imageTransform.lastTouchDistance = newDist; drawCard(false); } }, { passive: false });
+    canvas.addEventListener('touchmove', (e) => { if (!imageTransform.isDragging) return; e.preventDefault(); if (e.touches.length === 1 && imageTransform.isDragging) handleDragMove(e); else if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; const newDist = Math.sqrt(dx * dx + dy * dy); if(imageTransform.lastTouchDistance > 0) { const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance); imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); } imageTransform.lastTouchDistance = newDist; drawCard(false); } }, { passive: false });
     canvas.addEventListener('touchend', (e) => { if (e.touches.length === 0) imageTransform.isDragging = false; imageTransform.lastTouchDistance = 0; });
 
     // --- ★★★ 初期化処理 ★★★ ---
