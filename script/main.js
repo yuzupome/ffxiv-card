@@ -1,9 +1,11 @@
 /**
- * FFXIV Character Card Generator Script (UI Revamp Final)
+ * FFXIV Character Card Generator Script (Final Version)
  *
- * 新しいUIに対応するためのJavaScript。
- * - TOPに戻るボタンの表示制御
- * - カスタムファイルアップロードボタンのファイル名表示
+ * - 全10種類のテンプレートに対応
+ * - スマホでのプレビュー固定と画像操作の不具合を修正
+ * - テンプレートに応じたフォントカラーの動的変更機能を追加
+ * - Play Timeのアイコン表示不具合を修正
+ * - Sub Jobのレイアウト調整に対応
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -17,8 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const nameInput = document.getElementById('nameInput');
     const fontSelect = document.getElementById('fontSelect');
     const uploadImageInput = document.getElementById('uploadImage');
-    const fileNameDisplay = document.getElementById('fileName'); // ★ファイル名表示用
-    const templateButtons = document.querySelectorAll('#templateButtons button');
+    const fileNameDisplay = document.getElementById('fileName');
+    const templateSelect = document.getElementById('templateSelect');
     const raceSelect = document.getElementById('raceSelect');
     const dcSelect = document.getElementById('dcSelect');
     const progressSelect = document.getElementById('progressSelect');
@@ -28,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mainJobSelect = document.getElementById('mainjobSelect');
     const subjobButtons = document.querySelectorAll('#subjobSection .button-grid button');
     const downloadBtn = document.getElementById('downloadBtn');
-    const toTopBtn = document.getElementById('toTopBtn'); // ★TOPに戻るボタン
+    const toTopBtn = document.getElementById('toTopBtn');
 
     // --- 初期設定 ---
     canvas.width = 3750;
@@ -37,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     ctx.imageSmoothingQuality = 'high';
 
     // --- アセット定義 ---
-    const templates = ['Gothic_black', 'Gothic_white'];
+    const templates = [ 'Gothic_black', 'Gothic_white', 'Gothic_pink', 'Neon_mono', 'Neon_duotone', 'Neon_meltdown', 'Water', 'Wafu', 'Wood', 'China' ];
     const races = ['au_ra', 'viera', 'roegadyn', 'miqote', 'hyur', 'elezen', 'lalafell', 'hrothgar'];
     const dcs = ['mana', 'gaia', 'elemental', 'meteor'];
     const progresses = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'];
@@ -47,8 +49,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mainJobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
     const allSubJobs = Array.from(subjobButtons).map(btn => btn.dataset.value);
     
-    // --- 画像キャッシュ ---
+    // --- 画像キャッシュと状態管理 ---
     const imageCache = {};
+    let currentTemplatePrefix = 'Gothic_black';
+    let imageTransform = {
+        img: null, x: canvas.width / 2, y: canvas.height / 2, scale: 1.0,
+        isDragging: false, lastX: 0, lastY: 0, lastTouchDistance: 0
+    };
 
     // --- プリロード処理 ---
     let loadedAssetCount = 0;
@@ -67,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const img = new Image();
             img.crossOrigin = "Anonymous";
             img.onload = () => { imageCache[path] = img; updateProgress(); resolve(img); };
-            img.onerror = () => { console.error(`画像の読み込みに失敗: ${path}`); updateProgress(); resolve(null); };
+            img.onerror = () => { console.warn(`画像の読み込みに失敗: ${path}`); updateProgress(); resolve(null); };
             img.src = path;
         });
     }
@@ -93,17 +100,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         await Promise.all(promises);
     }
 
-    // --- 状態管理 ---
-    let imageTransform = {
-        img: null, x: canvas.width / 2, y: canvas.height / 2, scale: 1.0,
-        isDragging: false, lastX: 0, lastY: 0, lastTouchDistance: 0
-    };
-
     // --- 描画関数 ---
     function drawCard(useCopyrightBg) { 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawUploadedImage();
-        let prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+        let prefix = currentTemplatePrefix;
         if (useCopyrightBg === true) { prefix += '_cp'; }
         const bgImg = imageCache[`./assets/backgrounds/${prefix}.png`];
         drawStretchedImage(bgImg);
@@ -139,14 +140,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
-        ctx.fillStyle = document.body.classList.contains('template-gothic-white') ? '#000000' : '#ffffff';
+        const blackTextTemplates = ['Gothic_white', 'Wood'];
+        ctx.fillStyle = blackTextTemplates.includes(currentTemplatePrefix) ? '#000000' : '#ffffff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(name, centerX, centerY);
     }
     
     function drawIcons() {
-        const prefix = document.body.classList.contains('template-gothic-white') ? 'Gothic_white' : 'Gothic_black';
+        const prefix = currentTemplatePrefix;
         const draw = (path) => {
             const img = imageCache[path];
             if (img) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -161,7 +163,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         styleButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/style_icons/${prefix}_${btn.dataset.value}.png`); });
         const timePaths = new Set();
         const checkedTimes = Array.from(playtimeCheckboxes).filter(cb => cb.checked);
-        checkedTimes.forEach(cb => timePaths.add(`./assets/time_icons/${prefix}_${cb.className}_${cb.value}.png`));
+        checkedTimes.forEach(cb => {
+            const pathKey = cb.classList.contains('other') ? cb.value : `${cb.className}_${cb.value}`;
+            timePaths.add(`./assets/time_icons/${prefix}_${pathKey}.png`);
+        });
         if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${prefix}_weekday.png`);
         if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.png`);
         timePaths.forEach(path => draw(path));
@@ -180,13 +185,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
-    templateButtons.forEach(button => {
-        button.addEventListener('click', () => { 
-            templateButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            document.body.className = button.dataset.class; 
-            drawCard(false); 
-        });
+    templateSelect.addEventListener('change', () => { 
+        currentTemplatePrefix = templateSelect.value;
+        drawCard(false); 
     });
     
     uploadImageInput.addEventListener('change', (e) => {
@@ -216,30 +217,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => drawCard(false), 100);
     });
 
-    // ★★★ TOPに戻るボタンの制御 ★★★
     const controlsPanel = document.querySelector('.controls-panel');
     if(controlsPanel) {
-        controlsPanel.onscroll = () => {
-            if (controlsPanel.scrollTop > 100) {
-                toTopBtn.classList.add('visible');
-            } else {
-                toTopBtn.classList.remove('visible');
-            }
-        };
+        controlsPanel.onscroll = () => { toTopBtn.classList.toggle('visible', controlsPanel.scrollTop > 100); };
     }
-    // ウィンドウ自体のスクロールも監視（スマホ表示用）
-    window.onscroll = () => {
-         if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
-            toTopBtn.classList.add('visible');
-        } else {
-            toTopBtn.classList.remove('visible');
-        }
-    }
+    window.onscroll = () => { toTopBtn.classList.toggle('visible', document.body.scrollTop > 100 || document.documentElement.scrollTop > 100); };
     toTopBtn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        if(controlsPanel) {
-            controlsPanel.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        if(controlsPanel) { controlsPanel.scrollTo({ top: 0, behavior: 'smooth' }); }
     });
 
     // --- 画像操作イベントリスナー ---
@@ -257,8 +242,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     canvas.addEventListener('mouseleave', handleDragEnd);
     canvas.addEventListener('wheel', (e) => { if (!imageTransform.img) return; e.preventDefault(); const scaleAmount = 1.1; const newScale = e.deltaY < 0 ? imageTransform.scale * scaleAmount : imageTransform.scale / scaleAmount; imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); drawCard(false); }, { passive: false });
     canvas.addEventListener('touchstart', (e) => { if (!imageTransform.img) return; e.preventDefault(); if (e.touches.length === 1) handleDragStart(e); else if (e.touches.length === 2) { imageTransform.isDragging = false; const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy); } }, { passive: false });
-    canvas.addEventListener('touchmove', (e) => { if (!imageTransform.isDragging) return; e.preventDefault(); if (e.touches.length === 1 && imageTransform.isDragging) handleDragMove(e); else if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; const newDist = Math.sqrt(dx * dx + dy * dy); if(imageTransform.lastTouchDistance > 0) { const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance); imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); } imageTransform.lastTouchDistance = newDist; drawCard(false); } }, { passive: false });
-    canvas.addEventListener('touchend', (e) => { if (e.touches.length === 0) imageTransform.isDragging = false; imageTransform.lastTouchDistance = 0; });
+    canvas.addEventListener('touchmove', (e) => { if (!imageTransform.img) return; e.preventDefault(); if (e.touches.length === 1 && imageTransform.isDragging) handleDragMove(e); else if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; const newDist = Math.sqrt(dx * dx + dy * dy); if(imageTransform.lastTouchDistance > 0) { const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance); imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); } imageTransform.lastTouchDistance = newDist; drawCard(false); } }, { passive: false });
+    canvas.addEventListener('touchend', (e) => { if (e.touches.length < 2) { imageTransform.isDragging = false; } imageTransform.lastTouchDistance = 0; });
 
     // --- ★★★ 初期化処理 ★★★ ---
     async function initialize() {
