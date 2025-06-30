@@ -17,7 +17,6 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   margin: 0;
-  padding: 0;
   line-height: 1.6;
 }
 
@@ -76,7 +75,7 @@ body {
     white-space: nowrap;
 }
 
-/* メインレイアウト */
+/* ★★★ メインレイアウト（固定プレビュー用） ★★★ */
 .content-wrapper {
     display: grid;
     grid-template-columns: 1fr;
@@ -87,52 +86,36 @@ body {
     flex-grow: 1;
     align-items: flex-start;
 }
+
+.preview-panel {
+    position: sticky;
+    top: 85px; 
+    z-index: 1;
+}
+
+/* PC用の2カラムレイアウト */
 @media (min-width: 1024px) {
     .content-wrapper {
         grid-template-columns: 1fr 480px;
     }
-    .preview-panel {
-        position: sticky;
-        top: 85px;
-    }
     .controls-panel {
         height: calc(100vh - 85px - 4rem);
         overflow-y: auto;
-        padding-right: 1rem;
+        padding-right: 1rem; 
     }
 }
-.preview-panel {
-    z-index: 1;
-}
-.canvas-container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-canvas {
-    width: 100%;
-    height: auto;
-    border-radius: 12px;
-    background-color: #000;
-    cursor: grab;
-    display: block;
-    border: 1px solid var(--border-color);
-}
-canvas:active {
-    cursor: grabbing;
-}
-#controls {
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
-}
 
-/* 新しいセクションのスタイル */
+.canvas-container { width: 100%; max-width: 1200px; margin: 0 auto; }
+canvas { width: 100%; height: auto; border-radius: 12px; background-color: #000; cursor: grab; display: block; border: 1px solid var(--border-color); }
+canvas:active { cursor: grabbing; }
+#controls { display: flex; flex-direction: column; gap: 2.5rem; }
+
+/* ★★★ 新しいセクションのスタイル ★★★ */
 .control-section {
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color);
 }
-#controls .control-section:first-of-type {
+#controls > .control-section:first-of-type {
     border-top: none;
     padding-top: 0;
 }
@@ -150,72 +133,27 @@ canvas:active {
 }
 
 
-/* フォーム要素 */
+/* ★★★ フォーム要素 ★★★ */
 #top-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    padding-bottom: 1.5rem;
 }
-input[type="text"], select {
-    width: 100%;
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    padding: 0.75rem;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.2s ease;
+#top-controls .button-group {
+    margin-bottom: 1rem;
 }
-input[type="text"]:focus, select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.2);
-}
-.file-upload-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
-    background: var(--bg-color);
-    border: 1px solid var(--border-color);
-    padding: 0.75rem;
-    border-radius: 8px;
-    color: var(--text-secondary-color);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.file-upload-label:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-}
-.file-upload-label svg {
-    stroke: currentColor;
-}
-.file-upload-input {
-    display: none;
-}
-.file-name-display {
-    font-size: 0.8rem;
-    color: var(--text-secondary-color);
-    text-align: center;
-    margin-top: 0.5rem;
-    height: 1em;
-}
+input[type="text"], select { width: 100%; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 0.75rem; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease; }
+input[type="text"]:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.2); }
+.file-upload-label { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; background: var(--bg-color); border: 1px solid var(--border-color); padding: 0.75rem; border-radius: 8px; color: var(--text-secondary-color); cursor: pointer; transition: all 0.2s ease; }
+.file-upload-label:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.file-upload-label svg { stroke: currentColor; }
+.file-upload-input { display: none; }
+.file-name-display { font-size: 0.8rem; color: var(--text-secondary-color); text-align: center; margin-top: 0.5rem; height: 1em; }
 
 /* グリッドレイアウト */
 .grid-col-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .grid-col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
 .grid-col-2-gap { display: grid; grid-template-columns: 1fr; gap: 2.5rem; }
-@media (min-width: 600px) {
-    .grid-col-2-gap { grid-template-columns: 1fr 1fr; }
-}
-.nested {
-    padding: 1.5rem;
-    background: var(--surface-color);
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-}
+@media (min-width: 600px) { .grid-col-2-gap { grid-template-columns: 1fr 1fr; } }
+.nested { padding: 1.5rem; background: var(--surface-color); border-radius: 12px; border: 1px solid var(--border-color); }
 
 /* ボタン */
 .button-group, .button-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
@@ -223,17 +161,7 @@ input[type="text"]:focus, select:focus {
 .button-group button, .button-grid button { background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-secondary-color); padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease; }
 .button-group button:hover, .button-grid button:hover { border-color: var(--primary-hover-color); color: var(--primary-hover-color); }
 .button-group button.active, .button-grid button.active { background-color: var(--primary-color); border-color: var(--primary-color); color: white; }
-.generate-btn {
-    display: flex; align-items: center; justify-content: center; gap: 0.75rem;
-    width: 100%;
-    background-color: var(--bg-color);
-    color: var(--text-secondary-color);
-    font-size: 1.1rem; font-weight: 600;
-    border: 1px solid var(--border-color);
-    padding: 1rem; border-radius: 8px; cursor: pointer;
-    margin-top: 1.5rem;
-    transition: all 0.2s ease;
-}
+.generate-btn { display: flex; align-items: center; justify-content: center; gap: 0.75rem; width: 100%; background-color: var(--bg-color); color: var(--text-secondary-color); font-size: 1.1rem; font-weight: 600; border: 1px solid var(--border-color); padding: 1rem; border-radius: 8px; cursor: pointer; margin-top: 1.5rem; transition: all 0.2s ease; }
 .generate-btn:hover { background-color: var(--surface-color); border-color: var(--primary-hover-color); color: var(--primary-hover-color); }
 .generate-btn img { width: 32px; height: 32px; transition: transform 0.3s ease; }
 .generate-btn:hover img { transform: rotate(-15deg) scale(1.1); }
@@ -252,6 +180,7 @@ input[type="checkbox"]:checked + span::after { content: '✓'; color: white; pos
 
 #mainjobSelect { margin-bottom: 1.5rem; }
 #subjobSection h3 { margin: 0 0 1rem; }
+.grid-break { width: 100%; height: 0; flex-basis: 100%; }
 
 /* フッターとTOPに戻るボタン */
 .site-footer { display: flex; justify-content: center; align-items: center; gap: 0.5rem; padding: 2rem; border-top: 1px solid var(--border-color); color: var(--text-secondary-color); }
@@ -263,10 +192,6 @@ input[type="checkbox"]:checked + span::after { content: '✓'; color: white; pos
 #toTopBtn:hover { background-color: var(--border-color); }
 
 /* レスポンシブ対応 */
-@media (max-width: 1023px) {
-    .content-wrapper { grid-template-columns: 1fr; }
-    .preview-panel { position: static; }
-}
 @media (max-width: 600px) {
     .site-header { padding: 1rem; }
     .content-wrapper { padding: 1rem; }
