@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadedAssetCount++;
         const percent = Math.round((loadedAssetCount / totalAssetCount) * 100);
         progressBar.style.width = `${percent}%`;
-        progressText.textContent = `${loadedAssetCount} / ${totalAssetCount}`;
+        progressText.textContent = `${percent}%`;
     }
     function loadImage(path) {
         if (!path) return Promise.resolve(null);
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         
         totalAssetCount = allImagePaths.size;
-        progressText.textContent = `0 / ${totalAssetCount}`;
+        progressText.textContent = '0%';
         const promises = Array.from(allImagePaths).map(path => loadImage(path));
         await Promise.all(promises);
     }
