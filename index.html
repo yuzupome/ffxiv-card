@@ -8,7 +8,8 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Orbitron:wght@600&family=DotGothic16&display=swap" rel="stylesheet">
+  <!-- ★ 不足していたフォントを追加 -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Orbitron:wght@600&family=DotGothic16&family=Exo+2&family=Share+Tech&family=Permanent+Marker&family=Hachi+Maru+Pop&family=Dancing+Script&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="./assets/css/style.css" />
 </head>
@@ -161,6 +162,16 @@
     <button id="toTopBtn" title="トップに戻る">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
     </button>
+    
+    <div id="saveModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="closeModal" class="close-button">&times;</button>
+            <h3>画像の保存方法</h3>
+            <p>画像を長押しして「"写真"に追加」を選択してください。</p>
+            <img id="modalImage" src="" alt="生成されたカード">
+        </div>
+    </div>
+
   </div>
   <script src="./script/main.js"></script>
 </body>
