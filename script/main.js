@@ -5,6 +5,7 @@
  * - パフォーマンス最適化（デバウンス、描画最適化）
  * - iPhone保存用モーダルUIの追加
  * - 各種バグ修正とUI改善
+ * - オフスクリーンレンダリングを導入して描画負荷を軽減
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -39,6 +40,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     canvas.height = 2250;
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
+
+    // --- オフスクリーンCanvasの作成 ---
+    const offscreenCanvas = document.createElement('canvas');
+    offscreenCanvas.width = canvas.width;
+    offscreenCanvas.height = canvas.height;
+    const offscreenCtx = offscreenCanvas.getContext('2d');
+    offscreenCtx.imageSmoothingEnabled = true;
+    offscreenCtx.imageSmoothingQuality = 'high';
 
     // --- アセット定義 ---
     const templates = [ 'Gothic_black', 'Gothic_white', 'Gothic_pink', 'Neon_mono', 'Neon_duotone', 'Neon_meltdown', 'Water', 'Wafu', 'Wood', 'China' ];
@@ -116,49 +125,53 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 描画関数 ---
     function drawCard(useCopyrightBg) { 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawUploadedImage();
+        offscreenCtx.clearRect(0, 0, canvas.width, canvas.height);
+        drawUploadedImage(offscreenCtx);
         let prefix = currentTemplatePrefix;
         if (useCopyrightBg === true) { prefix += '_cp'; }
         const bgImg = imageCache[`./assets/backgrounds/${prefix}.png`];
-        drawStretchedImage(bgImg);
-        drawIcons();
-        drawNameText();
+        drawStretchedImage(offscreenCtx, bgImg);
+        drawIcons(offscreenCtx);
+        drawNameText(offscreenCtx);
+        
+        // オフスクリーンCanvasから表示用Canvasへ一度に転写
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(offscreenCanvas, 0, 0);
     }
     
-    function drawStretchedImage(img) { if (img && img.complete && img.naturalHeight !== 0) ctx.drawImage(img, 0, 0, canvas.width, canvas.height); }
-    function drawUploadedImage() {
+    function drawStretchedImage(context, img) { if (img && img.complete && img.naturalHeight !== 0) context.drawImage(img, 0, 0, canvas.width, canvas.height); }
+    function drawUploadedImage(context) {
         if (imageTransform.img && imageTransform.img.complete && imageTransform.img.naturalHeight !== 0) {
-            ctx.save();
-            ctx.translate(imageTransform.x, imageTransform.y);
-            ctx.scale(imageTransform.scale, imageTransform.scale);
-            ctx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
-            ctx.restore();
+            context.save();
+            context.translate(imageTransform.x, imageTransform.y);
+            context.scale(imageTransform.scale, imageTransform.scale);
+            context.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
+            context.restore();
         }
     }
-    function drawNameText() {
+    function drawNameText(context) {
         const nameArea = { x: 98, y: 270, width: 665, height: 120 };
         const MAX_FONT_SIZE = 120;
         const name = nameInput.value;
         if (!name) return;
         let fontSize = MAX_FONT_SIZE;
         const selectedFont = fontSelect.value || "'Orbitron', sans-serif";
-        ctx.font = `${fontSize}px ${selectedFont}`;
-        while (ctx.measureText(name).width > nameArea.width && fontSize > 10) {
+        context.font = `${fontSize}px ${selectedFont}`;
+        while (context.measureText(name).width > nameArea.width && fontSize > 10) {
             fontSize--;
-            ctx.font = `${fontSize}px ${selectedFont}`;
+            context.font = `${fontSize}px ${selectedFont}`;
         }
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
         const blackTextTemplates = ['Gothic_white', 'Wood'];
-        ctx.fillStyle = blackTextTemplates.includes(currentTemplatePrefix) ? '#000000' : '#ffffff';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(name, centerX, centerY);
+        context.fillStyle = blackTextTemplates.includes(currentTemplatePrefix) ? '#000000' : '#ffffff';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(name, centerX, centerY);
     }
-    function drawIcons() {
+    function drawIcons(context) {
         const prefix = currentTemplatePrefix;
-        const draw = (path) => { const img = imageCache[path]; if (img) ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
+        const draw = (path) => { const img = imageCache[path]; if (img) context.drawImage(img, 0, 0, canvas.width, canvas.height); };
         if (raceSelect.value) draw(`./assets/race_icons/${prefix}_${raceSelect.value}.png`);
         if (dcSelect.value) draw(`./assets/dc_icons/${prefix}_${dcSelect.value}.png`);
         if (progressSelect.value) {
