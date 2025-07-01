@@ -8,7 +8,6 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- ★ 不足していたフォントを追加 -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Orbitron:wght@600&family=DotGothic16&family=Exo+2&family=Share+Tech&family=Permanent+Marker&family=Hachi+Maru+Pop&family=Dancing+Script&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="./assets/css/style.css" />
@@ -21,7 +20,7 @@
     <div class="progress-bar-container">
         <div id="progressBar"></div>
     </div>
-    <p id="progressText" class="loading-text">0 / 0</p>
+    <p id="progressText" class="loading-text">0%</p>
   </div>
 
   <div id="app" class="hidden">
@@ -41,16 +40,16 @@
             <div id="controls">
                 <div id="top-controls">
                     <select id="templateSelect">
-                        <option value="Gothic_black">黒背景</option>
-                        <option value="Gothic_white">白背景</option>
-                        <option value="Gothic_pink">ピンク</option>
-                        <option value="Neon_mono">ネオン(モノ)</option>
-                        <option value="Neon_duotone">ネオン(デュオ)</option>
-                        <option value="Neon_meltdown">ネオン(メルト)</option>
-                        <option value="Water">ウォーター</option>
-                        <option value="Wafu">和風</option>
-                        <option value="Wood">ウッド</option>
-                        <option value="China">チャイナ</option>
+                        <option value="Gothic_black">Gothic Black</option>
+                        <option value="Gothic_white">Gothic White</option>
+                        <option value="Gothic_pink">Gothic Pink</option>
+                        <option value="Neon_mono">Neon Mono</option>
+                        <option value="Neon_duotone">Neon Lime Yellow</option>
+                        <option value="Neon_meltdown">Neon Melt</option>
+                        <option value="Water">Aqua Flow</option>
+                        <option value="Wafu">J-style</option>
+                        <option value="Wood">Natural Wood</option>
+                        <option value="China">Oriental Red</option>
                     </select>
                     
                     <label for="uploadImage" class="file-upload-label">
@@ -59,13 +58,21 @@
                     </label>
                     <input type="file" id="uploadImage" accept="image/*" class="file-upload-input">
                     <p id="fileName" class="file-name-display"></p>
+                    
+                    <div class="usage-notes">
+                        <h4 class="notes-title">⚠️ Before You Use</h4>
+                        <ul class="notes-list">
+                            <li>画像を出力するときは©SQUARE ENIXが自動で付与されます</li>
+                            <li>選択肢を選ぶスピードが速すぎると、プレビュー画面がブラックアウトする可能性があります。ご注意ください</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="control-section">
                     <h2 class="section-title">Profile</h2>
                     <div class="grid-col-2">
                         <input type="text" id="nameInput" placeholder="表示したいキャラ名を入力" />
-                        <select id="fontSelect">
+                        <select id="fontSelect" required>
                             <option value="" disabled selected>キャラ名のフォントを選ぶ</option>
                             <option value="'Orbitron', sans-serif">Orbitron</option>
                             <option value="'Exo 2', sans-serif">Exo 2</option>
@@ -77,16 +84,16 @@
                         </select>
                     </div>
                     <div class="grid-col-3" style="margin-top: 1rem;">
-                        <select id="raceSelect">
-                            <option value="">種族</option>
+                        <select id="raceSelect" required>
+                            <option value="" disabled selected>種族</option>
                             <option value="au_ra">アウラ</option> <option value="viera">ヴィエラ</option> <option value="roegadyn">ルガディン</option> <option value="miqote">ミコッテ</option> <option value="hyur">ヒューラン</option> <option value="elezen">エレゼン</option> <option value="lalafell">ララフェル</option> <option value="hrothgar">ロスガル</option>
                         </select>
-                        <select id="dcSelect">
-                            <option value="">DC</option>
+                        <select id="dcSelect" required>
+                            <option value="" disabled selected>DC</option>
                             <option value="mana">Mana</option> <option value="gaia">Gaia</option> <option value="elemental">Elemental</option> <option value="meteor">Meteor</option>
                         </select>
-                        <select id="progressSelect">
-                            <option value="">進行度</option>
+                        <select id="progressSelect" required>
+                            <option value="" disabled selected>進行度</option>
                             <option value="shinsei">新生</option> <option value="souten">蒼天</option> <option value="guren">紅蓮</option> <option value="shikkoku">漆黒</option> <option value="gyougetsu">暁月</option> <option value="ougon">黄金</option> <option value="all_clear">ALL CLEAR</option>
                         </select>
                     </div>
@@ -132,8 +139,8 @@
             
                 <div class="control-section">
                     <h2 class="section-title">Main Job</h2>
-                    <select id="mainjobSelect">
-                        <option value="">メインジョブを選ぶ</option>
+                    <select id="mainjobSelect" required>
+                        <option value="" disabled selected>メインジョブを選ぶ</option>
                         <option value="paladin">ナイト</option> <option value="warrior">戦士</option> <option value="darkknight">暗黒騎士</option> <option value="gunbreaker">ガンブレイカー</option> <option value="whitemage">白魔導士</option> <option value="scholar">学者</option> <option value="astrologian">占星術師</option> <option value="sage">賢者</option> <option value="monk">モンク</option> <option value="dragoon">竜騎士</option> <option value="ninja">忍者</option> <option value="samurai">侍</option> <option value="reaper">リーパー</option> <option value="viper">ヴァイパー</option> <option value="bard">吟遊詩人</option> <option value="machinist">機工士</option> <option value="dancer">踊り子</option> <option value="blackmage">黒魔導士</option> <option value="summoner">召喚士</option> <option value="redmage">赤魔導士</option> <option value="pictomancer">ピクトマンサー</option> <option value="bluemage">青魔導士</option>
                     </select>
                     <div id="subjobSection">
