@@ -90,16 +90,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function preloadAllAssets() {
         const allImagePaths = new Set();
         templates.forEach(template => {
-            allImagePaths.add(`./assets/backgrounds/${template}.png`);
-            allImagePaths.add(`./assets/backgrounds/${template}_cp.png`); 
-            races.forEach(item => allImagePaths.add(`./assets/race_icons/${template}_${item}.png`));
-            dcs.forEach(item => allImagePaths.add(`./assets/dc_icons/${template}_${item}.png`));
-            progresses.forEach(item => allImagePaths.add(`./assets/progress_icons/${template}_${item}.png`));
-            styles.forEach(item => allImagePaths.add(`./assets/style_icons/${template}_${item}.png`));
-            playtimes.forEach(item => allImagePaths.add(`./assets/time_icons/${template}_${item}.png`));
-            difficulties.forEach(item => allImagePaths.add(`./assets/difficulty_icons/${template}_${item}.png`));
-            mainJobs.forEach(item => allImagePaths.add(`./assets/mainjob_icons/${template}_main_${item}.png`));
-            allSubJobs.forEach(item => allImagePaths.add(`./assets/subjob_icons/${template}_sub_${item}.png`));
+            allImagePaths.add(`./assets/backgrounds/${template}.webp`);
+            allImagePaths.add(`./assets/backgrounds/${template}_cp.webp`); 
+            races.forEach(item => allImagePaths.add(`./assets/race_icons/${template}_${item}.webp`));
+            dcs.forEach(item => allImagePaths.add(`./assets/dc_icons/${template}_${item}.webp`));
+            progresses.forEach(item => allImagePaths.add(`./assets/progress_icons/${template}_${item}.webp`));
+            styles.forEach(item => allImagePaths.add(`./assets/style_icons/${template}_${item}.webp`));
+            playtimes.forEach(item => allImagePaths.add(`./assets/time_icons/${template}_${item}.webp`));
+            difficulties.forEach(item => allImagePaths.add(`./assets/difficulty_icons/${template}_${item}.webp`));
+            mainJobs.forEach(item => allImagePaths.add(`./assets/mainjob_icons/${template}_main_${item}.webp`));
+            allSubJobs.forEach(item => allImagePaths.add(`./assets/subjob_icons/${template}_sub_${item}.webp`));
         });
         
         totalAssetCount = allImagePaths.size;
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         drawUploadedImage(offscreenCtx);
         let prefix = currentTemplatePrefix;
         if (useCopyrightBg === true) { prefix += '_cp'; }
-        const bgImg = imageCache[`./assets/backgrounds/${prefix}.png`];
+        const bgImg = imageCache[`./assets/backgrounds/${prefix}.webp`];
         drawStretchedImage(offscreenCtx, bgImg);
         drawIcons(offscreenCtx);
         drawNameText(offscreenCtx);
@@ -172,26 +172,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     function drawIcons(context) {
         const prefix = currentTemplatePrefix;
         const draw = (path) => { const img = imageCache[path]; if (img) context.drawImage(img, 0, 0, canvas.width, canvas.height); };
-        if (raceSelect.value) draw(`./assets/race_icons/${prefix}_${raceSelect.value}.png`);
-        if (dcSelect.value) draw(`./assets/dc_icons/${prefix}_${dcSelect.value}.png`);
+        if (raceSelect.value) draw(`./assets/race_icons/${prefix}_${raceSelect.value}.webp`);
+        if (dcSelect.value) draw(`./assets/dc_icons/${prefix}_${dcSelect.value}.webp`);
         if (progressSelect.value) {
             const stages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
             const toLoad = progressSelect.value === 'all_clear' ? [...stages, 'all_clear'] : stages.slice(0, stages.indexOf(progressSelect.value) + 1);
-            toLoad.forEach(p => draw(`./assets/progress_icons/${prefix}_${p}.png`));
+            toLoad.forEach(p => draw(`./assets/progress_icons/${prefix}_${p}.webp`));
         }
-        styleButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/style_icons/${prefix}_${btn.dataset.value}.png`); });
+        styleButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/style_icons/${prefix}_${btn.dataset.value}.webp`); });
         const timePaths = new Set();
         const checkedTimes = Array.from(playtimeCheckboxes).filter(cb => cb.checked);
         checkedTimes.forEach(cb => {
             const pathKey = cb.classList.contains('other') ? cb.value : `${cb.className}_${cb.value}`;
-            timePaths.add(`./assets/time_icons/${prefix}_${pathKey}.png`);
+            timePaths.add(`./assets/time_icons/${prefix}_${pathKey}.webp`);
         });
-        if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${prefix}_weekday.png`);
-        if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.png`);
+        if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${prefix}_weekday.webp`);
+        if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.webp`);
         timePaths.forEach(path => draw(path));
-        difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/difficulty_icons/${prefix}_${cb.value}.png`); });
-        subjobButtons.forEach(btn => { if (btn.classList.contains('active')) { draw(`./assets/subjob_icons/${prefix}_sub_${btn.dataset.value}.png`); } });
-        if (mainJobSelect.value) draw(`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.png`);
+        difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/difficulty_icons/${prefix}_${cb.value}.webp`); });
+        subjobButtons.forEach(btn => { if (btn.classList.contains('active')) { draw(`./assets/subjob_icons/${prefix}_sub_${btn.dataset.value}.webp`); } });
+        if (mainJobSelect.value) draw(`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.webp`);
     }
 
     // --- イベントリスナー ---
