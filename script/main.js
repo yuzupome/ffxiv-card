@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (On-demand Loading Architecture)
- * - v6: Fix for mobile pinch-to-zoom
+ * - v7: Final adjustments
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -288,7 +288,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     uiCanvas.addEventListener('mouseup', handleDragEnd);
     uiCanvas.addEventListener('mouseleave', handleDragEnd);
     uiCanvas.addEventListener('wheel', (e) => { if (!imageTransform.img) return; e.preventDefault(); const scaleAmount = e.deltaY < 0 ? 1.1 : 1 / 1.1; const newScale = imageTransform.scale * scaleAmount; imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); throttledDrawChar(); }, { passive: false });
-    
     uiCanvas.addEventListener('touchstart', (e) => {
         if (!imageTransform.img) return;
         e.preventDefault();
@@ -301,20 +300,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
         }
     }, { passive: false });
-
     uiCanvas.addEventListener('touchmove', (e) => {
-        if (!imageTransform.img) return; // 画像がなければ何もしない
+        if (!imageTransform.img) return;
         e.preventDefault();
-    
         if (e.touches.length === 1 && imageTransform.isDragging) {
-            // 1本指でのドラッグ移動
             handleDragMove(e);
         } else if (e.touches.length === 2) {
-            // 2本指での拡大縮小
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             const newDist = Math.sqrt(dx * dx + dy * dy);
-    
             if (imageTransform.lastTouchDistance > 0) {
                 const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance);
                 imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
@@ -323,7 +317,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             throttledDrawChar();
         }
     }, { passive: false });
-
     uiCanvas.addEventListener('touchend', (e) => {
         if (e.touches.length < 2) {
             imageTransform.isDragging = false;
