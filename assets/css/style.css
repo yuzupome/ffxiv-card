@@ -122,7 +122,7 @@ select {
     border-radius: 8px;
     font-size: 1rem;
     transition: all 0.2s ease;
-    color: var(--primary-hover-color); /* 選択後の色を少し濃いグレーに */
+    color: var(--text-color); /* 選択後の色を濃い文字色に */
 }
 input[type="text"]:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.2); }
 select:invalid {
