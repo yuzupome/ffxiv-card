@@ -1,6 +1,6 @@
 /**
- * FFXIV Character Card Generator Script (Icon Compositing Architecture)
- * - v11: Change output to JPEG for mobile compatibility
+ * FFXIV Character Card Generator Script (Final Version)
+ * - v12: Unified smart-scaling export for PC and Mobile
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const miniLoader = document.getElementById('mini-loader');
     const miniProgressText = document.getElementById('mini-progress-text');
 
-    // Canvasレイヤー
+    // 表示用Canvasレイヤー
     const charCanvas = document.getElementById('background-layer');
     const charCtx = charCanvas.getContext('2d');
     const bgCanvas = document.getElementById('character-layer');
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const uiCanvas = document.getElementById('ui-layer');
     const uiCtx = uiCanvas.getContext('2d');
 
-    // アイコン合成用Canvasをメモリ上に作成
+    // 合成用Canvasをメモリ上に作成
     const miscIconCompositeCanvas = document.createElement('canvas');
     const miscIconCompositeCtx = miscIconCompositeCanvas.getContext('2d');
     const mainJobCompositeCanvas = document.createElement('canvas');
@@ -54,9 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 定数定義 ---
     const EDIT_WIDTH = 1250;
     const EDIT_HEIGHT = 703;
-    const DOWNLOAD_WIDTH = 2500;
-    const DOWNLOAD_HEIGHT = 1406;
-
+    
     // Canvas解像度設定
     [charCanvas, bgCanvas, uiCanvas, miscIconCompositeCanvas, mainJobCompositeCanvas, combatSubJobCompositeCanvas, gatherCraSubJobCompositeCanvas].forEach(c => {
         c.width = EDIT_WIDTH;
@@ -379,33 +377,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         const originalText = downloadBtn.querySelector('span').textContent;
         downloadBtn.querySelector('span').textContent = '画像を生成中...';
         try {
-            const dlCanvas = document.createElement('canvas');
-            dlCanvas.width = DOWNLOAD_WIDTH;
-            dlCanvas.height = DOWNLOAD_HEIGHT;
-            const dlCtx = dlCanvas.getContext('2d');
-            dlCtx.imageSmoothingEnabled = true;
-            dlCtx.imageSmoothingQuality = 'high';
-
-            if (imageTransform.img) dlCtx.drawImage(charCanvas, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
-            const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
-            if (bgImg) dlCtx.drawImage(bgImg, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
-            
-            await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT }, 'misc');
-            await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT }, 'gatherCraSubJob');
-            await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT }, 'combatSubJob');
-            await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT }, 'mainJob');
-            
-            await drawNameText(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
-
             const finalCanvas = document.createElement('canvas');
             finalCanvas.width = EDIT_WIDTH;
             finalCanvas.height = EDIT_HEIGHT;
             const finalCtx = finalCanvas.getContext('2d');
             finalCtx.imageSmoothingEnabled = true;
             finalCtx.imageSmoothingQuality = 'high';
-            finalCtx.drawImage(dlCanvas, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
 
-            // ★★★ 出力形式をJPEGに変更 ★★★
+            // 1. キャラクター画像を描画
+            if (imageTransform.img) {
+                finalCtx.drawImage(charCanvas, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+            }
+            // 2. 背景テンプレートを高画質元データから描画
+            const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
+            if (bgImg) {
+                finalCtx.drawImage(bgImg, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+            }
+            // 3. アイコンとテキストを再描画
+            await drawIcons(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT }, 'all');
+            await drawNameText(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
+
             const imageUrl = finalCanvas.toDataURL('image/jpeg', 0.92);
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             if (isIOS) {
@@ -413,7 +404,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 saveModal.classList.remove('hidden');
             } else {
                 const link = document.createElement('a');
-                link.download = 'ffxiv_character_card.jpeg'; // ★拡張子も変更
+                link.download = 'ffxiv_character_card.jpeg';
                 link.href = imageUrl;
                 link.click();
             }
