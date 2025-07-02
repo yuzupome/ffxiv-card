@@ -1,5 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (On-demand Loading Architecture)
+ * - v3: Bug fix for initialization error
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -19,7 +20,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     const uiCanvas = document.getElementById('ui-layer');
     const uiCtx = uiCanvas.getContext('2d');
 
-    // (UIコントロールの取得は変更なしのため省略)
+    // UIコントロール (前回省略していた部分)
+    const nameInput = document.getElementById('nameInput');
+    const fontSelect = document.getElementById('fontSelect');
+    const uploadImageInput = document.getElementById('uploadImage');
+    const fileNameDisplay = document.getElementById('fileName');
+    const templateSelect = document.getElementById('templateSelect');
+    const raceSelect = document.getElementById('raceSelect');
+    const dcSelect = document.getElementById('dcSelect');
+    const progressSelect = document.getElementById('progressSelect');
+    const styleButtons = document.querySelectorAll('#styleButtons button');
+    const playtimeCheckboxes = document.querySelectorAll('#playtimeOptions input[type="checkbox"]');
+    const difficultyCheckboxes = document.querySelectorAll('#difficultyOptions input[type="checkbox"]');
+    const mainJobSelect = document.getElementById('mainjobSelect');
+    const subjobButtons = document.querySelectorAll('#subjobSection .button-grid button');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const toTopBtn = document.getElementById('toTopBtn');
+    const saveModal = document.getElementById('saveModal');
+    const modalImage = document.getElementById('modalImage');
+    const closeModal = document.getElementById('closeModal');
     
     // --- 定数定義 ---
     const EDIT_WIDTH = 1250;
@@ -32,11 +51,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const races = ['au_ra', 'viera', 'roegadyn', 'miqote', 'hyur', 'elezen', 'lalafell', 'hrothgar'];
     const dcs = ['mana', 'gaia', 'elemental', 'meteor'];
     const progresses = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'];
-    const styles = Array.from(document.querySelectorAll('#styleButtons button')).map(b => b.dataset.value);
+    const styles = Array.from(styleButtons).map(b => b.dataset.value);
     const playtimes = ['weekday', 'weekday_morning', 'weekday_daytime', 'weekday_night', 'weekday_midnight', 'holiday', 'holiday_morning', 'holiday_daytime', 'holiday_night', 'holiday_midnight', 'random', 'fulltime'];
     const difficulties = ['extreme', 'unreal', 'savage', 'ultimate'];
-    const mainJobs = Array.from(document.getElementById('mainjobSelect').options).filter(o => o.value).map(o => o.value);
-    const allSubJobs = Array.from(document.querySelectorAll('#subjobSection .button-grid button')).map(btn => btn.dataset.value);
+    const mainJobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
+    const allSubJobs = Array.from(subjobButtons).map(btn => btn.dataset.value);
     
     // --- 状態管理 ---
     const imageCache = {};
@@ -53,11 +72,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const assetExt = '.webp';
         const pathsToLoad = new Set();
 
-        // 必須アセット
         pathsToLoad.add(`./assets/backgrounds/${templateName}${assetExt}`);
         pathsToLoad.add(`./assets/backgrounds/${templateName}_cp${assetExt}`);
         
-        // 各種アイコン
         const iconTypes = { races, dcs, progresses, styles, playtimes, difficulties, mainJobs, allSubJobs };
         const iconPaths = {
             races: 'race_icons', dcs: 'dc_icons', progresses: 'progress_icons', styles: 'style_icons',
@@ -73,7 +90,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         
-        // 既にキャッシュにあるものは除外
         const finalPaths = [...pathsToLoad].filter(p => !imageCache[p]);
         if (finalPaths.length === 0) return Promise.resolve();
         
@@ -110,24 +126,122 @@ document.addEventListener('DOMContentLoaded', async () => {
         target.text.textContent = `${percent}%`;
     }
 
-    // --- 描画関数 (内容は変更なし) ---
+    // --- 描画関数 (レイヤーごと) ---
     function drawBackgroundLayer() {
-        // (省略)
+        const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}.webp`];
+        bgCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+        if (bgImg) {
+            bgCtx.drawImage(bgImg, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+        }
     }
+
     function drawCharacterLayer() {
-        // (省略)
-    }
-    async function drawUiLayer() {
-        // (省略)
+        charCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+        if (imageTransform.img) {
+            charCtx.save();
+            charCtx.translate(imageTransform.x, imageTransform.y);
+            charCtx.scale(imageTransform.scale, imageTransform.scale);
+            charCtx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
+            charCtx.restore();
+        }
     }
     
+    async function drawUiLayer() {
+        uiCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+        await drawIcons(uiCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
+        await drawNameText(uiCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
+    }
+
+    // --- 描画ヘルパー関数 ---
+    async function drawIcons(context, canvasSize) {
+        const { width, height } = canvasSize;
+        const prefix = currentTemplatePrefix;
+        const draw = (path) => { const img = imageCache[path]; if (img) context.drawImage(img, 0, 0, width, height); };
+        
+        if (raceSelect.value) draw(`./assets/race_icons/${prefix}_${raceSelect.value}.webp`);
+        if (dcSelect.value) draw(`./assets/dc_icons/${prefix}_${dcSelect.value}.webp`);
+        if (progressSelect.value) {
+            const stages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
+            const toLoad = progressSelect.value === 'all_clear' ? [...stages, 'all_clear'] : stages.slice(0, stages.indexOf(progressSelect.value) + 1);
+            toLoad.forEach(p => draw(`./assets/progress_icons/${prefix}_${p}.webp`));
+        }
+        styleButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/style_icons/${prefix}_${btn.dataset.value}.webp`); });
+        const timePaths = new Set();
+        const checkedTimes = Array.from(playtimeCheckboxes).filter(cb => cb.checked);
+        checkedTimes.forEach(cb => {
+            const pathKey = cb.classList.contains('other') ? cb.value : `${cb.className}_${cb.value}`;
+            timePaths.add(`./assets/time_icons/${prefix}_${pathKey}.webp`);
+        });
+        if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${prefix}_weekday.webp`);
+        if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.webp`);
+        timePaths.forEach(path => draw(path));
+        difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/difficulty_icons/${prefix}_${cb.value}.webp`); });
+        subjobButtons.forEach(btn => { if (btn.classList.contains('active')) { draw(`./assets/subjob_icons/${prefix}_sub_${btn.dataset.value}.webp`); } });
+        if (mainJobSelect.value) draw(`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.webp`);
+    }
+
+    async function drawNameText(context, canvasSize) {
+        const scale = canvasSize.width / EDIT_WIDTH;
+        const nameArea = { x: 33 * scale, y: 90 * scale, width: 222 * scale, height: 40 * scale };
+        const MAX_FONT_SIZE = 40 * scale;
+        const name = nameInput.value;
+        if (!name) return;
+
+        const selectedFont = fontSelect.value || "'Orbitron', sans-serif";
+        
+        try {
+            await document.fonts.load(`10px ${selectedFont}`);
+        } catch (err) {
+            console.warn(`フォントの読み込みに失敗した可能性があります: ${selectedFont}`, err);
+        }
+
+        let fontSize = MAX_FONT_SIZE;
+        context.font = `${fontSize}px ${selectedFont}`;
+        
+        while (context.measureText(name).width > nameArea.width && fontSize > 10) {
+            fontSize--;
+            context.font = `${fontSize}px ${selectedFont}`;
+        }
+        
+        const centerX = nameArea.x + nameArea.width / 2;
+        const centerY = nameArea.y + nameArea.height / 2;
+        const blackTextTemplates = ['Gothic_white', 'Wood'];
+        context.fillStyle = blackTextTemplates.includes(currentTemplatePrefix) ? '#000000' : '#ffffff';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(name, centerX, centerY);
+    }
+    
+    // --- パフォーマンス最適化 ---
+    let uiDebounceTimer;
+    const debouncedDrawUi = () => {
+        clearTimeout(uiDebounceTimer);
+        uiDebounceTimer = setTimeout(drawUiLayer, 250);
+    };
+
+    let charAnimationFrameId;
+    const throttledDrawChar = () => {
+        if (charAnimationFrameId) return;
+        charAnimationFrameId = requestAnimationFrame(() => {
+            drawCharacterLayer();
+            charAnimationFrameId = null;
+        });
+    };
+
     // --- イベントリスナー ---
-    const templateSelect = document.getElementById('templateSelect');
+    const uiControls = [nameInput, fontSelect, raceSelect, dcSelect, progressSelect, mainJobSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes, ...subjobButtons];
+    uiControls.forEach(el => {
+        const eventType = (el.tagName === 'SELECT' || el.type === 'text') ? 'input' : 'click';
+        el.addEventListener(eventType, (e) => {
+            if (e.currentTarget.tagName === 'BUTTON') { e.currentTarget.classList.toggle('active'); }
+            debouncedDrawUi();
+        });
+    });
+
     templateSelect.addEventListener('change', async (e) => {
         const newTemplate = e.target.value;
         if (newTemplate === currentTemplatePrefix) return;
 
-        // 既に読み込み済みの場合は即時反映
         if (loadedTemplates.has(newTemplate)) {
             currentTemplatePrefix = newTemplate;
             drawBackgroundLayer();
@@ -135,9 +249,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // 未読込の場合はローダーを出して読み込み
         miniLoader.classList.remove('hidden');
-        updateProgress({ bar: null, text: miniProgressText }, 0, 1); // 0%表示
+        updateProgress({ bar: null, text: miniProgressText }, 0, 1);
 
         await loadAssetsForTemplate(newTemplate);
         
@@ -148,16 +261,123 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         miniLoader.classList.add('hidden');
     });
-
-    // (その他のUIコントロール、画像操作、ダウンロード処理のリスナーは変更なしのため省略)
     
+    uploadImageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0]; if (!file) { fileNameDisplay.textContent = ''; return; }
+        fileNameDisplay.textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                imageTransform.img = img;
+                const canvasAspectRatio = EDIT_WIDTH / EDIT_HEIGHT;
+                const imageAspectRatio = img.width / img.height;
+                if (imageAspectRatio > canvasAspectRatio) {
+                    imageTransform.scale = EDIT_HEIGHT / img.height;
+                } else {
+                    imageTransform.scale = EDIT_WIDTH / img.width;
+                }
+                imageTransform.x = EDIT_WIDTH / 2;
+                imageTransform.y = EDIT_HEIGHT / 2;
+                drawCharacterLayer();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // --- 画像操作イベントリスナー ---
+    function getEventLocation(e) {
+        const rect = uiCanvas.getBoundingClientRect();
+        const scaleX = uiCanvas.width / rect.width;
+        const scaleY = uiCanvas.height / rect.height;
+        if (e.touches && e.touches[0]) {
+            return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+        }
+        return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    }
+
+    function handleDragStart(e) { if (!imageTransform.img) return; e.preventDefault(); const loc = getEventLocation(e); imageTransform.isDragging = true; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y; }
+    function handleDragMove(e) { if (!imageTransform.isDragging) return; e.preventDefault(); const loc = getEventLocation(e); const dx = loc.x - imageTransform.lastX; const dy = loc.y - imageTransform.lastY; imageTransform.x += dx; imageTransform.y += dy; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y; throttledDrawChar(); }
+    function handleDragEnd() { imageTransform.isDragging = false; }
+    uiCanvas.addEventListener('mousedown', handleDragStart, { passive: false });
+    uiCanvas.addEventListener('mousemove', handleDragMove, { passive: false });
+    uiCanvas.addEventListener('mouseup', handleDragEnd);
+    uiCanvas.addEventListener('mouseleave', handleDragEnd);
+    uiCanvas.addEventListener('wheel', (e) => { if (!imageTransform.img) return; e.preventDefault(); const scaleAmount = e.deltaY < 0 ? 1.1 : 1 / 1.1; const newScale = imageTransform.scale * scaleAmount; imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); throttledDrawChar(); }, { passive: false });
+    uiCanvas.addEventListener('touchstart', (e) => { if (!imageTransform.img) return; e.preventDefault(); if (e.touches.length === 1) handleDragStart(e); else if (e.touches.length === 2) { imageTransform.isDragging = false; const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy); } }, { passive: false });
+    uiCanvas.addEventListener('touchmove', (e) => { if (!imageTransform.isDragging || !imageTransform.img) return; e.preventDefault(); if (e.touches.length === 1) { handleDragMove(e); } else if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; const newDist = Math.sqrt(dx * dx + dy * dy); if(imageTransform.lastTouchDistance > 0) { const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance); imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); } imageTransform.lastTouchDistance = newDist; throttledDrawChar(); } }, { passive: false });
+    uiCanvas.addEventListener('touchend', (e) => { if (e.touches.length < 2) { imageTransform.isDragging = false; } imageTransform.lastTouchDistance = 0; });
+    
+
+    // --- ダウンロード処理 ---
+    downloadBtn.addEventListener('click', async () => {
+        if (isDownloading) return;
+        isDownloading = true;
+        const originalText = downloadBtn.querySelector('span').textContent;
+        downloadBtn.querySelector('span').textContent = '画像を生成中...';
+
+        try {
+            const dlCanvas = document.createElement('canvas');
+            dlCanvas.width = DOWNLOAD_WIDTH;
+            dlCanvas.height = DOWNLOAD_HEIGHT;
+            const dlCtx = dlCanvas.getContext('2d');
+            dlCtx.imageSmoothingEnabled = true;
+            dlCtx.imageSmoothingQuality = 'high';
+
+            const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
+            if (bgImg) dlCtx.drawImage(bgImg, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
+
+            if (imageTransform.img) {
+                dlCtx.save();
+                const scale = DOWNLOAD_WIDTH / EDIT_WIDTH;
+                dlCtx.translate(imageTransform.x * scale, imageTransform.y * scale);
+                dlCtx.scale(imageTransform.scale, imageTransform.scale);
+                dlCtx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
+                dlCtx.restore();
+            }
+
+            await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
+            await drawNameText(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
+
+            const imageUrl = dlCanvas.toDataURL('image/png');
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+            if (isIOS) {
+                modalImage.src = imageUrl;
+                saveModal.classList.remove('hidden');
+            } else {
+                const link = document.createElement('a');
+                link.download = 'ffxiv_character_card.png';
+                link.href = imageUrl;
+                link.click();
+            }
+        } catch (error) {
+            console.error("ダウンロード画像の生成に失敗しました:", error);
+            alert("画像の生成に失敗しました。ページをリロードして再度お試しください。");
+        } finally {
+            isDownloading = false;
+            downloadBtn.querySelector('span').textContent = originalText;
+        }
+    });
+
+    closeModal.addEventListener('click', () => { saveModal.classList.add('hidden'); });
+
+    // --- その他UIイベント ---
+    const controlsPanel = document.querySelector('.controls-panel');
+    const scrollContainer = window.innerWidth >= 1024 ? controlsPanel : window;
+    scrollContainer.onscroll = () => {
+        const scrollTop = window.innerWidth >= 1024 ? controlsPanel.scrollTop : (document.body.scrollTop || document.documentElement.scrollTop);
+        toTopBtn.classList.toggle('visible', scrollTop > 100);
+    };
+    toTopBtn.addEventListener('click', () => { scrollContainer.scrollTo({ top: 0, behavior: 'smooth' }); });
+
     // --- 初期化処理 ---
     async function initialize() {
         console.log("初期化処理を開始します。");
         await document.fonts.ready;
         console.log("✓ フォントの準備が完了しました。");
 
-        // デフォルトテンプレートのアセットのみを読み込む
         await loadAssetsForTemplate('Gothic_black', true);
         loadedTemplates.add('Gothic_black');
         console.log("✓ デフォルトアセットのプリロードが完了しました。");
@@ -173,9 +393,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     initialize();
-
-    // --- 省略した関数たち (内容は前回から変更なし) ---
-    // drawBackgroundLayer, drawCharacterLayer, drawUiLayer, drawIcons, drawNameText,
-    // パフォーマンス最適化関数, 各種イベントハンドラ, ダウンロード処理, etc.
-    // (これらの関数の内部ロジックは前回提出したものと同一です)
 });
