@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (On-demand Loading Architecture)
- * - v4: Final fix for initialization error
+ * - v5: Final adjustments
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -13,10 +13,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const miniProgressText = document.getElementById('mini-progress-text');
 
     // Canvasレイヤー
-    const bgCanvas = document.getElementById('background-layer');
-    const bgCtx = bgCanvas.getContext('2d');
-    const charCanvas = document.getElementById('character-layer');
+    const charCanvas = document.getElementById('background-layer'); // IDはそのまま、役割をキャラ用に
     const charCtx = charCanvas.getContext('2d');
+    const bgCanvas = document.getElementById('character-layer'); // IDはそのまま、役割を背景用に
+    const bgCtx = bgCanvas.getContext('2d');
     const uiCanvas = document.getElementById('ui-layer');
     const uiCtx = uiCanvas.getContext('2d');
 
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const DOWNLOAD_WIDTH = 2500;
     const DOWNLOAD_HEIGHT = 1406;
 
-    // --- アセット定義 (DOM要素の取得後に移動) ---
+    // --- アセット定義 ---
     const templates = [ 'Gothic_black', 'Gothic_white', 'Gothic_pink', 'Neon_mono', 'Neon_duotone', 'Neon_meltdown', 'Water', 'Wafu', 'Wood', 'China' ];
     const races = ['au_ra', 'viera', 'roegadyn', 'miqote', 'hyur', 'elezen', 'lalafell', 'hrothgar'];
     const dcs = ['mana', 'gaia', 'elemental', 'meteor'];
@@ -71,10 +71,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadAssetsForTemplate(templateName, isInitialLoad = false) {
         const assetExt = '.webp';
         const pathsToLoad = new Set();
-
         pathsToLoad.add(`./assets/backgrounds/${templateName}${assetExt}`);
         pathsToLoad.add(`./assets/backgrounds/${templateName}_cp${assetExt}`);
-        
         const iconTypes = { races, dcs, progresses, styles, playtimes, difficulties, mainJobs, allSubJobs };
         const iconPaths = {
             races: 'race_icons', dcs: 'dc_icons', progresses: 'progress_icons', styles: 'style_icons',
@@ -82,24 +80,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             mainJobs: 'mainjob_icons', allSubJobs: 'subjob_icons'
         };
         const iconPrefixes = { mainJobs: '_main_', allSubJobs: '_sub_' };
-
         for (const type in iconTypes) {
             for (const item of iconTypes[type]) {
                 const prefix = iconPrefixes[type] || '_';
                 pathsToLoad.add(`./assets/${iconPaths[type]}/${templateName}${prefix}${item}${assetExt}`);
             }
         }
-        
         const finalPaths = [...pathsToLoad].filter(p => !imageCache[p]);
         if (finalPaths.length === 0) {
             updateProgress(isInitialLoad ? { bar: progressBar, text: progressText } : { bar: null, text: miniProgressText }, 1, 1);
             return Promise.resolve();
         };
-        
         let loadedCount = 0;
         const totalCount = finalPaths.length;
         const progressTarget = isInitialLoad ? { bar: progressBar, text: progressText } : { bar: null, text: miniProgressText };
-        
         const promises = finalPaths.map(path => {
             return new Promise((resolve) => {
                 const img = new Image();
@@ -119,7 +113,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 img.src = path;
             });
         });
-
         return Promise.all(promises);
     }
 
@@ -160,7 +153,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { width, height } = canvasSize;
         const prefix = currentTemplatePrefix;
         const draw = (path) => { const img = imageCache[path]; if (img) context.drawImage(img, 0, 0, width, height); };
-        
         if (raceSelect.value) draw(`./assets/race_icons/${prefix}_${raceSelect.value}.webp`);
         if (dcSelect.value) draw(`./assets/dc_icons/${prefix}_${dcSelect.value}.webp`);
         if (progressSelect.value) {
@@ -189,23 +181,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const MAX_FONT_SIZE = 40 * scale;
         const name = nameInput.value;
         if (!name) return;
-
         const selectedFont = fontSelect.value || "'Orbitron', sans-serif";
-        
         try {
             await document.fonts.load(`10px ${selectedFont}`);
         } catch (err) {
             console.warn(`フォントの読み込みに失敗した可能性があります: ${selectedFont}`, err);
         }
-
         let fontSize = MAX_FONT_SIZE;
         context.font = `${fontSize}px ${selectedFont}`;
-        
         while (context.measureText(name).width > nameArea.width && fontSize > 10) {
             fontSize--;
             context.font = `${fontSize}px ${selectedFont}`;
         }
-        
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
         const blackTextTemplates = ['Gothic_white', 'Wood'];
@@ -221,7 +208,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         clearTimeout(uiDebounceTimer);
         uiDebounceTimer = setTimeout(drawUiLayer, 250);
     };
-
     let charAnimationFrameId;
     const throttledDrawChar = () => {
         if (charAnimationFrameId) return;
@@ -244,24 +230,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     templateSelect.addEventListener('change', async (e) => {
         const newTemplate = e.target.value;
         if (newTemplate === currentTemplatePrefix) return;
-
         if (loadedTemplates.has(newTemplate)) {
             currentTemplatePrefix = newTemplate;
             drawBackgroundLayer();
             await drawUiLayer();
             return;
         }
-
         miniLoader.classList.remove('hidden');
         updateProgress({ bar: null, text: miniProgressText }, 0, 1);
-
         await loadAssetsForTemplate(newTemplate);
-        
         loadedTemplates.add(newTemplate);
         currentTemplatePrefix = newTemplate;
         drawBackgroundLayer();
         await drawUiLayer();
-
         miniLoader.classList.add('hidden');
     });
     
@@ -299,7 +280,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
     }
-
     function handleDragStart(e) { if (!imageTransform.img) return; e.preventDefault(); const loc = getEventLocation(e); imageTransform.isDragging = true; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y; }
     function handleDragMove(e) { if (!imageTransform.isDragging) return; e.preventDefault(); const loc = getEventLocation(e); const dx = loc.x - imageTransform.lastX; const dy = loc.y - imageTransform.lastY; imageTransform.x += dx; imageTransform.y += dy; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y; throttledDrawChar(); }
     function handleDragEnd() { imageTransform.isDragging = false; }
@@ -312,14 +292,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     uiCanvas.addEventListener('touchmove', (e) => { if (!imageTransform.isDragging || !imageTransform.img) return; e.preventDefault(); if (e.touches.length === 1) { handleDragMove(e); } else if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; const newDist = Math.sqrt(dx * dx + dy * dy); if(imageTransform.lastTouchDistance > 0) { const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance); imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); } imageTransform.lastTouchDistance = newDist; throttledDrawChar(); } }, { passive: false });
     uiCanvas.addEventListener('touchend', (e) => { if (e.touches.length < 2) { imageTransform.isDragging = false; } imageTransform.lastTouchDistance = 0; });
     
-
     // --- ダウンロード処理 ---
     downloadBtn.addEventListener('click', async () => {
         if (isDownloading) return;
         isDownloading = true;
         const originalText = downloadBtn.querySelector('span').textContent;
         downloadBtn.querySelector('span').textContent = '画像を生成中...';
-
         try {
             const dlCanvas = document.createElement('canvas');
             dlCanvas.width = DOWNLOAD_WIDTH;
@@ -328,9 +306,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             dlCtx.imageSmoothingEnabled = true;
             dlCtx.imageSmoothingQuality = 'high';
 
-            const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
-            if (bgImg) dlCtx.drawImage(bgImg, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
-
+            // 1. キャラクター画像 (最背面)
             if (imageTransform.img) {
                 dlCtx.save();
                 const scale = DOWNLOAD_WIDTH / EDIT_WIDTH;
@@ -339,13 +315,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 dlCtx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
                 dlCtx.restore();
             }
-
+            // 2. 背景テンプレート
+            const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
+            if (bgImg) dlCtx.drawImage(bgImg, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
+            // 3. UI（アイコンとテキスト）
             await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
             await drawNameText(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
 
-            const imageUrl = dlCanvas.toDataURL('image/png');
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            // 4. 高解像度画像をプレビューサイズに縮小して書き出し
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = EDIT_WIDTH;
+            finalCanvas.height = EDIT_HEIGHT;
+            const finalCtx = finalCanvas.getContext('2d');
+            finalCtx.drawImage(dlCanvas, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
 
+            const imageUrl = finalCanvas.toDataURL('image/png');
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             if (isIOS) {
                 modalImage.src = imageUrl;
                 saveModal.classList.remove('hidden');
@@ -385,8 +370,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadedTemplates.add('Gothic_black');
         console.log("✓ デフォルトアセットのプリロードが完了しました。");
         
-        drawBackgroundLayer();
+        // 描画順を変更: キャラ -> 背景 -> UI
         drawCharacterLayer();
+        drawBackgroundLayer();
         await drawUiLayer();
         
         loaderElement.classList.add('hidden');
