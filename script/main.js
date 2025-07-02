@@ -1,6 +1,6 @@
 /**
- * FFXIV Character Card Generator Script (Granular Compositing Architecture)
- * - v10: Granular compositing for job icons to resolve crash
+ * FFXIV Character Card Generator Script (Icon Compositing Architecture)
+ * - v11: Change output to JPEG for mobile compatibility
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const miniLoader = document.getElementById('mini-loader');
     const miniProgressText = document.getElementById('mini-progress-text');
 
-    // 表示用Canvasレイヤー
+    // Canvasレイヤー
     const charCanvas = document.getElementById('background-layer');
     const charCtx = charCanvas.getContext('2d');
     const bgCanvas = document.getElementById('character-layer');
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const uiCanvas = document.getElementById('ui-layer');
     const uiCtx = uiCanvas.getContext('2d');
 
-    // 合成用Canvasをメモリ上に作成
+    // アイコン合成用Canvasをメモリ上に作成
     const miscIconCompositeCanvas = document.createElement('canvas');
     const miscIconCompositeCtx = miscIconCompositeCanvas.getContext('2d');
     const mainJobCompositeCanvas = document.createElement('canvas');
@@ -252,13 +252,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             timer = setTimeout(func, delay);
         };
     };
-
     const debouncedRedrawMisc = createDebouncer(async () => { await redrawMiscIconComposite(); await drawUiLayer(); }, 250);
     const debouncedRedrawMainJob = createDebouncer(async () => { await redrawMainJobComposite(); await drawUiLayer(); }, 250);
     const debouncedRedrawCombat = createDebouncer(async () => { await redrawCombatSubJobComposite(); await drawUiLayer(); }, 250);
     const debouncedRedrawGatherCra = createDebouncer(async () => { await redrawGatherCraSubJobComposite(); await drawUiLayer(); }, 250);
     const debouncedNameDraw = createDebouncer(drawUiLayer, 250);
-    
     let charAnimationFrameId;
     const throttledDrawChar = () => {
         if (charAnimationFrameId) return;
@@ -270,21 +268,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- イベントリスナー ---
     nameInput.addEventListener('input', debouncedNameDraw);
-    fontSelect.addEventListener('input', debouncedNameDraw); // フォント変更もテキスト描画のみ更新
-
+    fontSelect.addEventListener('input', debouncedNameDraw);
     const miscIconControls = [raceSelect, dcSelect, progressSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes];
     miscIconControls.forEach(el => {
-        const eventType = el.tagName === 'BUTTON' ? 'click' : 'input';
-        el.addEventListener(eventType, (e) => {
+        el.addEventListener(el.tagName === 'BUTTON' ? 'click' : 'input', (e) => {
             if (e.currentTarget.tagName === 'BUTTON') e.currentTarget.classList.toggle('active');
             debouncedRedrawMisc();
         });
     });
-
     mainJobSelect.addEventListener('input', debouncedRedrawMainJob);
     combatSubJobButtons.forEach(btn => btn.addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); debouncedRedrawCombat(); }));
     gatherCraSubJobButtons.forEach(btn => btn.addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); debouncedRedrawGatherCra(); }));
-
     templateSelect.addEventListener('change', async (e) => {
         const newTemplate = e.target.value;
         if (newTemplate === currentTemplatePrefix) return;
@@ -300,7 +294,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await Promise.all([redrawMiscIconComposite(), redrawMainJobComposite(), redrawCombatSubJobComposite(), redrawGatherCraSubJobComposite()]);
         await drawUiLayer();
     });
-    
     uploadImageInput.addEventListener('change', (e) => {
         const file = e.target.files[0]; if (!file) { fileNameDisplay.textContent = ''; return; }
         fileNameDisplay.textContent = file.name;
@@ -393,12 +386,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             dlCtx.imageSmoothingEnabled = true;
             dlCtx.imageSmoothingQuality = 'high';
 
-            // 各レイヤーを描画
             if (imageTransform.img) dlCtx.drawImage(charCanvas, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
             const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
             if (bgImg) dlCtx.drawImage(bgImg, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
             
-            // アイコンをカテゴリ別に高解像度で再描画して合成
             await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT }, 'misc');
             await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT }, 'gatherCraSubJob');
             await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT }, 'combatSubJob');
@@ -406,7 +397,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             await drawNameText(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
 
-            // 最終出力
             const finalCanvas = document.createElement('canvas');
             finalCanvas.width = EDIT_WIDTH;
             finalCanvas.height = EDIT_HEIGHT;
@@ -415,14 +405,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             finalCtx.imageSmoothingQuality = 'high';
             finalCtx.drawImage(dlCanvas, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
 
-            const imageUrl = finalCanvas.toDataURL('image/png');
+            // ★★★ 出力形式をJPEGに変更 ★★★
+            const imageUrl = finalCanvas.toDataURL('image/jpeg', 0.92);
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             if (isIOS) {
                 modalImage.src = imageUrl;
                 saveModal.classList.remove('hidden');
             } else {
                 const link = document.createElement('a');
-                link.download = 'ffxiv_character_card.png';
+                link.download = 'ffxiv_character_card.jpeg'; // ★拡張子も変更
                 link.href = imageUrl;
                 link.click();
             }
