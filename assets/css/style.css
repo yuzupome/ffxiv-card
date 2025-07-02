@@ -37,13 +37,40 @@ body {
 .header-title { margin: 0; font-size: clamp(1rem, 4vw, 1.25rem); font-weight: 600; font-family: 'Orbitron', sans-serif; white-space: nowrap; }
 
 /* メインレイアウト */
-.content-wrapper { display: flex; flex-direction: column; gap: 2rem; padding: 2rem; max-width: 1800px; margin: 0 auto; flex-grow: 1; }
-.preview-panel { position: sticky; top: 85px; z-index: 1; width: 100%; }
-.controls-panel { width: 100%; }
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1800px;
+    margin: 0 auto;
+    flex-grow: 1;
+}
+.preview-panel {
+    position: sticky;
+    top: 85px;
+    z-index: 1;
+    width: 100%;
+}
+.controls-panel {
+    width: 100%;
+}
+
 @media (min-width: 1024px) {
-    .content-wrapper { flex-direction: row; align-items: flex-start; }
-    .preview-panel { flex: 1; }
-    .controls-panel { width: 480px; flex-shrink: 0; height: calc(100vh - 85px - 4rem); overflow-y: auto; padding-right: 1rem; }
+    .content-wrapper {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+    .preview-panel {
+        flex: 1;
+    }
+    .controls-panel {
+        width: 480px;
+        flex-shrink: 0;
+        height: calc(100vh - 85px - 4rem);
+        overflow-y: auto;
+        padding-right: 1rem;
+    }
 }
 
 /* Canvas レイヤー */
@@ -122,11 +149,11 @@ select {
     border-radius: 8px;
     font-size: 1rem;
     transition: all 0.2s ease;
-    color: var(--text-color); /* 選択後の色を濃い文字色に */
+    color: var(--text-color);
 }
 input[type="text"]:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.2); }
 select:invalid {
-    color: var(--text-secondary-color); /* 未選択時の色を薄いグレーに */
+    color: var(--text-secondary-color);
 }
 .file-upload-label { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; background: var(--bg-color); border: 1px solid var(--border-color); padding: 0.75rem; border-radius: 8px; color: var(--text-secondary-color); cursor: pointer; transition: all 0.2s ease; }
 .file-upload-label:hover { border-color: var(--primary-color); color: var(--primary-color); }
