@@ -1,6 +1,6 @@
 /**
- * FFXIV Character Card Generator Script (Icon Compositing Architecture)
- * - v9: Add icon compositing layer for performance
+ * FFXIV Character Card Generator Script (Granular Compositing Architecture)
+ * - v10: Granular compositing for job icons to resolve crash
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const miniLoader = document.getElementById('mini-loader');
     const miniProgressText = document.getElementById('mini-progress-text');
 
-    // Canvasレイヤー
+    // 表示用Canvasレイヤー
     const charCanvas = document.getElementById('background-layer');
     const charCtx = charCanvas.getContext('2d');
     const bgCanvas = document.getElementById('character-layer');
@@ -20,9 +20,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const uiCanvas = document.getElementById('ui-layer');
     const uiCtx = uiCanvas.getContext('2d');
 
-    // アイコン合成用Canvasをメモリ上に作成
-    const iconCompositeCanvas = document.createElement('canvas');
-    const iconCompositeCtx = iconCompositeCanvas.getContext('2d');
+    // 合成用Canvasをメモリ上に作成
+    const miscIconCompositeCanvas = document.createElement('canvas');
+    const miscIconCompositeCtx = miscIconCompositeCanvas.getContext('2d');
+    const mainJobCompositeCanvas = document.createElement('canvas');
+    const mainJobCompositeCtx = mainJobCompositeCanvas.getContext('2d');
+    const combatSubJobCompositeCanvas = document.createElement('canvas');
+    const combatSubJobCompositeCtx = combatSubJobCompositeCanvas.getContext('2d');
+    const gatherCraSubJobCompositeCanvas = document.createElement('canvas');
+    const gatherCraSubJobCompositeCtx = gatherCraSubJobCompositeCanvas.getContext('2d');
 
     // UIコントロール
     const nameInput = document.getElementById('nameInput');
@@ -37,7 +43,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const playtimeCheckboxes = document.querySelectorAll('#playtimeOptions input[type="checkbox"]');
     const difficultyCheckboxes = document.querySelectorAll('#difficultyOptions input[type="checkbox"]');
     const mainJobSelect = document.getElementById('mainjobSelect');
-    const subjobButtons = document.querySelectorAll('#subjobSection .button-grid button');
+    const combatSubJobButtons = document.querySelectorAll('#subjobSection .button-grid button:not([data-value*="er"])');
+    const gatherCraSubJobButtons = document.querySelectorAll('#subjobSection .button-grid button[data-value*="er"]');
     const downloadBtn = document.getElementById('downloadBtn');
     const toTopBtn = document.getElementById('toTopBtn');
     const saveModal = document.getElementById('saveModal');
@@ -51,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const DOWNLOAD_HEIGHT = 1406;
 
     // Canvas解像度設定
-    [charCanvas, bgCanvas, uiCanvas, iconCompositeCanvas].forEach(c => {
+    [charCanvas, bgCanvas, uiCanvas, miscIconCompositeCanvas, mainJobCompositeCanvas, combatSubJobCompositeCanvas, gatherCraSubJobCompositeCanvas].forEach(c => {
         c.width = EDIT_WIDTH;
         c.height = EDIT_HEIGHT;
     });
@@ -65,16 +72,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const playtimes = ['weekday', 'weekday_morning', 'weekday_daytime', 'weekday_night', 'weekday_midnight', 'holiday', 'holiday_morning', 'holiday_daytime', 'holiday_night', 'holiday_midnight', 'random', 'fulltime'];
     const difficulties = ['extreme', 'unreal', 'savage', 'ultimate'];
     const mainJobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
-    const allSubJobs = Array.from(subjobButtons).map(btn => btn.dataset.value);
+    const allSubJobs = Array.from([...combatSubJobButtons, ...gatherCraSubJobButtons]).map(btn => btn.dataset.value);
     
     // --- 状態管理 ---
     const imageCache = {};
     const loadedTemplates = new Set();
     let currentTemplatePrefix = 'Gothic_black';
-    let imageTransform = {
-        img: null, x: EDIT_WIDTH / 2, y: EDIT_HEIGHT / 2, scale: 1.0,
-        isDragging: false, lastX: 0, lastY: 0, lastTouchDistance: 0
-    };
+    let imageTransform = { img: null, x: EDIT_WIDTH / 2, y: EDIT_HEIGHT / 2, scale: 1.0, isDragging: false, lastX: 0, lastY: 0, lastTouchDistance: 0 };
     let isDownloading = false;
 
     // --- アセット読み込み処理 ---
@@ -100,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (finalPaths.length === 0) {
             updateProgress(isInitialLoad ? { bar: progressBar, text: progressText } : { bar: null, text: miniProgressText }, 1, 1);
             return Promise.resolve();
-        };
+        }
         let loadedCount = 0;
         const totalCount = finalPaths.length;
         const progressTarget = isInitialLoad ? { bar: progressBar, text: progressText } : { bar: null, text: miniProgressText };
@@ -150,42 +154,67 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function redrawIconCompositeLayer() {
-        iconCompositeCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-        await drawIcons(iconCompositeCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
+    async function redrawMiscIconComposite() {
+        miscIconCompositeCtx.clearRect(0,0,EDIT_WIDTH,EDIT_HEIGHT);
+        await drawIcons(miscIconCompositeCtx, {width:EDIT_WIDTH, height:EDIT_HEIGHT}, 'misc');
     }
-    
+    async function redrawMainJobComposite() {
+        mainJobCompositeCtx.clearRect(0,0,EDIT_WIDTH,EDIT_HEIGHT);
+        await drawIcons(mainJobCompositeCtx, {width:EDIT_WIDTH, height:EDIT_HEIGHT}, 'mainJob');
+    }
+    async function redrawCombatSubJobComposite() {
+        combatSubJobCompositeCtx.clearRect(0,0,EDIT_WIDTH,EDIT_HEIGHT);
+        await drawIcons(combatSubJobCompositeCtx, {width:EDIT_WIDTH, height:EDIT_HEIGHT}, 'combatSubJob');
+    }
+    async function redrawGatherCraSubJobComposite() {
+        gatherCraSubJobCompositeCtx.clearRect(0,0,EDIT_WIDTH,EDIT_HEIGHT);
+        await drawIcons(gatherCraSubJobCompositeCtx, {width:EDIT_WIDTH, height:EDIT_HEIGHT}, 'gatherCraSubJob');
+    }
+
     async function drawUiLayer() {
         uiCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-        uiCtx.drawImage(iconCompositeCanvas, 0, 0);
+        uiCtx.drawImage(miscIconCompositeCanvas, 0, 0);
+        uiCtx.drawImage(gatherCraSubJobCompositeCanvas, 0, 0);
+        uiCtx.drawImage(combatSubJobCompositeCanvas, 0, 0);
+        uiCtx.drawImage(mainJobCompositeCanvas, 0, 0);
         await drawNameText(uiCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
     }
 
     // --- 描画ヘルパー関数 ---
-    async function drawIcons(context, canvasSize) {
+    async function drawIcons(context, canvasSize, category = 'all') {
         const { width, height } = canvasSize;
         const prefix = currentTemplatePrefix;
         const draw = (path) => { const img = imageCache[path]; if (img) context.drawImage(img, 0, 0, width, height); };
-        if (raceSelect.value) draw(`./assets/race_icons/${prefix}_${raceSelect.value}.webp`);
-        if (dcSelect.value) draw(`./assets/dc_icons/${prefix}_${dcSelect.value}.webp`);
-        if (progressSelect.value) {
-            const stages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
-            const toLoad = progressSelect.value === 'all_clear' ? [...stages, 'all_clear'] : stages.slice(0, stages.indexOf(progressSelect.value) + 1);
-            toLoad.forEach(p => draw(`./assets/progress_icons/${prefix}_${p}.webp`));
+
+        if(category === 'all' || category === 'misc'){
+            if (raceSelect.value) draw(`./assets/race_icons/${prefix}_${raceSelect.value}.webp`);
+            if (dcSelect.value) draw(`./assets/dc_icons/${prefix}_${dcSelect.value}.webp`);
+            if (progressSelect.value) {
+                const stages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
+                const toLoad = progressSelect.value === 'all_clear' ? [...stages, 'all_clear'] : stages.slice(0, stages.indexOf(progressSelect.value) + 1);
+                toLoad.forEach(p => draw(`./assets/progress_icons/${prefix}_${p}.webp`));
+            }
+            styleButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/style_icons/${prefix}_${btn.dataset.value}.webp`); });
+            const timePaths = new Set();
+            const checkedTimes = Array.from(playtimeCheckboxes).filter(cb => cb.checked);
+            checkedTimes.forEach(cb => {
+                const pathKey = cb.classList.contains('other') ? cb.value : `${cb.className}_${cb.value}`;
+                timePaths.add(`./assets/time_icons/${prefix}_${pathKey}.webp`);
+            });
+            if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${prefix}_weekday.webp`);
+            if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.webp`);
+            timePaths.forEach(path => draw(path));
+            difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/difficulty_icons/${prefix}_${cb.value}.webp`); });
         }
-        styleButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/style_icons/${prefix}_${btn.dataset.value}.webp`); });
-        const timePaths = new Set();
-        const checkedTimes = Array.from(playtimeCheckboxes).filter(cb => cb.checked);
-        checkedTimes.forEach(cb => {
-            const pathKey = cb.classList.contains('other') ? cb.value : `${cb.className}_${cb.value}`;
-            timePaths.add(`./assets/time_icons/${prefix}_${pathKey}.webp`);
-        });
-        if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${prefix}_weekday.webp`);
-        if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.webp`);
-        timePaths.forEach(path => draw(path));
-        difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/difficulty_icons/${prefix}_${cb.value}.webp`); });
-        subjobButtons.forEach(btn => { if (btn.classList.contains('active')) { draw(`./assets/subjob_icons/${prefix}_sub_${btn.dataset.value}.webp`); } });
-        if (mainJobSelect.value) draw(`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.webp`);
+        if(category === 'all' || category === 'mainJob'){
+            if (mainJobSelect.value) draw(`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.webp`);
+        }
+        if(category === 'all' || category === 'combatSubJob'){
+            combatSubJobButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/subjob_icons/${prefix}_sub_${btn.dataset.value}.webp`); });
+        }
+        if(category === 'all' || category === 'gatherCraSubJob'){
+            gatherCraSubJobButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/subjob_icons/${prefix}_sub_${btn.dataset.value}.webp`); });
+        }
     }
 
     async function drawNameText(context, canvasSize) {
@@ -216,19 +245,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     // --- パフォーマンス最適化 ---
-    let uiDebounceTimer;
-    const debouncedFullUiRedraw = () => {
-        clearTimeout(uiDebounceTimer);
-        uiDebounceTimer = setTimeout(async () => {
-            await redrawIconCompositeLayer();
-            await drawUiLayer();
-        }, 250);
+    const createDebouncer = (func, delay) => {
+        let timer;
+        return () => {
+            clearTimeout(timer);
+            timer = setTimeout(func, delay);
+        };
     };
-    let nameDebounceTimer;
-    const debouncedNameDraw = () => {
-        clearTimeout(nameDebounceTimer);
-        nameDebounceTimer = setTimeout(drawUiLayer, 250);
-    };
+
+    const debouncedRedrawMisc = createDebouncer(async () => { await redrawMiscIconComposite(); await drawUiLayer(); }, 250);
+    const debouncedRedrawMainJob = createDebouncer(async () => { await redrawMainJobComposite(); await drawUiLayer(); }, 250);
+    const debouncedRedrawCombat = createDebouncer(async () => { await redrawCombatSubJobComposite(); await drawUiLayer(); }, 250);
+    const debouncedRedrawGatherCra = createDebouncer(async () => { await redrawGatherCraSubJobComposite(); await drawUiLayer(); }, 250);
+    const debouncedNameDraw = createDebouncer(drawUiLayer, 250);
+    
     let charAnimationFrameId;
     const throttledDrawChar = () => {
         if (charAnimationFrameId) return;
@@ -240,37 +270,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- イベントリスナー ---
     nameInput.addEventListener('input', debouncedNameDraw);
-    
-    const iconControls = [fontSelect, raceSelect, dcSelect, progressSelect, mainJobSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes, ...subjobButtons];
-    iconControls.forEach(el => {
+    fontSelect.addEventListener('input', debouncedNameDraw); // フォント変更もテキスト描画のみ更新
+
+    const miscIconControls = [raceSelect, dcSelect, progressSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes];
+    miscIconControls.forEach(el => {
         const eventType = el.tagName === 'BUTTON' ? 'click' : 'input';
         el.addEventListener(eventType, (e) => {
-            if (e.currentTarget.tagName === 'BUTTON') {
-                e.currentTarget.classList.toggle('active');
-            }
-            debouncedFullUiRedraw();
+            if (e.currentTarget.tagName === 'BUTTON') e.currentTarget.classList.toggle('active');
+            debouncedRedrawMisc();
         });
     });
+
+    mainJobSelect.addEventListener('input', debouncedRedrawMainJob);
+    combatSubJobButtons.forEach(btn => btn.addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); debouncedRedrawCombat(); }));
+    gatherCraSubJobButtons.forEach(btn => btn.addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); debouncedRedrawGatherCra(); }));
 
     templateSelect.addEventListener('change', async (e) => {
         const newTemplate = e.target.value;
         if (newTemplate === currentTemplatePrefix) return;
-        if (loadedTemplates.has(newTemplate)) {
-            currentTemplatePrefix = newTemplate;
-            drawBackgroundLayer();
-            await redrawIconCompositeLayer();
-            await drawUiLayer();
-            return;
+        if (!loadedTemplates.has(newTemplate)) {
+            miniLoader.classList.remove('hidden');
+            updateProgress({ bar: null, text: miniProgressText }, 0, 1);
+            await loadAssetsForTemplate(newTemplate);
+            loadedTemplates.add(newTemplate);
+            miniLoader.classList.add('hidden');
         }
-        miniLoader.classList.remove('hidden');
-        updateProgress({ bar: null, text: miniProgressText }, 0, 1);
-        await loadAssetsForTemplate(newTemplate);
-        loadedTemplates.add(newTemplate);
         currentTemplatePrefix = newTemplate;
         drawBackgroundLayer();
-        await redrawIconCompositeLayer();
+        await Promise.all([redrawMiscIconComposite(), redrawMainJobComposite(), redrawCombatSubJobComposite(), redrawGatherCraSubJobComposite()]);
         await drawUiLayer();
-        miniLoader.classList.add('hidden');
     });
     
     uploadImageInput.addEventListener('change', (e) => {
@@ -365,22 +393,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             dlCtx.imageSmoothingEnabled = true;
             dlCtx.imageSmoothingQuality = 'high';
 
-            if (imageTransform.img) {
-                dlCtx.drawImage(charCanvas, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
-            }
-            
+            // 各レイヤーを描画
+            if (imageTransform.img) dlCtx.drawImage(charCanvas, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
             const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
             if (bgImg) dlCtx.drawImage(bgImg, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
-
-            const iconCompositeForDownload = document.createElement('canvas');
-            iconCompositeForDownload.width = DOWNLOAD_WIDTH;
-            iconCompositeForDownload.height = DOWNLOAD_HEIGHT;
-            const iconCompositeDlCtx = iconCompositeForDownload.getContext('2d');
-            await drawIcons(iconCompositeDlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
-            dlCtx.drawImage(iconCompositeForDownload, 0, 0);
-
+            
+            // アイコンをカテゴリ別に高解像度で再描画して合成
+            await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT }, 'misc');
+            await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT }, 'gatherCraSubJob');
+            await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT }, 'combatSubJob');
+            await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT }, 'mainJob');
+            
             await drawNameText(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
 
+            // 最終出力
             const finalCanvas = document.createElement('canvas');
             finalCanvas.width = EDIT_WIDTH;
             finalCanvas.height = EDIT_HEIGHT;
@@ -405,7 +431,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert("画像の生成に失敗しました。ページをリロードして再度お試しください。");
         } finally {
             isDownloading = false;
-            downloadBtn.querySelector('span').textContent = originalText;
+            downloadBtn.querySelector('span').textContent = 'この内容で作る？🐕';
         }
     });
 
@@ -432,13 +458,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         drawCharacterLayer();
         drawBackgroundLayer();
-        await redrawIconCompositeLayer();
+        await Promise.all([redrawMiscIconComposite(), redrawMainJobComposite(), redrawCombatSubJobComposite(), redrawGatherCraSubJobComposite()]);
         await drawUiLayer();
         
         loaderElement.classList.add('hidden');
-        setTimeout(() => {
-            appElement.classList.remove('hidden');
-        }, 300);
+        setTimeout(() => appElement.classList.remove('hidden'), 300);
     }
 
     initialize();
