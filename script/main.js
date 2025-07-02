@@ -68,7 +68,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     let isDownloading = false;
 
     // --- プリロード処理 ---
-    // (省略... 元のコードと同じ)
+    let loadedAssetCount = 0;
+    let totalAssetCount = 0;
+
     async function preloadAllAssets() {
         const allImagePaths = new Set();
         const assetExt = '.webp'; // .png から変更
@@ -173,7 +175,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const selectedFont = fontSelect.value || "'Orbitron', sans-serif";
         
         // フォントが利用可能になるまで待つ
-        await document.fonts.load(`10px ${selectedFont}`);
+        try {
+            await document.fonts.load(`10px ${selectedFont}`);
+        } catch (err) {
+            console.warn(`フォントの読み込みに失敗した可能性があります: ${selectedFont}`, err);
+        }
 
         let fontSize = MAX_FONT_SIZE;
         context.font = `${fontSize}px ${selectedFont}`;
@@ -258,7 +264,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
     }
-    // (画像操作のハンドラ関数は throttledDrawChar を呼ぶように変更)
+
     function handleDragStart(e) { if (!imageTransform.img) return; e.preventDefault(); const loc = getEventLocation(e); imageTransform.isDragging = true; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y; }
     function handleDragMove(e) { if (!imageTransform.isDragging) return; e.preventDefault(); const loc = getEventLocation(e); const dx = loc.x - imageTransform.lastX; const dy = loc.y - imageTransform.lastY; imageTransform.x += dx; imageTransform.y += dy; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y; throttledDrawChar(); }
     function handleDragEnd() { imageTransform.isDragging = false; }
@@ -267,7 +273,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     uiCanvas.addEventListener('mouseup', handleDragEnd);
     uiCanvas.addEventListener('mouseleave', handleDragEnd);
     uiCanvas.addEventListener('wheel', (e) => { if (!imageTransform.img) return; e.preventDefault(); const scaleAmount = e.deltaY < 0 ? 1.1 : 1 / 1.1; const newScale = imageTransform.scale * scaleAmount; imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); throttledDrawChar(); }, { passive: false });
-    // (Touchイベントも同様)
+
     uiCanvas.addEventListener('touchstart', (e) => { if (!imageTransform.img) return; e.preventDefault(); if (e.touches.length === 1) handleDragStart(e); else if (e.touches.length === 2) { imageTransform.isDragging = false; const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy); } }, { passive: false });
     uiCanvas.addEventListener('touchmove', (e) => { if (!imageTransform.isDragging || !imageTransform.img) return; e.preventDefault(); if (e.touches.length === 1) { handleDragMove(e); } else if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; const newDist = Math.sqrt(dx * dx + dy * dy); if(imageTransform.lastTouchDistance > 0) { const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance); imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); } imageTransform.lastTouchDistance = newDist; throttledDrawChar(); } }, { passive: false });
     uiCanvas.addEventListener('touchend', (e) => { if (e.touches.length < 2) { imageTransform.isDragging = false; } imageTransform.lastTouchDistance = 0; });
