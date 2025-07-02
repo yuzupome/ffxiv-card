@@ -113,9 +113,21 @@ body {
 
 /* フォーム要素 */
 #top-controls { display: flex; flex-direction: column; gap: 1rem; }
-input[type="text"], select { width: 100%; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 0.75rem; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease; }
+input[type="text"] { width: 100%; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 0.75rem; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease; }
+select {
+    width: 100%;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    color: var(--primary-hover-color); /* 選択後の色を少し濃いグレーに */
+}
 input[type="text"]:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.2); }
-select:invalid { color: var(--text-secondary-color); }
+select:invalid {
+    color: var(--text-secondary-color); /* 未選択時の色を薄いグレーに */
+}
 .file-upload-label { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; background: var(--bg-color); border: 1px solid var(--border-color); padding: 0.75rem; border-radius: 8px; color: var(--text-secondary-color); cursor: pointer; transition: all 0.2s ease; }
 .file-upload-label:hover { border-color: var(--primary-color); color: var(--primary-color); }
 .file-upload-label svg { stroke: currentColor; }
