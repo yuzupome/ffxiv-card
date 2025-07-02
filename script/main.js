@@ -1,6 +1,6 @@
 /**
- * FFXIV Character Card Generator Script (On-demand Loading Architecture)
- * - v8: Fix image scale on download
+ * FFXIV Character Card Generator Script (Icon Compositing Architecture)
+ * - v9: Add icon compositing layer for performance
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -13,12 +13,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const miniProgressText = document.getElementById('mini-progress-text');
 
     // Canvasレイヤー
-    const charCanvas = document.getElementById('background-layer'); // IDはそのまま、役割をキャラ用に
+    const charCanvas = document.getElementById('background-layer');
     const charCtx = charCanvas.getContext('2d');
-    const bgCanvas = document.getElementById('character-layer'); // IDはそのまま、役割を背景用に
+    const bgCanvas = document.getElementById('character-layer');
     const bgCtx = bgCanvas.getContext('2d');
     const uiCanvas = document.getElementById('ui-layer');
     const uiCtx = uiCanvas.getContext('2d');
+
+    // アイコン合成用Canvasをメモリ上に作成
+    const iconCompositeCanvas = document.createElement('canvas');
+    const iconCompositeCtx = iconCompositeCanvas.getContext('2d');
 
     // UIコントロール
     const nameInput = document.getElementById('nameInput');
@@ -45,6 +49,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const EDIT_HEIGHT = 703;
     const DOWNLOAD_WIDTH = 2500;
     const DOWNLOAD_HEIGHT = 1406;
+
+    // Canvas解像度設定
+    [charCanvas, bgCanvas, uiCanvas, iconCompositeCanvas].forEach(c => {
+        c.width = EDIT_WIDTH;
+        c.height = EDIT_HEIGHT;
+    });
 
     // --- アセット定義 ---
     const templates = [ 'Gothic_black', 'Gothic_white', 'Gothic_pink', 'Neon_mono', 'Neon_duotone', 'Neon_meltdown', 'Water', 'Wafu', 'Wood', 'China' ];
@@ -122,13 +132,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         target.text.textContent = `${percent}%`;
     }
 
-    // --- 描画関数 (レイヤーごと) ---
+    // --- 描画関数 ---
     function drawBackgroundLayer() {
         const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}.webp`];
         bgCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-        if (bgImg) {
-            bgCtx.drawImage(bgImg, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-        }
+        if (bgImg) bgCtx.drawImage(bgImg, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
     }
 
     function drawCharacterLayer() {
@@ -141,10 +149,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             charCtx.restore();
         }
     }
+
+    async function redrawIconCompositeLayer() {
+        iconCompositeCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+        await drawIcons(iconCompositeCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
+    }
     
     async function drawUiLayer() {
         uiCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-        await drawIcons(uiCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
+        uiCtx.drawImage(iconCompositeCanvas, 0, 0);
         await drawNameText(uiCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
     }
 
@@ -204,9 +217,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // --- パフォーマンス最適化 ---
     let uiDebounceTimer;
-    const debouncedDrawUi = () => {
+    const debouncedFullUiRedraw = () => {
         clearTimeout(uiDebounceTimer);
-        uiDebounceTimer = setTimeout(drawUiLayer, 250);
+        uiDebounceTimer = setTimeout(async () => {
+            await redrawIconCompositeLayer();
+            await drawUiLayer();
+        }, 250);
+    };
+    let nameDebounceTimer;
+    const debouncedNameDraw = () => {
+        clearTimeout(nameDebounceTimer);
+        nameDebounceTimer = setTimeout(drawUiLayer, 250);
     };
     let charAnimationFrameId;
     const throttledDrawChar = () => {
@@ -218,12 +239,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- イベントリスナー ---
-    const uiControls = [nameInput, fontSelect, raceSelect, dcSelect, progressSelect, mainJobSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes, ...subjobButtons];
-    uiControls.forEach(el => {
-        const eventType = (el.tagName === 'SELECT' || el.type === 'text') ? 'input' : 'click';
+    nameInput.addEventListener('input', debouncedNameDraw);
+    
+    const iconControls = [fontSelect, raceSelect, dcSelect, progressSelect, mainJobSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes, ...subjobButtons];
+    iconControls.forEach(el => {
+        const eventType = el.tagName === 'BUTTON' ? 'click' : 'input';
         el.addEventListener(eventType, (e) => {
-            if (e.currentTarget.tagName === 'BUTTON') { e.currentTarget.classList.toggle('active'); }
-            debouncedDrawUi();
+            if (e.currentTarget.tagName === 'BUTTON') {
+                e.currentTarget.classList.toggle('active');
+            }
+            debouncedFullUiRedraw();
         });
     });
 
@@ -233,6 +258,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (loadedTemplates.has(newTemplate)) {
             currentTemplatePrefix = newTemplate;
             drawBackgroundLayer();
+            await redrawIconCompositeLayer();
             await drawUiLayer();
             return;
         }
@@ -242,6 +268,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadedTemplates.add(newTemplate);
         currentTemplatePrefix = newTemplate;
         drawBackgroundLayer();
+        await redrawIconCompositeLayer();
         await drawUiLayer();
         miniLoader.classList.add('hidden');
     });
@@ -323,7 +350,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         imageTransform.lastTouchDistance = 0;
     });
-    
+
     // --- ダウンロード処理 ---
     downloadBtn.addEventListener('click', async () => {
         if (isDownloading) return;
@@ -331,7 +358,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const originalText = downloadBtn.querySelector('span').textContent;
         downloadBtn.querySelector('span').textContent = '画像を生成中...';
         try {
-            // 1. 高解像度の一時Canvasを作成
             const dlCanvas = document.createElement('canvas');
             dlCanvas.width = DOWNLOAD_WIDTH;
             dlCanvas.height = DOWNLOAD_HEIGHT;
@@ -339,21 +365,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             dlCtx.imageSmoothingEnabled = true;
             dlCtx.imageSmoothingQuality = 'high';
 
-            // 2. キャラクター画像 (最背面) を描画
-            // プレビュー用の低解像度Canvasを拡大して描画し、見た目を完全に一致させる
             if (imageTransform.img) {
                 dlCtx.drawImage(charCanvas, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
             }
             
-            // 3. 背景テンプレートを描画
             const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
             if (bgImg) dlCtx.drawImage(bgImg, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
 
-            // 4. UI（アイコンとテキスト）を描画
-            await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
+            const iconCompositeForDownload = document.createElement('canvas');
+            iconCompositeForDownload.width = DOWNLOAD_WIDTH;
+            iconCompositeForDownload.height = DOWNLOAD_HEIGHT;
+            const iconCompositeDlCtx = iconCompositeForDownload.getContext('2d');
+            await drawIcons(iconCompositeDlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
+            dlCtx.drawImage(iconCompositeForDownload, 0, 0);
+
             await drawNameText(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
 
-            // 5. 高解像度画像をプレビューサイズに縮小して最終出力
             const finalCanvas = document.createElement('canvas');
             finalCanvas.width = EDIT_WIDTH;
             finalCanvas.height = EDIT_HEIGHT;
@@ -403,9 +430,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadedTemplates.add('Gothic_black');
         console.log("✓ デフォルトアセットのプリロードが完了しました。");
         
-        // 描画順を変更: キャラ -> 背景 -> UI
         drawCharacterLayer();
         drawBackgroundLayer();
+        await redrawIconCompositeLayer();
         await drawUiLayer();
         
         loaderElement.classList.add('hidden');
