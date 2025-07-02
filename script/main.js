@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (On-demand Loading Architecture)
- * - v3: Bug fix for initialization error
+ * - v4: Final fix for initialization error
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const uiCanvas = document.getElementById('ui-layer');
     const uiCtx = uiCanvas.getContext('2d');
 
-    // UIコントロール (前回省略していた部分)
+    // UIコントロール
     const nameInput = document.getElementById('nameInput');
     const fontSelect = document.getElementById('fontSelect');
     const uploadImageInput = document.getElementById('uploadImage');
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const DOWNLOAD_WIDTH = 2500;
     const DOWNLOAD_HEIGHT = 1406;
 
-    // --- アセット定義 ---
+    // --- アセット定義 (DOM要素の取得後に移動) ---
     const templates = [ 'Gothic_black', 'Gothic_white', 'Gothic_pink', 'Neon_mono', 'Neon_duotone', 'Neon_meltdown', 'Water', 'Wafu', 'Wood', 'China' ];
     const races = ['au_ra', 'viera', 'roegadyn', 'miqote', 'hyur', 'elezen', 'lalafell', 'hrothgar'];
     const dcs = ['mana', 'gaia', 'elemental', 'meteor'];
@@ -91,7 +91,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         const finalPaths = [...pathsToLoad].filter(p => !imageCache[p]);
-        if (finalPaths.length === 0) return Promise.resolve();
+        if (finalPaths.length === 0) {
+            updateProgress(isInitialLoad ? { bar: progressBar, text: progressText } : { bar: null, text: miniProgressText }, 1, 1);
+            return Promise.resolve();
+        };
         
         let loadedCount = 0;
         const totalCount = finalPaths.length;
