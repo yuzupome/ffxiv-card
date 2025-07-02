@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (On-demand Loading Architecture)
- * - v7: Final adjustments
+ * - v8: Fix image scale on download
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -331,6 +331,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const originalText = downloadBtn.querySelector('span').textContent;
         downloadBtn.querySelector('span').textContent = '画像を生成中...';
         try {
+            // 1. 高解像度の一時Canvasを作成
             const dlCanvas = document.createElement('canvas');
             dlCanvas.width = DOWNLOAD_WIDTH;
             dlCanvas.height = DOWNLOAD_HEIGHT;
@@ -338,23 +339,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             dlCtx.imageSmoothingEnabled = true;
             dlCtx.imageSmoothingQuality = 'high';
 
-            // 1. キャラクター画像 (最背面)
+            // 2. キャラクター画像 (最背面) を描画
+            // プレビュー用の低解像度Canvasを拡大して描画し、見た目を完全に一致させる
             if (imageTransform.img) {
-                dlCtx.save();
-                const scale = DOWNLOAD_WIDTH / EDIT_WIDTH;
-                dlCtx.translate(imageTransform.x * scale, imageTransform.y * scale);
-                dlCtx.scale(imageTransform.scale, imageTransform.scale);
-                dlCtx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
-                dlCtx.restore();
+                dlCtx.drawImage(charCanvas, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
             }
-            // 2. 背景テンプレート
+            
+            // 3. 背景テンプレートを描画
             const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
             if (bgImg) dlCtx.drawImage(bgImg, 0, 0, DOWNLOAD_WIDTH, DOWNLOAD_HEIGHT);
-            // 3. UI（アイコンとテキスト）
+
+            // 4. UI（アイコンとテキスト）を描画
             await drawIcons(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
             await drawNameText(dlCtx, { width: DOWNLOAD_WIDTH, height: DOWNLOAD_HEIGHT });
 
-            // 4. 高解像度画像をプレビューサイズに縮小して書き出し
+            // 5. 高解像度画像をプレビューサイズに縮小して最終出力
             const finalCanvas = document.createElement('canvas');
             finalCanvas.width = EDIT_WIDTH;
             finalCanvas.height = EDIT_HEIGHT;
