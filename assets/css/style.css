@@ -46,9 +46,35 @@ body {
     .controls-panel { width: 480px; flex-shrink: 0; height: calc(100vh - 85px - 4rem); overflow-y: auto; padding-right: 1rem; }
 }
 
+/* Canvas レイヤー */
 .canvas-container { width: 100%; max-width: 1200px; margin: 0 auto; }
-canvas { width: 100%; height: auto; border-radius: 12px; background-color: #000; cursor: grab; display: block; border: 1px solid var(--border-color); }
-canvas:active { cursor: grabbing; }
+.canvas-wrapper {
+    position: relative;
+    width: 100%;
+    /* 16:9 アスペクト比を維持 (703 / 1250) */
+    padding-top: 56.24%;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+.canvas-wrapper canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    display: block;
+}
+#background-layer {
+    background-color: #000;
+}
+#ui-layer { /* 最前面のレイヤーでカーソルを操作 */
+    cursor: grab;
+}
+#ui-layer:active {
+    cursor: grabbing;
+}
 #controls { display: flex; flex-direction: column; gap: 2.5rem; }
 
 /* セクションのスタイル */
