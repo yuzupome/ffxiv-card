@@ -56,9 +56,9 @@
                         <option value="Neon_duotone">Neon Lime Yellow</option>
                         <option value="Neon_meltdown">Neon Melt</option>
                         <option value="Water">Aqua Flow</option>
-                        <option value="Wafu">J-style</option>
-                        <option value="Wood">Natural Wood</option>
-                        <option value="China">Oriental Red</option>
+                        <option value="Lovely_heart">Lovely Heart</option>
+                        <option value="Royal_garnet">Royal Garnet</option>
+                        <option value="Royal_sapphire">Royal Sapphire</option>
                     </select>
                     
                     <label for="uploadImage" class="file-upload-label">
@@ -93,13 +93,13 @@
                         </select>
                     </div>
                     <div class="grid-col-3" style="margin-top: 1rem;">
-                        <select id="raceSelect" required>
-                            <option value="" disabled selected>種族</option>
-                            <option value="au_ra">アウラ</option> <option value="viera">ヴィエラ</option> <option value="roegadyn">ルガディン</option> <option value="miqote">ミコッテ</option> <option value="hyur">ヒューラン</option> <option value="elezen">エレゼン</option> <option value="lalafell">ララフェル</option> <option value="hrothgar">ロスガル</option>
-                        </select>
                         <select id="dcSelect" required>
                             <option value="" disabled selected>DC</option>
                             <option value="mana">Mana</option> <option value="gaia">Gaia</option> <option value="elemental">Elemental</option> <option value="meteor">Meteor</option>
+                        </select>
+                        <select id="raceSelect" required>
+                            <option value="" disabled selected>種族</option>
+                            <option value="au_ra">アウラ</option> <option value="viera">ヴィエラ</option> <option value="roegadyn">ルガディン</option> <option value="miqote">ミコッテ</option> <option value="hyur">ヒューラン</option> <option value="elezen">エレゼン</option> <option value="lalafell">ララフェル</option> <option value="hrothgar">ロスガル</option>
                         </select>
                         <select id="progressSelect" required>
                             <option value="" disabled selected>進行度</option>
@@ -119,13 +119,11 @@
                     <h2 class="section-title">Play Time</h2>
                     <div id="playtimeOptions" class="checkbox-group">
                         <div class="time-section">
-                            <span>平日</span>
                             <div class="options-row">
                                 <label><input type="checkbox" class="weekday" value="morning" /><span></span>朝</label> <label><input type="checkbox" class="weekday" value="daytime" /><span></span>昼</label> <label><input type="checkbox" class="weekday" value="night" /><span></span>夜</label> <label><input type="checkbox" class="weekday" value="midnight" /><span></span>深夜</label>
                             </div>
                         </div>
                         <div class="time-section">
-                            <span>休日</span>
                             <div class="options-row">
                                 <label><input type="checkbox" class="holiday" value="morning" /><span></span>朝</label> <label><input type="checkbox" class="holiday" value="daytime" /><span></span>昼</label> <label><input type="checkbox" class="holiday" value="night" /><span></span>夜</label> <label><input type="checkbox" class="holiday" value="midnight" /><span></span>深夜</label>
                             </div>
@@ -155,7 +153,7 @@
                     <div id="subjobSection">
                         <h3 class="section-title-nested">Sub Job</h3>
                         <div class="button-grid">
-                            <button data-value="paladin">ナイト</button> <button data-value="warrior">戦士</button> <button data-value="darkknight">暗黒騎士</button> <button data-value="gunbreaker">ガンブレイカー</button> <button data-value="whitemage">白魔導士</button> <button data-value="scholar">学者</button> <button data-value="astrologian">占星術師</button> <button data-value="sage">賢者</button> <button data-value="monk">モンク</button> <button data-value="dragoon">竜騎士</button> <button data-value="ninja">忍者</button> <button data-value="samurai">侍</button> <button data-value="reaper">リーパー</button> <button data-value="viper">ヴァイパー</button> <button data-value="bard">吟遊詩人</button> <button data-value="machinist">機工士</button> <button data-value="dancer">踊り子</button> <button data-value="blackmage">黒魔導士</button> <button data-value="summoner">召喚士</button> <button data-value="redmage">赤魔導士</button> <button data-value="pictomancer">ピクトマンサー</button> <button data-value="bluemage">青魔導士</button>
+                            <button data-value="paladin">ナイト</button> <button data-value="warrior">戦士</button> <button data-value="darkknight">暗黒騎士</button> <button data-value="gunbreaker">ガンブレイカー</button> <button data-value="whitemage">白魔導士</button> <button data-value="scholar">学者</button> <button data-value="astrologian">占星術師</button> <button data-value="sage">賢者</button> <button data-value="monk">モンク</button> <button data-value="dragoon">竜騎士</button> <button data-value="ninja">忍者</button> <button data-value="samurai">侍</button> <button data-value="reaper">リーパー</button> <button data-value="viper">ヴァイパー</option> <button data-value="bard">吟遊詩人</button> <button data-value="machinist">機工士</option> <button data-value="dancer">踊り子</button> <button data-value="blackmage">黒魔導士</button> <button data-value="summoner">召喚士</button> <button data-value="redmage">赤魔導士</option> <button data-value="pictomancer">ピクトマンサー</button> <button data-value="bluemage">青魔導士</option>
                             <div class="grid-break"></div>
                             <button data-value="carpenter">木工師</button> <button data-value="blacksmith">鍛冶師</button> <button data-value="armorer">甲冑師</button> <button data-value="goldsmith">彫金師</button> <button data-value="leatherworker">革細工師</button> <button data-value="weaver">裁縫師</button> <button data-value="alchemist">錬金術師</button> <button data-value="culinarian">調理師</button> <button data-value="miner">採掘師</button> <button data-value="botanist">園芸師</button> <button data-value="fisher">漁師</button>
                         </div>
