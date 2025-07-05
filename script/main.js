@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (Final Version)
- * - v12: Unified smart-scaling export for PC and Mobile
+ * - v13: Aspect ratio fix and asset sharing logic update
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -13,9 +13,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const miniProgressText = document.getElementById('mini-progress-text');
 
     // 表示用Canvasレイヤー
-    const charCanvas = document.getElementById('background-layer');
+    const charCanvas = document.getElementById('character-layer'); // Note: ID might be different in HTML
     const charCtx = charCanvas.getContext('2d');
-    const bgCanvas = document.getElementById('character-layer');
+    const bgCanvas = document.getElementById('background-layer'); // Note: ID might be different in HTML
     const bgCtx = bgCanvas.getContext('2d');
     const uiCanvas = document.getElementById('ui-layer');
     const uiCtx = uiCanvas.getContext('2d');
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // --- アセット定義 ---
-    const templates = [ 'Gothic_black', 'Gothic_white', 'Gothic_pink', 'Neon_mono', 'Neon_duotone', 'Neon_meltdown', 'Water', 'Wafu', 'Wood', 'China' ];
+    const templates = [ 'Gothic_black', 'Gothic_white', 'Gothic_pink', 'Neon_mono', 'Neon_duotone', 'Neon_meltdown', 'Water', 'Lovely_heart', 'Royal_garnet', 'Royal_sapphire' ];
     const races = ['au_ra', 'viera', 'roegadyn', 'miqote', 'hyur', 'elezen', 'lalafell', 'hrothgar'];
     const dcs = ['mana', 'gaia', 'elemental', 'meteor'];
     const progresses = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'];
@@ -71,6 +71,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const difficulties = ['extreme', 'unreal', 'savage', 'ultimate'];
     const mainJobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
     const allSubJobs = Array.from([...combatSubJobButtons, ...gatherCraSubJobButtons]).map(btn => btn.dataset.value);
+    
+    // アセット共有のための設定
+    const sharedAssetMap = {
+        'Gothic_pink': 'Gothic',
+        'Gothic_black': 'Gothic',
+        'Royal_sapphire': 'Royal',
+        'Royal_garnet': 'Royal'
+    };
     
     // --- 状態管理 ---
     const imageCache = {};
@@ -83,8 +91,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadAssetsForTemplate(templateName, isInitialLoad = false) {
         const assetExt = '.webp';
         const pathsToLoad = new Set();
+        
+        // 背景は常に固有のものを読み込む
         pathsToLoad.add(`./assets/backgrounds/${templateName}${assetExt}`);
         pathsToLoad.add(`./assets/backgrounds/${templateName}_cp${assetExt}`);
+        
         const iconTypes = { races, dcs, progresses, styles, playtimes, difficulties, mainJobs, allSubJobs };
         const iconPaths = {
             races: 'race_icons', dcs: 'dc_icons', progresses: 'progress_icons', styles: 'style_icons',
@@ -92,12 +103,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             mainJobs: 'mainjob_icons', allSubJobs: 'subjob_icons'
         };
         const iconPrefixes = { mainJobs: '_main_', allSubJobs: '_sub_' };
+
         for (const type in iconTypes) {
             for (const item of iconTypes[type]) {
                 const prefix = iconPrefixes[type] || '_';
-                pathsToLoad.add(`./assets/${iconPaths[type]}/${templateName}${prefix}${item}${assetExt}`);
+                let effectiveTemplateName = templateName;
+                const sharedName = sharedAssetMap[templateName];
+                const isMainJobIcon = iconPaths[type] === 'mainjob_icons';
+
+                // メインジョブ以外で、かつ共有設定が存在する場合、アセット名を共有名に差し替える
+                if (sharedName && !isMainJobIcon) {
+                    effectiveTemplateName = sharedName;
+                }
+                
+                pathsToLoad.add(`./assets/${iconPaths[type]}/${effectiveTemplateName}${prefix}${item}${assetExt}`);
             }
         }
+
         const finalPaths = [...pathsToLoad].filter(p => !imageCache[p]);
         if (finalPaths.length === 0) {
             updateProgress(isInitialLoad ? { bar: progressBar, text: progressText } : { bar: null, text: miniProgressText }, 1, 1);
@@ -117,6 +139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     resolve(img);
                 };
                 img.onerror = () => {
+                    // 共有アセットの場合、読み込み失敗は警告に留める（例：Gothic.webpがない場合など）
                     console.warn(`画像の読み込みに失敗: ${path}`);
                     loadedCount++;
                     updateProgress(progressTarget, loadedCount, totalCount);
@@ -135,10 +158,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- 描画関数 ---
+    /**
+     * 画像のアスペクト比を維持し、Canvasを完全に覆うように描画します (cover)
+     * @param {CanvasRenderingContext2D} ctx - 描画コンテキスト
+     * @param {HTMLImageElement} img - 描画する画像
+     * @param {number} canvasWidth - Canvasの幅
+     * @param {number} canvasHeight - Canvasの高さ
+     */
+    function drawImageCover(ctx, img, canvasWidth, canvasHeight) {
+        if (!img) return;
+        const imgRatio = img.width / img.height;
+        const canvasRatio = canvasWidth / canvasHeight;
+        let sx, sy, sWidth, sHeight;
+
+        // 画像がCanvasより横長か、縦長かに基づいてクロップ範囲を計算
+        if (imgRatio > canvasRatio) { // 画像が横長の場合
+            sHeight = img.height;
+            sWidth = sHeight * canvasRatio;
+            sx = (img.width - sWidth) / 2;
+            sy = 0;
+        } else { // 画像が縦長または同じ比率の場合
+            sWidth = img.width;
+            sHeight = sWidth / canvasRatio;
+            sx = 0;
+            sy = (img.height - sHeight) / 2;
+        }
+        ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, canvasWidth, canvasHeight);
+    }
+
     function drawBackgroundLayer() {
         const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}.webp`];
         bgCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-        if (bgImg) bgCtx.drawImage(bgImg, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+        drawImageCover(bgCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
     }
 
     function drawCharacterLayer() {
@@ -183,35 +234,48 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { width, height } = canvasSize;
         const prefix = currentTemplatePrefix;
         const draw = (path) => { const img = imageCache[path]; if (img) context.drawImage(img, 0, 0, width, height); };
+        
+        const sharedName = sharedAssetMap[prefix];
+
+        const getEffectiveTemplate = (isMainJob = false) => {
+            if (sharedName && !isMainJob) {
+                return sharedName;
+            }
+            return prefix;
+        };
 
         if(category === 'all' || category === 'misc'){
-            if (raceSelect.value) draw(`./assets/race_icons/${prefix}_${raceSelect.value}.webp`);
-            if (dcSelect.value) draw(`./assets/dc_icons/${prefix}_${dcSelect.value}.webp`);
+            const miscTemplate = getEffectiveTemplate();
+            if (raceSelect.value) draw(`./assets/race_icons/${miscTemplate}_${raceSelect.value}.webp`);
+            if (dcSelect.value) draw(`./assets/dc_icons/${miscTemplate}_${dcSelect.value}.webp`);
             if (progressSelect.value) {
                 const stages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
                 const toLoad = progressSelect.value === 'all_clear' ? [...stages, 'all_clear'] : stages.slice(0, stages.indexOf(progressSelect.value) + 1);
-                toLoad.forEach(p => draw(`./assets/progress_icons/${prefix}_${p}.webp`));
+                toLoad.forEach(p => draw(`./assets/progress_icons/${miscTemplate}_${p}.webp`));
             }
-            styleButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/style_icons/${prefix}_${btn.dataset.value}.webp`); });
+            styleButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/style_icons/${miscTemplate}_${btn.dataset.value}.webp`); });
             const timePaths = new Set();
             const checkedTimes = Array.from(playtimeCheckboxes).filter(cb => cb.checked);
             checkedTimes.forEach(cb => {
                 const pathKey = cb.classList.contains('other') ? cb.value : `${cb.className}_${cb.value}`;
-                timePaths.add(`./assets/time_icons/${prefix}_${pathKey}.webp`);
+                timePaths.add(`./assets/time_icons/${miscTemplate}_${pathKey}.webp`);
             });
-            if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${prefix}_weekday.webp`);
-            if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${prefix}_holiday.webp`);
+            if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${miscTemplate}_weekday.webp`);
+            if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${miscTemplate}_holiday.webp`);
             timePaths.forEach(path => draw(path));
-            difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/difficulty_icons/${prefix}_${cb.value}.webp`); });
+            difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/difficulty_icons/${miscTemplate}_${cb.value}.webp`); });
         }
         if(category === 'all' || category === 'mainJob'){
+            // メインジョブは常に固有アセット
             if (mainJobSelect.value) draw(`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.webp`);
         }
         if(category === 'all' || category === 'combatSubJob'){
-            combatSubJobButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/subjob_icons/${prefix}_sub_${btn.dataset.value}.webp`); });
+            const subJobTemplate = getEffectiveTemplate();
+            combatSubJobButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/subjob_icons/${subJobTemplate}_sub_${btn.dataset.value}.webp`); });
         }
         if(category === 'all' || category === 'gatherCraSubJob'){
-            gatherCraSubJobButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/subjob_icons/${prefix}_sub_${btn.dataset.value}.webp`); });
+            const subJobTemplate = getEffectiveTemplate();
+            gatherCraSubJobButtons.forEach(btn => { if (btn.classList.contains('active')) draw(`./assets/subjob_icons/${subJobTemplate}_sub_${btn.dataset.value}.webp`); });
         }
     }
 
@@ -235,7 +299,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
-        const blackTextTemplates = ['Gothic_white', 'Wood'];
+        const blackTextTemplates = ['Gothic_white'];
         context.fillStyle = blackTextTemplates.includes(currentTemplatePrefix) ? '#000000' : '#ffffff';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
@@ -280,13 +344,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     templateSelect.addEventListener('change', async (e) => {
         const newTemplate = e.target.value;
         if (newTemplate === currentTemplatePrefix) return;
-        if (!loadedTemplates.has(newTemplate)) {
-            miniLoader.classList.remove('hidden');
-            updateProgress({ bar: null, text: miniProgressText }, 0, 1);
-            await loadAssetsForTemplate(newTemplate);
-            loadedTemplates.add(newTemplate);
-            miniLoader.classList.add('hidden');
-        }
+        
+        miniLoader.classList.remove('hidden');
+        updateProgress({ bar: null, text: miniProgressText }, 0, 1);
+        await loadAssetsForTemplate(newTemplate);
+        loadedTemplates.add(newTemplate);
+        miniLoader.classList.add('hidden');
+        
         currentTemplatePrefix = newTemplate;
         drawBackgroundLayer();
         await Promise.all([redrawMiscIconComposite(), redrawMainJobComposite(), redrawCombatSubJobComposite(), redrawGatherCraSubJobComposite()]);
@@ -390,9 +454,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             // 2. 背景テンプレートを高画質元データから描画
             const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
-            if (bgImg) {
-                finalCtx.drawImage(bgImg, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-            }
+            drawImageCover(finalCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
+
             // 3. アイコンとテキストを再描画
             await drawIcons(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT }, 'all');
             await drawNameText(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
