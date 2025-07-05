@@ -1,11 +1,11 @@
 /**
  * FFXIV Character Card Generator Script (Refactored Version)
- * - v19.8: Further reduced max font size for name text.
+ * - v20.0: Final version with debugging disabled.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // デバッグモードのフラグ。trueにすると名前描画エリアに赤枠が表示されます。
-    const DEBUG_MODE = true;
+    // [変更点] デバッグモードを無効化
+    const DEBUG_MODE = false;
 
     // --- DOM要素の取得 ---
     const appElement = document.getElementById('app');
@@ -281,7 +281,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             width: baseNameArea.width * scale, 
             height: baseNameArea.height * scale
         };
-        // [変更点] 最大フォントサイズを 36 から 26 に変更
         const MAX_FONT_SIZE = 26 * scale;
         
         if (DEBUG_MODE) {
