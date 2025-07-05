@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (Final Version)
- * - v13: Aspect ratio fix and asset sharing logic update
+ * - v14: Fix icon alignment by using consistent scaling logic.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -13,9 +13,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const miniProgressText = document.getElementById('mini-progress-text');
 
     // 表示用Canvasレイヤー
-    const charCanvas = document.getElementById('character-layer'); // Note: ID might be different in HTML
+    const charCanvas = document.getElementById('character-layer');
     const charCtx = charCanvas.getContext('2d');
-    const bgCanvas = document.getElementById('background-layer'); // Note: ID might be different in HTML
+    const bgCanvas = document.getElementById('background-layer');
     const bgCtx = bgCanvas.getContext('2d');
     const uiCanvas = document.getElementById('ui-layer');
     const uiCtx = uiCanvas.getContext('2d');
@@ -233,7 +233,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function drawIcons(context, canvasSize, category = 'all') {
         const { width, height } = canvasSize;
         const prefix = currentTemplatePrefix;
-        const draw = (path) => { const img = imageCache[path]; if (img) context.drawImage(img, 0, 0, width, height); };
+        
+        // ★★★ 修正点 ★★★
+        // アイコン描画にもアスペクト比を維持するdrawImageCoverを使用する
+        const draw = (path) => { 
+            const img = imageCache[path]; 
+            if (img) drawImageCover(context, img, width, height); 
+        };
         
         const sharedName = sharedAssetMap[prefix];
 
