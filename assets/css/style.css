@@ -221,3 +221,33 @@ input[type="checkbox"]:checked + span::after { content: '✓'; color: white; pos
     .content-wrapper { padding: 1rem; }
     .grid-col-2, .grid-col-3, .grid-col-2-gap { grid-template-columns: 1fr; }
 }
+
+/* === PC表示時の2カラムレイアウト調整 === */
+@media (min-width: 768px) {
+  .content-wrapper {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 2rem;
+    max-width: 1280px;
+  }
+
+  .preview-panel {
+    flex: 0 0 60%;
+    position: sticky;
+    top: 85px;
+    z-index: 1;
+  }
+
+  .controls-panel {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(100vh - 120px); /* ヘッダーと余白を考慮して調整 */
+    padding-right: 1rem;
+  }
+
+  /* TOPボタンをPC時にも見やすく調整 */
+  #toTopBtn {
+    right: 1.5rem;
+    bottom: 1.5rem;
+  }
+}
