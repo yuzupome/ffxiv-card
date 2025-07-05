@@ -42,14 +42,14 @@ body {
     flex-direction: column;
     gap: 2rem;
     padding: 2rem;
-    max-width: 1200px; 
+    /* [変更点] PCで見た際の最大幅を680pxに制限 */
+    max-width: 680px; 
     margin: 0 auto;
     flex-grow: 1;
 }
 .preview-panel {
-    /* [変更点] 画面上部に固定するための sticky 指定を再追加 */
     position: sticky;
-    top: 85px; /* ヘッダーの高さ分 */
+    top: 85px;
     z-index: 1;
     width: 100%;
 }
