@@ -1,9 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (Refactored Version)
- * - v17.1: Adjusted nameArea values as per user request.
- * - Image layer is now at the bottom.
- * - Added debug mode for name area adjustment.
- * - Patched asset path for a specific template.
+ * - v18: Implemented auto sub-job selection and new main job icon logic.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -62,16 +59,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- テンプレート設定の一元管理 ---
     const templateConfig = {
-        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
-        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
-        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
-        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
-        'Neon_duotone':   { textColor: '#ffffff', assetName: 'Neon_duotonek', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
-        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
-        'Water':          { textColor: '#ffffff', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
-        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
-        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
-        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 23, y: 93, width: 220, height: 40 } }
+        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
+        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 23, y: 83, width: 220, height: 40 } },
+        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_duotone':   { textColor: '#ffffff', assetName: 'Neon_duotonek', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
+        'Water':          { textColor: '#ffffff', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
+        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 23, y: 83, width: 220, height: 40 } },
+        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Royal' },
+        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Royal' }
     };
 
     // --- アセット定義 ---
@@ -111,10 +108,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (const type in iconTypes) {
             for (const item of iconTypes[type]) {
                 const prefix = iconPrefixes[type] || '_';
-                const isMainJobIcon = type === 'mainJobs';
                 const currentConfig = templateConfig[templateName] || {};
-                const effectiveTemplateName = (!isMainJobIcon && currentConfig.sharedAsset) ? currentConfig.sharedAsset : (currentConfig.assetName || templateName);
-                
+                let effectiveTemplateName;
+
+                if (type === 'mainJobs') {
+                    effectiveTemplateName = currentConfig.mainJobAsset || currentConfig.assetName || templateName;
+                } else {
+                    effectiveTemplateName = currentConfig.sharedAsset ? currentConfig.sharedAsset : (currentConfig.assetName || templateName);
+                }
                 pathsToLoad.add(`./assets/${iconPaths[type]}/${effectiveTemplateName}${prefix}${item}${assetExt}`);
             }
         }
@@ -219,10 +220,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pathMap = { race: 'race_icons', dc: 'dc_icons', progress: 'progress_icons', style: 'style_icons', time: 'time_icons', difficulty: 'difficulty_icons', mainJob: 'mainjob_icons', subJob: 'subjob_icons' };
         const prefix = type === 'mainJob' ? '_main_' : (type === 'subJob' ? '_sub_' : '_');
         const config = templateConfig[currentTemplatePrefix] || {};
-        const isShared = type !== 'mainJob' && config.sharedAsset;
-        const effectiveTemplate = isShared ? config.sharedAsset : (config.assetName || currentTemplatePrefix);
-        const templateForMainJob = config.assetName || currentTemplatePrefix;
-        const finalTemplate = type === 'mainJob' ? templateForMainJob : effectiveTemplate;
+        let finalTemplate;
+
+        if (type === 'mainJob') {
+            finalTemplate = config.mainJobAsset || config.assetName || currentTemplatePrefix;
+        } else {
+            const isShared = config.sharedAsset;
+            finalTemplate = isShared ? config.sharedAsset : (config.assetName || currentTemplatePrefix);
+        }
 
         return `./assets/${pathMap[type]}/${finalTemplate}${prefix}${item}.webp`;
     }
@@ -342,8 +347,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    mainJobSelect.addEventListener('input', debouncedRedrawMainJob);
-    subJobButtons.forEach(btn => btn.addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); debouncedRedrawSubJob(); }));
+    mainJobSelect.addEventListener('input', (e) => {
+        const selectedJobValue = e.target.value;
+
+        if (selectedJobValue) {
+            const subJobButton = Array.from(subJobButtons).find(btn => btn.dataset.value === selectedJobValue);
+            if (subJobButton) {
+                subJobButton.classList.add('active');
+            }
+        }
+
+        debouncedRedrawMainJob();
+        debouncedRedrawSubJob();
+    });
+
+    subJobButtons.forEach(btn => btn.addEventListener('click', (e) => { 
+        e.currentTarget.classList.toggle('active'); 
+        debouncedRedrawSubJob(); 
+    }));
 
     templateSelect.addEventListener('change', async (e) => {
         const newTemplate = e.target.value;
