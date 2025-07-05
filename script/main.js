@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (Refactored Version)
- * - v19: Adjusted canvas aspect ratio and size to match source images.
+ * - v19.1: Adjusted nameArea values as per user request.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -49,7 +49,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const closeModal = document.getElementById('closeModal');
     
     // --- 定数定義 ---
-    // [変更点] アスペクト比を5:3に、基準幅を1000pxに変更
     const EDIT_WIDTH = 1000;
     const EDIT_HEIGHT = 600;
     
@@ -59,18 +58,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // --- テンプレート設定の一元管理 ---
-    // [注意] Canvasサイズ変更に伴い、nameAreaの値は再調整が必要です
     const templateConfig = {
-        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
-        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 23, y: 83, width: 220, height: 40 } },
-        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
-        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
-        'Neon_duotone':   { textColor: '#ffffff', assetName: 'Neon_duotonek', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
-        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
-        'Water':          { textColor: '#ffffff', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
-        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 23, y: 83, width: 220, height: 40 } },
-        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Royal' },
-        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Royal' }
+        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Common' },
+        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 28, y: 95, width: 200, height: 40 } },
+        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_duotone':   { textColor: '#ffffff', assetName: 'Neon_duotonek', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Common' },
+        'Water':          { textColor: '#ffffff', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Common' },
+        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 28, y: 95, width: 200, height: 40 } },
+        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Royal' },
+        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Royal' }
     };
 
     // --- アセット定義 ---
@@ -168,7 +166,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         let sx, sy, sWidth, sHeight;
 
         if (Math.abs(imgRatio - canvasRatio) < 0.01) {
-            // アスペクト比がほぼ同じなら、そのまま描画
             sx = 0; sy = 0; sWidth = img.width; sHeight = img.height;
         } else if (imgRatio > canvasRatio) {
             sHeight = img.height; sWidth = sHeight * canvasRatio;
@@ -277,7 +274,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function drawNameText(context, canvasSize) {
         const name = nameInput.value;
         const config = templateConfig[currentTemplatePrefix] || {};
-        const defaultNameArea = { x: 23, y: 83, width: 220, height: 40 };
+        const defaultNameArea = { x: 28, y: 95, width: 200, height: 40 };
         const baseNameArea = config.nameArea || defaultNameArea;
 
         if (!name && !DEBUG_MODE) return;
