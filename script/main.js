@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (Refactored Version)
- * - v19.6: Modified asset source for Gothic_white template.
+ * - v19.7: Reduced max font size for name text.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- テンプレート設定の一元管理 ---
     const templateConfig = {
         'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        // [変更点] sharedAsset を削除し、Gothic_white 独自のアイコンを読み込むように修正
         'Gothic_white':   { textColor: '#000000', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
         'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
@@ -282,7 +281,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             width: baseNameArea.width * scale, 
             height: baseNameArea.height * scale
         };
-        const MAX_FONT_SIZE = 40 * scale;
+        // [変更点] 最大フォントサイズを 40 から 36 に変更
+        const MAX_FONT_SIZE = 36 * scale;
         
         if (DEBUG_MODE) {
             const lineWidth = 2 * scale;
