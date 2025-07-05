@@ -42,20 +42,20 @@ body {
     flex-direction: column;
     gap: 2rem;
     padding: 2rem;
-    /* [変更点] PCで見た際の最大幅を1200pxに制限 */
     max-width: 1200px; 
     margin: 0 auto;
     flex-grow: 1;
 }
 .preview-panel {
+    /* [変更点] 画面上部に固定するための sticky 指定を再追加 */
+    position: sticky;
+    top: 85px; /* ヘッダーの高さ分 */
+    z-index: 1;
     width: 100%;
 }
 .controls-panel {
     width: 100%;
 }
-
-/* [変更点] PC専用の2カラムレイアウト指定を削除 */
-/* @media (min-width: 1024px) { ... } のブロックを削除しました */
 
 /* Canvas レイヤー */
 .canvas-container { width: 100%; margin: 0 auto; }
