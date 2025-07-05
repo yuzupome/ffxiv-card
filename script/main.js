@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (Refactored Version)
- * - v18: Implemented auto sub-job selection and new main job icon logic.
+ * - v19: Adjusted canvas aspect ratio and size to match source images.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -49,8 +49,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const closeModal = document.getElementById('closeModal');
     
     // --- 定数定義 ---
-    const EDIT_WIDTH = 1250;
-    const EDIT_HEIGHT = 703;
+    // [変更点] アスペクト比を5:3に、基準幅を1000pxに変更
+    const EDIT_WIDTH = 1000;
+    const EDIT_HEIGHT = 600;
     
     [bgCanvas, charCanvas, uiCanvas, miscIconCompositeCanvas, mainJobCompositeCanvas, subJobCompositeCanvas].forEach(c => {
         c.width = EDIT_WIDTH;
@@ -58,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // --- テンプレート設定の一元管理 ---
+    // [注意] Canvasサイズ変更に伴い、nameAreaの値は再調整が必要です
     const templateConfig = {
         'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 23, y: 83, width: 220, height: 40 }, mainJobAsset: 'Common' },
         'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 23, y: 83, width: 220, height: 40 } },
@@ -165,7 +167,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const canvasRatio = canvasWidth / canvasHeight;
         let sx, sy, sWidth, sHeight;
 
-        if (imgRatio > canvasRatio) {
+        if (Math.abs(imgRatio - canvasRatio) < 0.01) {
+            // アスペクト比がほぼ同じなら、そのまま描画
+            sx = 0; sy = 0; sWidth = img.width; sHeight = img.height;
+        } else if (imgRatio > canvasRatio) {
             sHeight = img.height; sWidth = sHeight * canvasRatio;
             sx = (img.width - sWidth) / 2; sy = 0;
         } else {
@@ -272,7 +277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function drawNameText(context, canvasSize) {
         const name = nameInput.value;
         const config = templateConfig[currentTemplatePrefix] || {};
-        const defaultNameArea = { x: 33, y: 90, width: 222, height: 40 };
+        const defaultNameArea = { x: 23, y: 83, width: 220, height: 40 };
         const baseNameArea = config.nameArea || defaultNameArea;
 
         if (!name && !DEBUG_MODE) return;
