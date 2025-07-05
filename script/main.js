@@ -1,13 +1,13 @@
 /**
  * FFXIV Character Card Generator Script (Refactored Version)
- * - v17: Implemented user requests.
+ * - v17.1: Adjusted nameArea values as per user request.
  * - Image layer is now at the bottom.
  * - Added debug mode for name area adjustment.
  * - Patched asset path for a specific template.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // [変更点] デバッグモードのフラグ。trueにすると名前描画エリアに赤枠が表示されます。
+    // デバッグモードのフラグ。trueにすると名前描画エリアに赤枠が表示されます。
     const DEBUG_MODE = true;
 
     // --- DOM要素の取得 ---
@@ -18,10 +18,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const miniLoader = document.getElementById('mini-loader');
     const miniProgressText = document.getElementById('mini-progress-text');
 
-    // [変更点] アップロード画像を最背面に配置するため、Canvasの役割を入れ替え
-    const charCanvas = document.getElementById('background-layer'); // 最背面のCanvasをキャラクター用に
+    const charCanvas = document.getElementById('background-layer');
     const charCtx = charCanvas.getContext('2d');
-    const bgCanvas = document.getElementById('character-layer'); // 中間のCanvasをテンプレート背景用に
+    const bgCanvas = document.getElementById('character-layer');
     const bgCtx = bgCanvas.getContext('2d');
     const uiCanvas = document.getElementById('ui-layer');
     const uiCtx = uiCanvas.getContext('2d');
@@ -62,19 +61,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // --- テンプレート設定の一元管理 ---
-    // [変更点] 名前描画エリアの座標(nameArea)を追加。調整はここで行います。
     const templateConfig = {
-        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
-        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
-        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
-        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
-        // [変更点] Neon_duotoneが'Neon_duotonek'という名前のアセットを読み込むように設定
-        'Neon_duotone':   { textColor: '#ffffff', assetName: 'Neon_duotonek', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
-        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
-        'Water':          { textColor: '#ffffff', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
-        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
-        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
-        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 33, y: 90, width: 222, height: 40 } }
+        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
+        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
+        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
+        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
+        'Neon_duotone':   { textColor: '#ffffff', assetName: 'Neon_duotonek', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
+        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
+        'Water':          { textColor: '#ffffff', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
+        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
+        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 23, y: 93, width: 220, height: 40 } },
+        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 23, y: 93, width: 220, height: 40 } }
     };
 
     // --- アセット定義 ---
@@ -285,9 +282,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const MAX_FONT_SIZE = 40 * scale;
         
         if (DEBUG_MODE) {
+            const lineWidth = 2 * scale;
+            const inset = lineWidth / 2;
             context.strokeStyle = 'red';
-            context.lineWidth = 2 * scale;
-            context.strokeRect(nameArea.x, nameArea.y, nameArea.width, nameArea.height);
+            context.lineWidth = lineWidth;
+            context.strokeRect(
+                nameArea.x + inset,
+                nameArea.y + inset,
+                nameArea.width - lineWidth,
+                nameArea.height - lineWidth
+            );
         }
         
         if (!name) return;
@@ -478,18 +482,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             finalCtx.imageSmoothingEnabled = true;
             finalCtx.imageSmoothingQuality = 'high';
 
-            // 1. キャラクター画像を描画
             if (imageTransform.img) {
                 finalCtx.drawImage(charCanvas, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
             }
 
-            // 2. 高画質背景を描画
             const config = templateConfig[currentTemplatePrefix] || {};
             const baseAssetName = config.assetName || currentTemplatePrefix;
             const bgImg = imageCache[`./assets/backgrounds/${baseAssetName}_cp.webp`];
             drawImageCover(finalCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
 
-            // 3. 全てのアイコンとテキストを再描画
             await drawMiscIcons(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
             await drawSubJobIcons(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
             await drawMainJobIcon(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
