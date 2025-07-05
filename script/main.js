@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (Refactored Version)
- * - v19.5: Adjusted nameArea values as per user request.
+ * - v19.6: Modified asset source for Gothic_white template.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -60,7 +60,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- テンプレート設定の一元管理 ---
     const templateConfig = {
         'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        // [変更点] sharedAsset を削除し、Gothic_white 独自のアイコンを読み込むように修正
+        'Gothic_white':   { textColor: '#000000', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
         'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
         'Neon_duotonek':  { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
