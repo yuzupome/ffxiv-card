@@ -1,216 +1,566 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FFXIV Character Card Generator</title>
-  <link rel="icon" type="image/png" href="./assets/favicon.png">
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Orbitron:wght@600&family=DotGothic16&family=Exo+2&family=Share+Tech&family=Permanent+Marker&family=Hachi+Maru+Pop&family=Dancing+Script&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="./assets/css/style.css" />
-</head>
-<body>
+/**
+ * FFXIV Character Card Generator Script (Refactored Version)
+ * - v20.0: Final version with debugging disabled.
+ */
+document.addEventListener('DOMContentLoaded', async () => {
 
-  <div id="loader">
-    <img src="./assets/favicon.png" alt="loading..." class="spinner-icon">
-    <p class="loading-text">Now Loading...</p>
-    <div class="progress-bar-container">
-        <div id="progressBar"></div>
-    </div>
-    <p id="progressText" class="loading-text">0%</p>
-  </div>
+    // [変更点] デバッグモードを無効化
+    const DEBUG_MODE = false;
 
-  <div id="app" class="hidden">
-    <header class="site-header">
-        <img src="./assets/favicon.png" alt="logo" class="header-logo">
-        <h1 class="header-title">FFXIV Character Card Generator</h1>
-    </header>
+    // --- DOM要素の取得 ---
+    const appElement = document.getElementById('app');
+    const loaderElement = document.getElementById('loader');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const miniLoader = document.getElementById('mini-loader');
+    const miniProgressText = document.getElementById('mini-progress-text');
 
-    <div class="content-wrapper">
-        <main class="preview-panel">
-            <div class="canvas-container">
-                <div class="canvas-wrapper">
-                    <canvas id="background-layer"></canvas>
-                    <canvas id="character-layer"></canvas>
-                    <canvas id="ui-layer"></canvas>
-                    
-                    <div id="mini-loader" class="mini-loader hidden">
-                        <img src="./assets/favicon.png" alt="loading..." class="spinner-icon">
-                        <p id="mini-progress-text" class="loading-text">0%</p>
-                    </div>
-                </div>
-            </div>
-        </main>
+    const charCanvas = document.getElementById('background-layer');
+    const charCtx = charCanvas.getContext('2d');
+    const bgCanvas = document.getElementById('character-layer');
+    const bgCtx = bgCanvas.getContext('2d');
+    const uiCanvas = document.getElementById('ui-layer');
+    const uiCtx = uiCanvas.getContext('2d');
 
-        <aside class="controls-panel">
-            <div id="controls">
-                <div class="control-section">
-                    <h2 class="section-title">Card Templates</h2>
-                    <select id="templateSelect">
-                        <option value="Gothic_black">🖤 Gothic Black</option>
-                        <option value="Gothic_white">🤍 Gothic White</option>
-                        <option value="Gothic_pink">🩷 Gothic Pink</option>
-                        <option value="Neon_mono">🎩 Neon Mono</option>
-                        <option value="Neon_duotonek">🍋 Neon Lime</option>
-                        <option value="Neon_meltdown">🦄 Neon Melt</option>
-                        <option value="Water">🫧 Aqua Flow</option>
-                        <option value="Lovely_heart">💋 Lovely Heart</option>
-                        <option value="Royal_garnet">🥀 Royal Garnet</option>
-                        <option value="Royal_sapphire">💎 Royal Sapphire</option>
-                    </select>
-                </div>
+    const miscIconCompositeCanvas = document.createElement('canvas');
+    const miscIconCompositeCtx = miscIconCompositeCanvas.getContext('2d');
+    const mainJobCompositeCanvas = document.createElement('canvas');
+    const mainJobCompositeCtx = mainJobCompositeCanvas.getContext('2d');
+    const subJobCompositeCanvas = document.createElement('canvas');
+    const subJobCompositeCtx = subJobCompositeCanvas.getContext('2d');
 
-                <div id="top-controls">
-                    <label for="uploadImage" class="file-upload-label">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-                        <span>画像をアップロード</span>
-                    </label>
-                    <input type="file" id="uploadImage" accept="image/*" class="file-upload-input">
-                    <p id="fileName" class="file-name-display"></p>
-                    
-                    <div class="usage-notes">
-                        <p class="notes-text">⚠️ 著作権表記は画像出力時に自動で付与されます</p>
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h2 class="section-title">Profile</h2>
-                    <div class="grid-col-2">
-                        <input type="text" id="nameInput" placeholder="表示したいキャラ名を入力" />
-                        <select id="fontSelect" required>
-                            <option value="" disabled selected>キャラ名のフォントを選ぶ</option>
-                            <option value="'Orbitron', sans-serif">Orbitron</option>
-                            <option value="'Exo 2', sans-serif">Exo 2</option>
-                            <option value="'Share Tech', sans-serif">Share Tech</option>
-                            <option value="'Permanent Marker', cursive">Permanent Marker</option>
-                            <option value="'Hachi Maru Pop', cursive">はちまるポップ</option>
-                            <option value="'DotGothic16', sans-serif">ドットゴシック16</option>
-                            <option value="'Dancing Script', cursive">Dancing Script</option>
-                        </select>
-                    </div>
-                    <div class="grid-col-3" style="margin-top: 1rem;">
-                        <select id="dcSelect" required>
-                            <option value="" disabled selected>DC</option>
-                            <option value="mana">Mana</option> <option value="gaia">Gaia</option> <option value="elemental">Elemental</option> <option value="meteor">Meteor</option>
-                        </select>
-                        <select id="raceSelect" required>
-                            <option value="" disabled selected>種族</option>
-                            <option value="au_ra">アウラ</option>
-                            <option value="hrothgar">ロスガル</option>
-                            <option value="viera">ヴィエラ</option>
-                            <option value="elezen">エレゼン</option>
-                            <option value="miqote">ミコッテ</option>
-                            <option value="hyur">ヒューラン</option>
-                            <option value="roegadyn">ルガディン</option>
-                            <option value="lalafell">ララフェル</option>
-                        </select>
-                        <select id="progressSelect" required>
-                            <option value="" disabled selected>進行度</option>
-                            <option value="shinsei">新生</option> <option value="souten">蒼天</option> <option value="guren">紅蓮</option> <option value="shikkoku">漆黒</option> <option value="gyougetsu">暁月</option> <option value="ougon">黄金</option> <option value="all_clear">ALL CLEAR</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h2 class="section-title">Play Style</h2>
-                    <div id="styleButtons" class="button-grid">
-                        <button data-value="leveling">レベリング</button>
-                        <button data-value="raid">レイド</button>
-                        <button data-value="pvp">PvP</button>
-                        <button data-value="dd">DD</button>
-                        <button data-value="hunt">モブハン</button>
-                        <button data-value="map">地図</button>
-                        <button data-value="gatherer">ギャザラー</button>
-                        <button data-value="crafter">クラフター</button>
-                        <button data-value="gil">金策</button>
-                        <button data-value="perform">演奏</button>
-                        <button data-value="streaming">配信</button>
-                        <button data-value="glam">ミラプリ</button>
-                        <button data-value="studio">スタジオ制作</button>
-                        <button data-value="housing">ハウジング</button>
-                        <button data-value="screenshot">SS撮影</button>
-                        <button data-value="drawing">お絵描き</button>
-                        <button data-value="roleplay">ロールプレイ</button>
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h2 class="section-title">Play Time</h2>
-                    <div id="playtimeOptions" class="checkbox-group">
-                        <div class="time-section">
-                            <span>平日</span>
-                            <div class="options-row">
-                                <label><input type="checkbox" class="weekday" value="morning" /><span></span>朝</label> <label><input type="checkbox" class="weekday" value="daytime" /><span></span>昼</label> <label><input type="checkbox" class="weekday" value="night" /><span></span>夜</label> <label><input type="checkbox" class="weekday" value="midnight" /><span></span>深夜</label>
-                            </div>
-                        </div>
-                        <div class="time-section">
-                            <span>休日</span>
-                            <div class="options-row">
-                                <label><input type="checkbox" class="holiday" value="morning" /><span></span>朝</label> <label><input type="checkbox" class="holiday" value="daytime" /><span></span>昼</label> <label><input type="checkbox" class="holiday" value="night" /><span></span>夜</label> <label><input type="checkbox" class="holiday" value="midnight" /><span></span>深夜</label>
-                            </div>
-                        </div>
-                        <div class="time-section">
-                            <span>その他</span>
-                            <div class="options-row">
-                                <label><input type="checkbox" class="other" value="random" /><span></span>不定期</label> <label><input type="checkbox" class="other" value="fulltime" /><span></span>エオ在住</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h2 class="section-title">Difficulty</h2>
-                    <div id="difficultyOptions" class="checkbox-group-single">
-                        <label><input type="checkbox" class="difficulty" value="extreme" /><span></span>極</label> <label><input type="checkbox" class="difficulty" value="unreal" /><span></span>幻</label> <label><input type="checkbox" class="difficulty" value="savage" /><span></span>零式</label> <label><input type="checkbox" class="difficulty" value="ultimate" /><span></span>絶</label>
-                    </div>
-                </div>
-            
-                <div class="control-section">
-                    <h2 class="section-title">Main Job</h2>
-                    <select id="mainjobSelect" required>
-                        <option value="" disabled selected>メインジョブを選ぶ</option>
-                        <option value="paladin">ナイト</option> <option value="warrior">戦士</option> <option value="darkknight">暗黒騎士</option> <option value="gunbreaker">ガンブレイカー</option> <option value="whitemage">白魔導士</option> <option value="scholar">学者</option> <option value="astrologian">占星術師</option> <option value="sage">賢者</option> <option value="monk">モンク</option> <option value="dragoon">竜騎士</option> <option value="ninja">忍者</option> <option value="samurai">侍</option> <option value="reaper">リーパー</option> <option value="viper">ヴァイパー</option> <option value="bard">吟遊詩人</option> <option value="machinist">機工士</option> <option value="dancer">踊り子</option> <option value="blackmage">黒魔導士</option> <option value="summoner">召喚士</option> <option value="redmage">赤魔導士</option> <option value="pictomancer">ピクトマンサー</option> <option value="bluemage">青魔導士</option>
-                    </select>
-                    <div id="subjobSection">
-                        <h3 class="section-title-nested">Sub Job</h3>
-                        <div class="button-grid">
-                            <button data-value="paladin">ナイト</button> <button data-value="warrior">戦士</button> <button data-value="darkknight">暗黒騎士</button> <button data-value="gunbreaker">ガンブレイカー</button> <button data-value="whitemage">白魔導士</button> <button data-value="scholar">学者</button> <button data-value="astrologian">占星術師</button> <button data-value="sage">賢者</button> <button data-value="monk">モンク</option> <button data-value="dragoon">竜騎士</button> <button data-value="ninja">忍者</button> <button data-value="samurai">侍</button> <button data-value="reaper">リーパー</button> <button data-value="viper">ヴァイパー</button> <button data-value="bard">吟遊詩人</button> <button data-value="machinist">機工士</button> <button data-value="dancer">踊り子</option> <button data-value="blackmage">黒魔導士</button> <button data-value="summoner">召喚士</button> <button data-value="redmage">赤魔導士</option> <option value="pictomancer">ピクトマンサー</option> <button data-value="bluemage">青魔導士</button>
-                            <div class="grid-break"></div>
-                            <button data-value="carpenter">木工師</button> <button data-value="blacksmith">鍛冶師</button> <button data-value="armorer">甲冑師</button> <button data-value="goldsmith">彫金師</button> <button data-value="leatherworker">革細工師</button> <button data-value="weaver">裁縫師</button> <button data-value="alchemist">錬金術師</button> <button data-value="culinarian">調理師</button> <button data-value="miner">採掘師</button> <button data-value="botanist">園芸師</button> <button data-value="fisher">漁師</button>
-                        </div>
-                    </div>
-                </div>
-
-                <button id="downloadBtn" class="generate-btn">
-                    <img src="./assets/favicon.png" alt="generate card">
-                    <span>この内容で作る？🐕</span>
-                </button>
-            </div>
-        </aside>
-    </div>
-
-    <footer class="site-footer">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
-        <a href="https://x.com/yypome" target="_blank" rel="noopener noreferrer">design @yypome</a>
-    </footer>
-
-    <button id="toTopBtn" title="トップに戻る">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-    </button>
+    const nameInput = document.getElementById('nameInput');
+    const fontSelect = document.getElementById('fontSelect');
+    const uploadImageInput = document.getElementById('uploadImage');
+    const fileNameDisplay = document.getElementById('fileName');
+    const templateSelect = document.getElementById('templateSelect');
+    const raceSelect = document.getElementById('raceSelect');
+    const dcSelect = document.getElementById('dcSelect');
+    const progressSelect = document.getElementById('progressSelect');
+    const styleButtons = document.querySelectorAll('#styleButtons button');
+    const playtimeCheckboxes = document.querySelectorAll('#playtimeOptions input[type="checkbox"]');
+    const difficultyCheckboxes = document.querySelectorAll('#difficultyOptions input[type="checkbox"]');
+    const mainJobSelect = document.getElementById('mainjobSelect');
+    const subJobButtons = document.querySelectorAll('#subjobSection .button-grid button');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const toTopBtn = document.getElementById('toTopBtn');
+    const saveModal = document.getElementById('saveModal');
+    const modalImage = document.getElementById('modalImage');
+    const closeModal = document.getElementById('closeModal');
     
-    <div id="saveModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <button id="closeModal" class="close-button">&times;</button>
-            <h3>画像の保存方法</h3>
-            <p>画像を長押しして「"写真"に追加」を選択してください。</p>
-            <img id="modalImage" src="" alt="生成されたカード">
-        </div>
-    </div>
+    // --- 定数定義 ---
+    const EDIT_WIDTH = 1000;
+    const EDIT_HEIGHT = 600;
+    
+    [bgCanvas, charCanvas, uiCanvas, miscIconCompositeCanvas, mainJobCompositeCanvas, subJobCompositeCanvas].forEach(c => {
+        c.width = EDIT_WIDTH;
+        c.height = EDIT_HEIGHT;
+    });
 
-  </div>
-  <script src="./script/main.js"></script>
-</body>
-</html>
+    // --- テンプレート設定の一元管理 ---
+    const templateConfig = {
+        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Gothic_white':   { textColor: '#000000', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_duotonek':  { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Water':          { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Royal' },
+        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Royal' }
+    };
+
+    // --- アセット定義 ---
+    const races = ['au_ra', 'viera', 'roegadyn', 'miqote', 'hyur', 'elezen', 'lalafell', 'hrothgar'];
+    const dcs = ['mana', 'gaia', 'elemental', 'meteor'];
+    const progresses = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'];
+    const styles = Array.from(styleButtons).map(b => b.dataset.value);
+    const playtimes = ['weekday_morning', 'weekday_daytime', 'weekday_night', 'weekday_midnight', 'holiday_morning', 'holiday_daytime', 'holiday_night', 'holiday_midnight', 'random', 'fulltime'];
+    const difficulties = ['extreme', 'unreal', 'savage', 'ultimate'];
+    const mainJobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
+    const allSubJobs = Array.from(subJobButtons).map(btn => btn.dataset.value);
+
+    // --- 状態管理 ---
+    const imageCache = {};
+    let currentTemplatePrefix = 'Gothic_black';
+    let imageTransform = { img: null, x: EDIT_WIDTH / 2, y: EDIT_HEIGHT / 2, scale: 1.0, isDragging: false, lastX: 0, lastY: 0, lastTouchDistance: 0 };
+    let isDownloading = false;
+
+    // --- アセット読み込み処理 ---
+    async function loadAssetsForTemplate(templateName, isInitialLoad = false) {
+        const assetExt = '.webp';
+        const pathsToLoad = new Set();
+        
+        pathsToLoad.add(`./assets/backgrounds/${templateName}${assetExt}`);
+        pathsToLoad.add(`./assets/backgrounds/${templateName}_cp${assetExt}`);
+        
+        const iconTypes = { races, dcs, progresses, styles, playtimes, difficulties, mainJobs, allSubJobs };
+        const iconPaths = {
+            races: 'race_icons', dcs: 'dc_icons', progresses: 'progress_icons', styles: 'style_icons',
+            playtimes: 'time_icons', difficulties: 'difficulty_icons',
+            mainJobs: 'mainjob_icons', allSubJobs: 'subjob_icons'
+        };
+        const iconPrefixes = { mainJobs: '_main_', allSubJobs: '_sub_' };
+
+        for (const type in iconTypes) {
+            for (const item of iconTypes[type]) {
+                const prefix = iconPrefixes[type] || '_';
+                const currentConfig = templateConfig[templateName] || {};
+                let effectiveTemplateName;
+
+                if (type === 'mainJobs') {
+                    effectiveTemplateName = currentConfig.mainJobAsset || templateName;
+                } else {
+                    effectiveTemplateName = currentConfig.sharedAsset || templateName;
+                }
+                pathsToLoad.add(`./assets/${iconPaths[type]}/${effectiveTemplateName}${prefix}${item}${assetExt}`);
+            }
+        }
+
+        const finalPaths = [...pathsToLoad].filter(p => !imageCache[p]);
+        if (finalPaths.length === 0) {
+            updateProgress(isInitialLoad ? { bar: progressBar, text: progressText } : { bar: null, text: miniProgressText }, 1, 1);
+            return Promise.resolve();
+        }
+
+        let loadedCount = 0;
+        const totalCount = finalPaths.length;
+        const progressTarget = isInitialLoad ? { bar: progressBar, text: progressText } : { bar: null, text: miniProgressText };
+        
+        const promises = finalPaths.map(path => 
+            new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => {
+                    imageCache[path] = img;
+                    loadedCount++;
+                    updateProgress(progressTarget, loadedCount, totalCount);
+                    resolve(img);
+                };
+                img.onerror = () => {
+                    console.warn(`画像の読み込みに失敗: ${path}`);
+                    loadedCount++;
+                    updateProgress(progressTarget, loadedCount, totalCount);
+                    resolve(null);
+                };
+                img.src = path;
+            })
+        );
+        return Promise.all(promises);
+    }
+
+    function updateProgress(target, loaded, total) {
+        const percent = total > 0 ? Math.round((loaded / total) * 100) : 100;
+        if (target.bar) target.bar.style.width = `${percent}%`;
+        target.text.textContent = `${percent}%`;
+    }
+
+    // --- 描画関数 ---
+    function drawImageCover(ctx, img, canvasWidth, canvasHeight) {
+        if (!img) return;
+        const imgRatio = img.width / img.height;
+        const canvasRatio = canvasWidth / canvasHeight;
+        let sx, sy, sWidth, sHeight;
+
+        if (Math.abs(imgRatio - canvasRatio) < 0.01) {
+            sx = 0; sy = 0; sWidth = img.width; sHeight = img.height;
+        } else if (imgRatio > canvasRatio) {
+            sHeight = img.height; sWidth = sHeight * canvasRatio;
+            sx = (img.width - sWidth) / 2; sy = 0;
+        } else {
+            sWidth = img.width; sHeight = sWidth / canvasRatio;
+            sx = 0; sy = (img.height - sHeight) / 2;
+        }
+        ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, canvasWidth, canvasHeight);
+    }
+
+    function drawBackgroundLayer() {
+        const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}.webp`];
+        bgCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+        drawImageCover(bgCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
+    }
+
+    function drawCharacterLayer() {
+        charCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+        if (imageTransform.img) {
+            charCtx.save();
+            charCtx.translate(imageTransform.x, imageTransform.y);
+            charCtx.scale(imageTransform.scale, imageTransform.scale);
+            charCtx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
+            charCtx.restore();
+        }
+    }
+
+    async function redrawMiscIconComposite() {
+        miscIconCompositeCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+        await drawMiscIcons(miscIconCompositeCtx, {width: EDIT_WIDTH, height: EDIT_HEIGHT});
+    }
+    async function redrawMainJobComposite() {
+        mainJobCompositeCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+        await drawMainJobIcon(mainJobCompositeCtx, {width: EDIT_WIDTH, height: EDIT_HEIGHT});
+    }
+    async function redrawSubJobComposite() {
+        subJobCompositeCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+        await drawSubJobIcons(subJobCompositeCtx, {width: EDIT_WIDTH, height: EDIT_HEIGHT});
+    }
+
+    async function drawUiLayer() {
+        uiCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+        uiCtx.drawImage(miscIconCompositeCanvas, 0, 0);
+        uiCtx.drawImage(subJobCompositeCanvas, 0, 0);
+        uiCtx.drawImage(mainJobCompositeCanvas, 0, 0);
+        await drawNameText(uiCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
+    }
+
+    // --- アイコン描画ヘルパー ---
+    function getAssetPath(type, item) {
+        const pathMap = { race: 'race_icons', dc: 'dc_icons', progress: 'progress_icons', style: 'style_icons', time: 'time_icons', difficulty: 'difficulty_icons', mainJob: 'mainjob_icons', subJob: 'subjob_icons' };
+        const prefix = type === 'mainJob' ? '_main_' : (type === 'subJob' ? '_sub_' : '_');
+        const config = templateConfig[currentTemplatePrefix] || {};
+        let finalTemplate;
+
+        if (type === 'mainJob') {
+            finalTemplate = config.mainJobAsset || currentTemplatePrefix;
+        } else {
+            finalTemplate = config.sharedAsset || currentTemplatePrefix;
+        }
+
+        return `./assets/${pathMap[type]}/${finalTemplate}${prefix}${item}.webp`;
+    }
+
+    async function drawMiscIcons(context, canvasSize) {
+        const draw = (path) => { if(imageCache[path]) drawImageCover(context, imageCache[path], canvasSize.width, canvasSize.height); };
+        if (raceSelect.value) draw(getAssetPath('race', raceSelect.value));
+        if (dcSelect.value) draw(getAssetPath('dc', dcSelect.value));
+        if (progressSelect.value) {
+            const stages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
+            const toLoad = progressSelect.value === 'all_clear' ? [...stages, 'all_clear'] : stages.slice(0, stages.indexOf(progressSelect.value) + 1);
+            toLoad.forEach(p => draw(getAssetPath('progress', p)));
+        }
+        styleButtons.forEach(btn => { if (btn.classList.contains('active')) draw(getAssetPath('style', btn.dataset.value)); });
+        const timePaths = new Set();
+        playtimeCheckboxes.forEach(cb => {
+            if (cb.checked) {
+                const value = cb.value;
+                const className = cb.className;
+                const pathKey = className.includes('other') ? value : `${className}_${value}`;
+                timePaths.add(getAssetPath('time', pathKey));
+            }
+        });
+        timePaths.forEach(path => draw(path));
+        difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(getAssetPath('difficulty', cb.value)); });
+    }
+
+    async function drawMainJobIcon(context, canvasSize) {
+        if (mainJobSelect.value) {
+            const path = getAssetPath('mainJob', mainJobSelect.value);
+            if(imageCache[path]) drawImageCover(context, imageCache[path], canvasSize.width, canvasSize.height);
+        }
+    }
+
+    async function drawSubJobIcons(context, canvasSize) {
+        const draw = (path) => { if(imageCache[path]) drawImageCover(context, imageCache[path], canvasSize.width, canvasSize.height); };
+        subJobButtons.forEach(btn => {
+            if (btn.classList.contains('active')) draw(getAssetPath('subJob', btn.dataset.value));
+        });
+    }
+
+    async function drawNameText(context, canvasSize) {
+        const name = nameInput.value;
+        const config = templateConfig[currentTemplatePrefix] || {};
+        const defaultNameArea = { x: 15, y: 77, width: 180, height: 40 };
+        const baseNameArea = config.nameArea || defaultNameArea;
+
+        if (!name && !DEBUG_MODE) return;
+        
+        const scale = canvasSize.width / EDIT_WIDTH;
+        const nameArea = { 
+            x: baseNameArea.x * scale, 
+            y: baseNameArea.y * scale, 
+            width: baseNameArea.width * scale, 
+            height: baseNameArea.height * scale
+        };
+        const MAX_FONT_SIZE = 26 * scale;
+        
+        if (DEBUG_MODE) {
+            const lineWidth = 2 * scale;
+            const inset = lineWidth / 2;
+            context.strokeStyle = 'red';
+            context.lineWidth = lineWidth;
+            context.strokeRect(
+                nameArea.x + inset,
+                nameArea.y + inset,
+                nameArea.width - lineWidth,
+                nameArea.height - lineWidth
+            );
+        }
+        
+        if (!name) return;
+
+        const selectedFont = fontSelect.value || "'Orbitron', sans-serif";
+        try {
+            await document.fonts.load(`10px ${selectedFont}`);
+        } catch (err) {
+            console.warn(`フォントの読み込みに失敗した可能性があります: ${selectedFont}`, err);
+        }
+
+        let fontSize = MAX_FONT_SIZE;
+        context.font = `${fontSize}px ${selectedFont}`;
+        while (context.measureText(name).width > nameArea.width && fontSize > 10) {
+            fontSize--;
+            context.font = `${fontSize}px ${selectedFont}`;
+        }
+        
+        context.fillStyle = config.textColor || '#ffffff';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(name, nameArea.x + nameArea.width / 2, nameArea.y + nameArea.height / 2);
+    }
+    
+    // --- パフォーマンス最適化 ---
+    const createDebouncer = (func, delay) => { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => func(...args), delay); }; };
+    const debouncedRedrawMisc = createDebouncer(async () => { await redrawMiscIconComposite(); await drawUiLayer(); }, 250);
+    const debouncedRedrawMainJob = createDebouncer(async () => { await redrawMainJobComposite(); await drawUiLayer(); }, 250);
+    const debouncedRedrawSubJob = createDebouncer(async () => { await redrawSubJobComposite(); await drawUiLayer(); }, 250);
+    const debouncedNameDraw = createDebouncer(drawUiLayer, 250);
+    let charAnimationFrameId;
+    const throttledDrawChar = () => {
+        if (charAnimationFrameId) return;
+        charAnimationFrameId = requestAnimationFrame(() => {
+            drawCharacterLayer();
+            charAnimationFrameId = null;
+        });
+    };
+
+    // --- イベントリスナー ---
+    nameInput.addEventListener('input', debouncedNameDraw);
+    fontSelect.addEventListener('input', debouncedNameDraw);
+    
+    [raceSelect, dcSelect, progressSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes].forEach(el => {
+        el.addEventListener(el.tagName === 'BUTTON' ? 'click' : 'input', (e) => {
+            if (e.currentTarget.tagName === 'BUTTON') e.currentTarget.classList.toggle('active');
+            debouncedRedrawMisc();
+        });
+    });
+
+    mainJobSelect.addEventListener('input', (e) => {
+        const selectedJobValue = e.target.value;
+
+        if (selectedJobValue) {
+            const subJobButton = Array.from(subJobButtons).find(btn => btn.dataset.value === selectedJobValue);
+            if (subJobButton) {
+                subJobButton.classList.add('active');
+            }
+        }
+
+        debouncedRedrawMainJob();
+        debouncedRedrawSubJob();
+    });
+
+    subJobButtons.forEach(btn => btn.addEventListener('click', (e) => { 
+        e.currentTarget.classList.toggle('active'); 
+        debouncedRedrawSubJob(); 
+    }));
+
+    templateSelect.addEventListener('change', async (e) => {
+        const newTemplate = e.target.value;
+        if (newTemplate === currentTemplatePrefix) return;
+        
+        miniLoader.classList.remove('hidden');
+        updateProgress({ bar: null, text: miniProgressText }, 0, 1);
+        
+        currentTemplatePrefix = newTemplate;
+        await loadAssetsForTemplate(newTemplate);
+        
+        drawBackgroundLayer();
+        await Promise.all([redrawMiscIconComposite(), redrawMainJobComposite(), redrawSubJobComposite()]);
+        await drawUiLayer();
+
+        miniLoader.classList.add('hidden');
+    });
+
+    uploadImageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0]; if (!file) { fileNameDisplay.textContent = ''; return; }
+        fileNameDisplay.textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                imageTransform.img = img;
+                const canvasAspectRatio = EDIT_WIDTH / EDIT_HEIGHT;
+                const imageAspectRatio = img.width / img.height;
+                imageTransform.scale = (imageAspectRatio > canvasAspectRatio) ? (EDIT_HEIGHT / img.height) : (EDIT_WIDTH / img.width);
+                imageTransform.x = EDIT_WIDTH / 2;
+                imageTransform.y = EDIT_HEIGHT / 2;
+                drawCharacterLayer();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // --- 画像操作イベントリスナー ---
+    function getEventLocation(e) {
+        const rect = uiCanvas.getBoundingClientRect();
+        const scaleX = uiCanvas.width / rect.width;
+        const scaleY = uiCanvas.height / rect.height;
+        if (e.touches && e.touches[0]) {
+            return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+        }
+        return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    }
+    function handleDragStart(e) { 
+        if (!imageTransform.img) return; 
+        e.preventDefault(); 
+        const loc = getEventLocation(e); 
+        imageTransform.isDragging = true; 
+        imageTransform.lastX = loc.x; 
+        imageTransform.lastY = loc.y; 
+    }
+    function handleDragMove(e) { 
+        if (!imageTransform.isDragging) return; 
+        e.preventDefault(); 
+        const loc = getEventLocation(e); 
+        const dx = loc.x - imageTransform.lastX; 
+        const dy = loc.y - imageTransform.lastY; 
+        imageTransform.x += dx; 
+        imageTransform.y += dy; 
+        imageTransform.lastX = loc.x; 
+        imageTransform.lastY = loc.y; 
+        throttledDrawChar(); 
+    }
+    function handleDragEnd() { 
+        imageTransform.isDragging = false; 
+    }
+    
+    uiCanvas.addEventListener('mousedown', handleDragStart, { passive: false });
+    uiCanvas.addEventListener('mousemove', handleDragMove, { passive: false });
+    uiCanvas.addEventListener('mouseup', handleDragEnd);
+    uiCanvas.addEventListener('mouseleave', handleDragEnd);
+    
+    uiCanvas.addEventListener('wheel', (e) => { 
+        if (!imageTransform.img) return; 
+        e.preventDefault(); 
+        const scaleAmount = e.deltaY < 0 ? 1.1 : 1 / 1.1; 
+        const newScale = imageTransform.scale * scaleAmount; 
+        imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); 
+        throttledDrawChar(); 
+    }, { passive: false });
+
+    uiCanvas.addEventListener('touchstart', (e) => {
+        if (!imageTransform.img) return; 
+        e.preventDefault();
+        if (e.touches.length === 1) { 
+            handleDragStart(e); 
+        } else if (e.touches.length === 2) {
+            imageTransform.isDragging = false;
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+        }
+    }, { passive: false });
+
+    uiCanvas.addEventListener('touchmove', (e) => {
+        if (!imageTransform.img) return; 
+        e.preventDefault();
+        if (e.touches.length === 1 && imageTransform.isDragging) { 
+            handleDragMove(e); 
+        } else if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const newDist = Math.sqrt(dx * dx + dy * dy);
+            if (imageTransform.lastTouchDistance > 0) {
+                const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance);
+                imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
+            }
+            imageTransform.lastTouchDistance = newDist;
+            throttledDrawChar();
+        }
+    }, { passive: false });
+
+    uiCanvas.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) { 
+            imageTransform.isDragging = false; 
+        }
+        imageTransform.lastTouchDistance = 0;
+    });
+
+    // --- ダウンロード処理 ---
+    downloadBtn.addEventListener('click', async () => {
+        if (isDownloading) return;
+        isDownloading = true;
+        downloadBtn.querySelector('span').textContent = '画像を生成中...';
+        
+        try {
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = EDIT_WIDTH;
+            finalCanvas.height = EDIT_HEIGHT;
+            const finalCtx = finalCanvas.getContext('2d');
+            finalCtx.imageSmoothingEnabled = true;
+            finalCtx.imageSmoothingQuality = 'high';
+
+            if (imageTransform.img) {
+                finalCtx.drawImage(charCanvas, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+            }
+
+            const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
+            drawImageCover(finalCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
+
+            await drawMiscIcons(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
+            await drawSubJobIcons(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
+            await drawMainJobIcon(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
+            await drawNameText(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
+
+            const imageUrl = finalCanvas.toDataURL('image/jpeg', 0.92);
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) {
+                modalImage.src = imageUrl;
+                saveModal.classList.remove('hidden');
+            } else {
+                const link = document.createElement('a');
+                link.download = 'ffxiv_character_card.jpeg';
+                link.href = imageUrl;
+                link.click();
+            }
+        } catch (error) {
+            console.error("ダウンロード画像の生成に失敗しました:", error);
+            alert("画像の生成に失敗しました。ページをリロードして再度お試しください。");
+        } finally {
+            isDownloading = false;
+            downloadBtn.querySelector('span').textContent = 'この内容で作る？🐕';
+        }
+    });
+
+    // --- その他UIイベント ---
+    closeModal.addEventListener('click', () => { saveModal.classList.add('hidden'); });
+    const controlsPanel = document.querySelector('.controls-panel');
+    const scrollContainer = window.innerWidth >= 1024 ? controlsPanel : window;
+    scrollContainer.onscroll = () => {
+        const scrollTop = window.innerWidth >= 1024 ? controlsPanel.scrollTop : (document.body.scrollTop || document.documentElement.scrollTop);
+        toTopBtn.classList.toggle('visible', scrollTop > 100);
+    };
+    toTopBtn.addEventListener('click', () => { 
+        const target = window.innerWidth >= 1024 ? controlsPanel : window;
+        target.scrollTo({ top: 0, behavior: 'smooth' }); 
+    });
+
+    // --- 初期化処理 ---
+    async function initialize() {
+        console.log("初期化処理を開始します。");
+        await document.fonts.ready;
+        console.log("✓ フォントの準備が完了しました。");
+        await loadAssetsForTemplate(currentTemplatePrefix, true);
+        console.log("✓ デフォルトアセットのプリロードが完了しました。");
+        
+        drawCharacterLayer();
+        drawBackgroundLayer();
+        await Promise.all([redrawMiscIconComposite(), redrawMainJobComposite(), redrawSubJobComposite()]);
+        await drawUiLayer();
+        
+        loaderElement.classList.add('hidden');
+        setTimeout(() => appElement.classList.remove('hidden'), 300);
+    }
+
+    initialize();
+});
