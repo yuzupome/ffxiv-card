@@ -1,10 +1,14 @@
 /**
  * FFXIV Character Card Generator Script (Refactored Version)
- * - v16: Refactored based on professional review.
- * - Centralized template configurations.
- * - Separated icon drawing logic for better readability and maintenance.
+ * - v17: Implemented user requests.
+ * - Image layer is now at the bottom.
+ * - Added debug mode for name area adjustment.
+ * - Patched asset path for a specific template.
  */
 document.addEventListener('DOMContentLoaded', async () => {
+
+    // [変更点] デバッグモードのフラグ。trueにすると名前描画エリアに赤枠が表示されます。
+    const DEBUG_MODE = true;
 
     // --- DOM要素の取得 ---
     const appElement = document.getElementById('app');
@@ -14,10 +18,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const miniLoader = document.getElementById('mini-loader');
     const miniProgressText = document.getElementById('mini-progress-text');
 
-    const bgCanvas = document.getElementById('background-layer');
-    const bgCtx = bgCanvas.getContext('2d');
-    const charCanvas = document.getElementById('character-layer');
+    // [変更点] アップロード画像を最背面に配置するため、Canvasの役割を入れ替え
+    const charCanvas = document.getElementById('background-layer'); // 最背面のCanvasをキャラクター用に
     const charCtx = charCanvas.getContext('2d');
+    const bgCanvas = document.getElementById('character-layer'); // 中間のCanvasをテンプレート背景用に
+    const bgCtx = bgCanvas.getContext('2d');
     const uiCanvas = document.getElementById('ui-layer');
     const uiCtx = uiCanvas.getContext('2d');
 
@@ -57,17 +62,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // --- テンプレート設定の一元管理 ---
+    // [変更点] 名前描画エリアの座標(nameArea)を追加。調整はここで行います。
     const templateConfig = {
-        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic' },
-        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic' },
-        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic' },
-        'Neon_mono':      { textColor: '#ffffff' },
-        'Neon_duotone':   { textColor: '#ffffff' },
-        'Neon_meltdown':  { textColor: '#ffffff' },
-        'Water':          { textColor: '#ffffff' },
-        'Lovely_heart':   { textColor: '#E1C8D2' },
-        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal' },
-        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal' }
+        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
+        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
+        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
+        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
+        // [変更点] Neon_duotoneが'Neon_duotonek'という名前のアセットを読み込むように設定
+        'Neon_duotone':   { textColor: '#ffffff', assetName: 'Neon_duotonek', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
+        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
+        'Water':          { textColor: '#ffffff', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
+        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
+        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 33, y: 90, width: 222, height: 40 } },
+        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 33, y: 90, width: 222, height: 40 } }
     };
 
     // --- アセット定義 ---
@@ -90,9 +97,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadAssetsForTemplate(templateName, isInitialLoad = false) {
         const assetExt = '.webp';
         const pathsToLoad = new Set();
+        const config = templateConfig[templateName] || {};
+        const baseAssetName = config.assetName || templateName;
         
-        pathsToLoad.add(`./assets/backgrounds/${templateName}${assetExt}`);
-        pathsToLoad.add(`./assets/backgrounds/${templateName}_cp${assetExt}`);
+        pathsToLoad.add(`./assets/backgrounds/${baseAssetName}${assetExt}`);
+        pathsToLoad.add(`./assets/backgrounds/${baseAssetName}_cp${assetExt}`);
         
         const iconTypes = { races, dcs, progresses, styles, playtimes, difficulties, mainJobs, allSubJobs };
         const iconPaths = {
@@ -106,8 +115,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             for (const item of iconTypes[type]) {
                 const prefix = iconPrefixes[type] || '_';
                 const isMainJobIcon = type === 'mainJobs';
-                const config = templateConfig[templateName];
-                const effectiveTemplateName = (!isMainJobIcon && config?.sharedAsset) ? config.sharedAsset : templateName;
+                const currentConfig = templateConfig[templateName] || {};
+                const effectiveTemplateName = (!isMainJobIcon && currentConfig.sharedAsset) ? currentConfig.sharedAsset : (currentConfig.assetName || templateName);
                 
                 pathsToLoad.add(`./assets/${iconPaths[type]}/${effectiveTemplateName}${prefix}${item}${assetExt}`);
             }
@@ -137,7 +146,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.warn(`画像の読み込みに失敗: ${path}`);
                     loadedCount++;
                     updateProgress(progressTarget, loadedCount, totalCount);
-                    resolve(null); // エラーでも止まらないように
+                    resolve(null);
                 };
                 img.src = path;
             })
@@ -169,7 +178,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function drawBackgroundLayer() {
-        const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}.webp`];
+        const config = templateConfig[currentTemplatePrefix] || {};
+        const baseAssetName = config.assetName || currentTemplatePrefix;
+        const bgImg = imageCache[`./assets/backgrounds/${baseAssetName}.webp`];
         bgCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
         drawImageCover(bgCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
     }
@@ -206,30 +217,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         await drawNameText(uiCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
     }
 
-    // --- アイコン描画ヘルパー (責務分離) ---
+    // --- アイコン描画ヘルパー ---
     function getAssetPath(type, item) {
         const pathMap = { race: 'race_icons', dc: 'dc_icons', progress: 'progress_icons', style: 'style_icons', time: 'time_icons', difficulty: 'difficulty_icons', mainJob: 'mainjob_icons', subJob: 'subjob_icons' };
         const prefix = type === 'mainJob' ? '_main_' : (type === 'subJob' ? '_sub_' : '_');
-        const config = templateConfig[currentTemplatePrefix];
-        const isShared = type !== 'mainJob' && config?.sharedAsset;
-        const effectiveTemplate = isShared ? config.sharedAsset : currentTemplatePrefix;
-        return `./assets/${pathMap[type]}/${effectiveTemplate}${prefix}${item}.webp`;
+        const config = templateConfig[currentTemplatePrefix] || {};
+        const isShared = type !== 'mainJob' && config.sharedAsset;
+        const effectiveTemplate = isShared ? config.sharedAsset : (config.assetName || currentTemplatePrefix);
+        const templateForMainJob = config.assetName || currentTemplatePrefix;
+        const finalTemplate = type === 'mainJob' ? templateForMainJob : effectiveTemplate;
+
+        return `./assets/${pathMap[type]}/${finalTemplate}${prefix}${item}.webp`;
     }
 
     async function drawMiscIcons(context, canvasSize) {
         const draw = (path) => { if(imageCache[path]) drawImageCover(context, imageCache[path], canvasSize.width, canvasSize.height); };
-        
         if (raceSelect.value) draw(getAssetPath('race', raceSelect.value));
         if (dcSelect.value) draw(getAssetPath('dc', dcSelect.value));
-        
         if (progressSelect.value) {
             const stages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
             const toLoad = progressSelect.value === 'all_clear' ? [...stages, 'all_clear'] : stages.slice(0, stages.indexOf(progressSelect.value) + 1);
             toLoad.forEach(p => draw(getAssetPath('progress', p)));
         }
-        
         styleButtons.forEach(btn => { if (btn.classList.contains('active')) draw(getAssetPath('style', btn.dataset.value)); });
-        
         const timePaths = new Set();
         playtimeCheckboxes.forEach(cb => {
             if (cb.checked) {
@@ -240,13 +250,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
         timePaths.forEach(path => draw(path));
-        
         difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(getAssetPath('difficulty', cb.value)); });
     }
 
     async function drawMainJobIcon(context, canvasSize) {
         if (mainJobSelect.value) {
-            const path = `./assets/mainjob_icons/${currentTemplatePrefix}_main_${mainJobSelect.value}.webp`;
+            const path = getAssetPath('mainJob', mainJobSelect.value);
             if(imageCache[path]) drawImageCover(context, imageCache[path], canvasSize.width, canvasSize.height);
         }
     }
@@ -254,20 +263,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function drawSubJobIcons(context, canvasSize) {
         const draw = (path) => { if(imageCache[path]) drawImageCover(context, imageCache[path], canvasSize.width, canvasSize.height); };
         subJobButtons.forEach(btn => {
-            if (btn.classList.contains('active')) {
-                draw(getAssetPath('subJob', btn.dataset.value));
-            }
+            if (btn.classList.contains('active')) draw(getAssetPath('subJob', btn.dataset.value));
         });
     }
 
     async function drawNameText(context, canvasSize) {
         const name = nameInput.value;
-        if (!name) return;
+        const config = templateConfig[currentTemplatePrefix] || {};
+        const defaultNameArea = { x: 33, y: 90, width: 222, height: 40 };
+        const baseNameArea = config.nameArea || defaultNameArea;
+
+        if (!name && !DEBUG_MODE) return;
         
         const scale = canvasSize.width / EDIT_WIDTH;
-        const nameArea = { x: 33 * scale, y: 90 * scale, width: 222 * scale, height: 40 * scale };
+        const nameArea = { 
+            x: baseNameArea.x * scale, 
+            y: baseNameArea.y * scale, 
+            width: baseNameArea.width * scale, 
+            height: baseNameArea.height * scale
+        };
         const MAX_FONT_SIZE = 40 * scale;
         
+        if (DEBUG_MODE) {
+            context.strokeStyle = 'red';
+            context.lineWidth = 2 * scale;
+            context.strokeRect(nameArea.x, nameArea.y, nameArea.width, nameArea.height);
+        }
+        
+        if (!name) return;
+
         const selectedFont = fontSelect.value || "'Orbitron', sans-serif";
         try {
             await document.fonts.load(`10px ${selectedFont}`);
@@ -282,8 +306,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             context.font = `${fontSize}px ${selectedFont}`;
         }
         
-        const config = templateConfig[currentTemplatePrefix] || { textColor: '#ffffff' };
-        context.fillStyle = config.textColor;
+        context.fillStyle = config.textColor || '#ffffff';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         context.fillText(name, nameArea.x + nameArea.width / 2, nameArea.y + nameArea.height / 2);
@@ -291,12 +314,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // --- パフォーマンス最適化 ---
     const createDebouncer = (func, delay) => { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => func(...args), delay); }; };
-    
     const debouncedRedrawMisc = createDebouncer(async () => { await redrawMiscIconComposite(); await drawUiLayer(); }, 250);
     const debouncedRedrawMainJob = createDebouncer(async () => { await redrawMainJobComposite(); await drawUiLayer(); }, 250);
     const debouncedRedrawSubJob = createDebouncer(async () => { await redrawSubJobComposite(); await drawUiLayer(); }, 250);
     const debouncedNameDraw = createDebouncer(drawUiLayer, 250);
-
     let charAnimationFrameId;
     const throttledDrawChar = () => {
         if (charAnimationFrameId) return;
@@ -327,8 +348,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         miniLoader.classList.remove('hidden');
         updateProgress({ bar: null, text: miniProgressText }, 0, 1);
         
-        await loadAssetsForTemplate(newTemplate);
         currentTemplatePrefix = newTemplate;
+        await loadAssetsForTemplate(newTemplate);
         
         drawBackgroundLayer();
         await Promise.all([redrawMiscIconComposite(), redrawMainJobComposite(), redrawSubJobComposite()]);
@@ -367,28 +388,63 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
     }
-    function handleDragStart(e) { if (!imageTransform.img) return; e.preventDefault(); const loc = getEventLocation(e); imageTransform.isDragging = true; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y; }
-    function handleDragMove(e) { if (!imageTransform.isDragging) return; e.preventDefault(); const loc = getEventLocation(e); const dx = loc.x - imageTransform.lastX; const dy = loc.y - imageTransform.lastY; imageTransform.x += dx; imageTransform.y += dy; imageTransform.lastX = loc.x; imageTransform.lastY = loc.y; throttledDrawChar(); }
-    function handleDragEnd() { imageTransform.isDragging = false; }
+    function handleDragStart(e) { 
+        if (!imageTransform.img) return; 
+        e.preventDefault(); 
+        const loc = getEventLocation(e); 
+        imageTransform.isDragging = true; 
+        imageTransform.lastX = loc.x; 
+        imageTransform.lastY = loc.y; 
+    }
+    function handleDragMove(e) { 
+        if (!imageTransform.isDragging) return; 
+        e.preventDefault(); 
+        const loc = getEventLocation(e); 
+        const dx = loc.x - imageTransform.lastX; 
+        const dy = loc.y - imageTransform.lastY; 
+        imageTransform.x += dx; 
+        imageTransform.y += dy; 
+        imageTransform.lastX = loc.x; 
+        imageTransform.lastY = loc.y; 
+        throttledDrawChar(); 
+    }
+    function handleDragEnd() { 
+        imageTransform.isDragging = false; 
+    }
+    
     uiCanvas.addEventListener('mousedown', handleDragStart, { passive: false });
     uiCanvas.addEventListener('mousemove', handleDragMove, { passive: false });
     uiCanvas.addEventListener('mouseup', handleDragEnd);
     uiCanvas.addEventListener('mouseleave', handleDragEnd);
-    uiCanvas.addEventListener('wheel', (e) => { if (!imageTransform.img) return; e.preventDefault(); const scaleAmount = e.deltaY < 0 ? 1.1 : 1 / 1.1; const newScale = imageTransform.scale * scaleAmount; imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); throttledDrawChar(); }, { passive: false });
+    
+    uiCanvas.addEventListener('wheel', (e) => { 
+        if (!imageTransform.img) return; 
+        e.preventDefault(); 
+        const scaleAmount = e.deltaY < 0 ? 1.1 : 1 / 1.1; 
+        const newScale = imageTransform.scale * scaleAmount; 
+        imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); 
+        throttledDrawChar(); 
+    }, { passive: false });
+
     uiCanvas.addEventListener('touchstart', (e) => {
-        if (!imageTransform.img) return; e.preventDefault();
-        if (e.touches.length === 1) { handleDragStart(e); } 
-        else if (e.touches.length === 2) {
+        if (!imageTransform.img) return; 
+        e.preventDefault();
+        if (e.touches.length === 1) { 
+            handleDragStart(e); 
+        } else if (e.touches.length === 2) {
             imageTransform.isDragging = false;
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
         }
     }, { passive: false });
+
     uiCanvas.addEventListener('touchmove', (e) => {
-        if (!imageTransform.img) return; e.preventDefault();
-        if (e.touches.length === 1 && imageTransform.isDragging) { handleDragMove(e); } 
-        else if (e.touches.length === 2) {
+        if (!imageTransform.img) return; 
+        e.preventDefault();
+        if (e.touches.length === 1 && imageTransform.isDragging) { 
+            handleDragMove(e); 
+        } else if (e.touches.length === 2) {
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             const newDist = Math.sqrt(dx * dx + dy * dy);
@@ -400,8 +456,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             throttledDrawChar();
         }
     }, { passive: false });
+
     uiCanvas.addEventListener('touchend', (e) => {
-        if (e.touches.length < 2) { imageTransform.isDragging = false; }
+        if (e.touches.length < 2) { 
+            imageTransform.isDragging = false; 
+        }
         imageTransform.lastTouchDistance = 0;
     });
 
@@ -419,14 +478,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             finalCtx.imageSmoothingEnabled = true;
             finalCtx.imageSmoothingQuality = 'high';
 
-            // 1. 高画質背景を描画
-            const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
-            drawImageCover(finalCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
-
-            // 2. キャラクター画像を描画
+            // 1. キャラクター画像を描画
             if (imageTransform.img) {
                 finalCtx.drawImage(charCanvas, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
             }
+
+            // 2. 高画質背景を描画
+            const config = templateConfig[currentTemplatePrefix] || {};
+            const baseAssetName = config.assetName || currentTemplatePrefix;
+            const bgImg = imageCache[`./assets/backgrounds/${baseAssetName}_cp.webp`];
+            drawImageCover(finalCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
 
             // 3. 全てのアイコンとテキストを再描画
             await drawMiscIcons(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
@@ -454,28 +515,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    closeModal.addEventListener('click', () => { saveModal.classList.add('hidden'); });
-
     // --- その他UIイベント ---
+    closeModal.addEventListener('click', () => { saveModal.classList.add('hidden'); });
     const controlsPanel = document.querySelector('.controls-panel');
     const scrollContainer = window.innerWidth >= 1024 ? controlsPanel : window;
     scrollContainer.onscroll = () => {
         const scrollTop = window.innerWidth >= 1024 ? controlsPanel.scrollTop : (document.body.scrollTop || document.documentElement.scrollTop);
         toTopBtn.classList.toggle('visible', scrollTop > 100);
     };
-    toTopBtn.addEventListener('click', () => { scrollContainer.scrollTo({ top: 0, behavior: 'smooth' }); });
+    toTopBtn.addEventListener('click', () => { 
+        const target = window.innerWidth >= 1024 ? controlsPanel : window;
+        target.scrollTo({ top: 0, behavior: 'smooth' }); 
+    });
 
     // --- 初期化処理 ---
     async function initialize() {
         console.log("初期化処理を開始します。");
         await document.fonts.ready;
         console.log("✓ フォントの準備が完了しました。");
-
         await loadAssetsForTemplate(currentTemplatePrefix, true);
         console.log("✓ デフォルトアセットのプリロードが完了しました。");
         
-        drawBackgroundLayer();
         drawCharacterLayer();
+        drawBackgroundLayer();
         await Promise.all([redrawMiscIconComposite(), redrawMainJobComposite(), redrawSubJobComposite()]);
         await drawUiLayer();
         
