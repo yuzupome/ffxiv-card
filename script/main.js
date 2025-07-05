@@ -1,10 +1,9 @@
 /**
- * FFXIV Character Card Generator Script (Refactored Version)
+ * FFXIV Character Card Generator Script (Final Version)
  * - v20.0: Final version with debugging disabled.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // [変更点] デバッグモードを無効化
     const DEBUG_MODE = false;
 
     // --- DOM要素の取得 ---
