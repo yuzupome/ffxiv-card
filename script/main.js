@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (Final Version)
- * - v14: Fix icon alignment by using consistent scaling logic.
+ * - v15: Layering, text color, and asset loading logic updates.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -12,12 +12,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const miniLoader = document.getElementById('mini-loader');
     const miniProgressText = document.getElementById('mini-progress-text');
 
-    // 表示用Canvasレイヤー
-    const charCanvas = document.getElementById('character-layer');
-    const charCtx = charCanvas.getContext('2d');
-    const bgCanvas = document.getElementById('background-layer');
+    // 表示用Canvasレイヤー (描画順を考慮して変数名を変更)
+    const bgCanvas = document.getElementById('background-layer'); // 最背面: テンプレート背景
     const bgCtx = bgCanvas.getContext('2d');
-    const uiCanvas = document.getElementById('ui-layer');
+    const charCanvas = document.getElementById('character-layer'); // 中間: アップロード画像
+    const charCtx = charCanvas.getContext('2d');
+    const uiCanvas = document.getElementById('ui-layer'); // 最前面: UIアイコン・テキスト
     const uiCtx = uiCanvas.getContext('2d');
 
     // 合成用Canvasをメモリ上に作成
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dcs = ['mana', 'gaia', 'elemental', 'meteor'];
     const progresses = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'];
     const styles = Array.from(styleButtons).map(b => b.dataset.value);
-    const playtimes = ['weekday', 'weekday_morning', 'weekday_daytime', 'weekday_night', 'weekday_midnight', 'holiday', 'holiday_morning', 'holiday_daytime', 'holiday_night', 'holiday_midnight', 'random', 'fulltime'];
+    const playtimes = ['weekday_morning', 'weekday_daytime', 'weekday_night', 'weekday_midnight', 'holiday_morning', 'holiday_daytime', 'holiday_night', 'holiday_midnight', 'random', 'fulltime'];
     const difficulties = ['extreme', 'unreal', 'savage', 'ultimate'];
     const mainJobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
     const allSubJobs = Array.from([...combatSubJobButtons, ...gatherCraSubJobButtons]).map(btn => btn.dataset.value);
@@ -92,7 +92,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const assetExt = '.webp';
         const pathsToLoad = new Set();
         
-        // 背景は常に固有のものを読み込む
         pathsToLoad.add(`./assets/backgrounds/${templateName}${assetExt}`);
         pathsToLoad.add(`./assets/backgrounds/${templateName}_cp${assetExt}`);
         
@@ -111,7 +110,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const sharedName = sharedAssetMap[templateName];
                 const isMainJobIcon = iconPaths[type] === 'mainjob_icons';
 
-                // メインジョブ以外で、かつ共有設定が存在する場合、アセット名を共有名に差し替える
                 if (sharedName && !isMainJobIcon) {
                     effectiveTemplateName = sharedName;
                 }
@@ -139,7 +137,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     resolve(img);
                 };
                 img.onerror = () => {
-                    // 共有アセットの場合、読み込み失敗は警告に留める（例：Gothic.webpがない場合など）
                     console.warn(`画像の読み込みに失敗: ${path}`);
                     loadedCount++;
                     updateProgress(progressTarget, loadedCount, totalCount);
@@ -158,26 +155,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- 描画関数 ---
-    /**
-     * 画像のアスペクト比を維持し、Canvasを完全に覆うように描画します (cover)
-     * @param {CanvasRenderingContext2D} ctx - 描画コンテキスト
-     * @param {HTMLImageElement} img - 描画する画像
-     * @param {number} canvasWidth - Canvasの幅
-     * @param {number} canvasHeight - Canvasの高さ
-     */
     function drawImageCover(ctx, img, canvasWidth, canvasHeight) {
         if (!img) return;
         const imgRatio = img.width / img.height;
         const canvasRatio = canvasWidth / canvasHeight;
         let sx, sy, sWidth, sHeight;
 
-        // 画像がCanvasより横長か、縦長かに基づいてクロップ範囲を計算
-        if (imgRatio > canvasRatio) { // 画像が横長の場合
+        if (imgRatio > canvasRatio) {
             sHeight = img.height;
             sWidth = sHeight * canvasRatio;
             sx = (img.width - sWidth) / 2;
             sy = 0;
-        } else { // 画像が縦長または同じ比率の場合
+        } else {
             sWidth = img.width;
             sHeight = sWidth / canvasRatio;
             sx = 0;
@@ -234,8 +223,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { width, height } = canvasSize;
         const prefix = currentTemplatePrefix;
         
-        // ★★★ 修正点 ★★★
-        // アイコン描画にもアスペクト比を維持するdrawImageCoverを使用する
         const draw = (path) => { 
             const img = imageCache[path]; 
             if (img) drawImageCover(context, img, width, height); 
@@ -263,16 +250,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             const timePaths = new Set();
             const checkedTimes = Array.from(playtimeCheckboxes).filter(cb => cb.checked);
             checkedTimes.forEach(cb => {
-                const pathKey = cb.classList.contains('other') ? cb.value : `${cb.className}_${cb.value}`;
+                const value = cb.value;
+                const className = cb.className;
+                const pathKey = className.includes('other') ? value : `${className}_${value}`;
                 timePaths.add(`./assets/time_icons/${miscTemplate}_${pathKey}.webp`);
             });
-            if (checkedTimes.some(cb => cb.classList.contains('weekday'))) timePaths.add(`./assets/time_icons/${miscTemplate}_weekday.webp`);
-            if (checkedTimes.some(cb => cb.classList.contains('holiday'))) timePaths.add(`./assets/time_icons/${miscTemplate}_holiday.webp`);
             timePaths.forEach(path => draw(path));
             difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(`./assets/difficulty_icons/${miscTemplate}_${cb.value}.webp`); });
         }
         if(category === 'all' || category === 'mainJob'){
-            // メインジョブは常に固有アセット
             if (mainJobSelect.value) draw(`./assets/mainjob_icons/${prefix}_main_${mainJobSelect.value}.webp`);
         }
         if(category === 'all' || category === 'combatSubJob'){
@@ -305,8 +291,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const centerX = nameArea.x + nameArea.width / 2;
         const centerY = nameArea.y + nameArea.height / 2;
-        const blackTextTemplates = ['Gothic_white'];
-        context.fillStyle = blackTextTemplates.includes(currentTemplatePrefix) ? '#000000' : '#ffffff';
+        
+        // 文字色設定
+        let textColor = '#ffffff'; // デフォルトは白
+        if (currentTemplatePrefix.startsWith('Royal')) {
+            textColor = '#A2850A';
+        } else if (currentTemplatePrefix === 'Lovely_heart') {
+            textColor = '#E1C8D2';
+        } else if (currentTemplatePrefix === 'Gothic_white') {
+            textColor = '#000000';
+        }
+        context.fillStyle = textColor;
+
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         context.fillText(name, centerX, centerY);
@@ -454,13 +450,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             finalCtx.imageSmoothingEnabled = true;
             finalCtx.imageSmoothingQuality = 'high';
 
-            // 1. キャラクター画像を描画
+            // 描画順を変更
+            // 1. 背景テンプレートを高画質元データから描画
+            const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
+            drawImageCover(finalCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
+
+            // 2. キャラクター画像を描画
             if (imageTransform.img) {
                 finalCtx.drawImage(charCanvas, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
             }
-            // 2. 背景テンプレートを高画質元データから描画
-            const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
-            drawImageCover(finalCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
 
             // 3. アイコンとテキストを再描画
             await drawIcons(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT }, 'all');
@@ -507,8 +505,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadedTemplates.add('Gothic_black');
         console.log("✓ デフォルトアセットのプリロードが完了しました。");
         
-        drawCharacterLayer();
+        // 初回描画順を修正
         drawBackgroundLayer();
+        drawCharacterLayer();
         await Promise.all([redrawMiscIconComposite(), redrawMainJobComposite(), redrawCombatSubJobComposite(), redrawGatherCraSubJobComposite()]);
         await drawUiLayer();
         
