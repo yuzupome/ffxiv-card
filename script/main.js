@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (Refactored Version)
- * - v19.1: Adjusted nameArea values as per user request.
+ * - v19.2: Adjusted nameArea values as per user request.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -59,16 +59,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- テンプレート設定の一元管理 ---
     const templateConfig = {
-        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Common' },
-        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 28, y: 95, width: 200, height: 40 } },
-        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Common' },
-        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Common' },
-        'Neon_duotone':   { textColor: '#ffffff', assetName: 'Neon_duotonek', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Common' },
-        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Common' },
-        'Water':          { textColor: '#ffffff', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Common' },
-        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 28, y: 95, width: 200, height: 40 } },
-        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Royal' },
-        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 28, y: 95, width: 200, height: 40 }, mainJobAsset: 'Royal' }
+        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 18, y: 85, width: 180, height: 40 } },
+        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_duotone':   { textColor: '#ffffff', assetName: 'Neon_duotonek', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Water':          { textColor: '#ffffff', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 18, y: 85, width: 180, height: 40 } },
+        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Royal' },
+        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Royal' }
     };
 
     // --- アセット定義 ---
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function drawNameText(context, canvasSize) {
         const name = nameInput.value;
         const config = templateConfig[currentTemplatePrefix] || {};
-        const defaultNameArea = { x: 28, y: 95, width: 200, height: 40 };
+        const defaultNameArea = { x: 18, y: 85, width: 180, height: 40 };
         const baseNameArea = config.nameArea || defaultNameArea;
 
         if (!name && !DEBUG_MODE) return;
