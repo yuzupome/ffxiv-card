@@ -42,7 +42,6 @@ body {
     flex-direction: column;
     gap: 2rem;
     padding: 2rem;
-    /* [変更点] PCで見た際の最大幅を680pxに制限 */
     max-width: 680px; 
     margin: 0 auto;
     flex-grow: 1;
