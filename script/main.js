@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (Refactored Version)
- * - v19.2: Adjusted nameArea values as per user request.
+ * - v19.5: Adjusted nameArea values as per user request.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -59,16 +59,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- テンプレート設定の一元管理 ---
     const templateConfig = {
-        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 18, y: 85, width: 180, height: 40 } },
-        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Neon_duotone':   { textColor: '#ffffff', assetName: 'Neon_duotonek', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Water':          { textColor: '#ffffff', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 18, y: 85, width: 180, height: 40 } },
-        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Royal' },
-        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 18, y: 85, width: 180, height: 40 }, mainJobAsset: 'Royal' }
+        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Gothic_white':   { textColor: '#000000', sharedAsset: 'Gothic', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_duotonek':  { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Water':          { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
+        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Royal' },
+        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Royal' }
     };
 
     // --- アセット定義 ---
@@ -91,11 +91,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadAssetsForTemplate(templateName, isInitialLoad = false) {
         const assetExt = '.webp';
         const pathsToLoad = new Set();
-        const config = templateConfig[templateName] || {};
-        const baseAssetName = config.assetName || templateName;
         
-        pathsToLoad.add(`./assets/backgrounds/${baseAssetName}${assetExt}`);
-        pathsToLoad.add(`./assets/backgrounds/${baseAssetName}_cp${assetExt}`);
+        pathsToLoad.add(`./assets/backgrounds/${templateName}${assetExt}`);
+        pathsToLoad.add(`./assets/backgrounds/${templateName}_cp${assetExt}`);
         
         const iconTypes = { races, dcs, progresses, styles, playtimes, difficulties, mainJobs, allSubJobs };
         const iconPaths = {
@@ -112,9 +110,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 let effectiveTemplateName;
 
                 if (type === 'mainJobs') {
-                    effectiveTemplateName = currentConfig.mainJobAsset || currentConfig.assetName || templateName;
+                    effectiveTemplateName = currentConfig.mainJobAsset || templateName;
                 } else {
-                    effectiveTemplateName = currentConfig.sharedAsset ? currentConfig.sharedAsset : (currentConfig.assetName || templateName);
+                    effectiveTemplateName = currentConfig.sharedAsset || templateName;
                 }
                 pathsToLoad.add(`./assets/${iconPaths[type]}/${effectiveTemplateName}${prefix}${item}${assetExt}`);
             }
@@ -178,9 +176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function drawBackgroundLayer() {
-        const config = templateConfig[currentTemplatePrefix] || {};
-        const baseAssetName = config.assetName || currentTemplatePrefix;
-        const bgImg = imageCache[`./assets/backgrounds/${baseAssetName}.webp`];
+        const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}.webp`];
         bgCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
         drawImageCover(bgCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
     }
@@ -225,10 +221,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         let finalTemplate;
 
         if (type === 'mainJob') {
-            finalTemplate = config.mainJobAsset || config.assetName || currentTemplatePrefix;
+            finalTemplate = config.mainJobAsset || currentTemplatePrefix;
         } else {
-            const isShared = config.sharedAsset;
-            finalTemplate = isShared ? config.sharedAsset : (config.assetName || currentTemplatePrefix);
+            finalTemplate = config.sharedAsset || currentTemplatePrefix;
         }
 
         return `./assets/${pathMap[type]}/${finalTemplate}${prefix}${item}.webp`;
@@ -274,7 +269,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function drawNameText(context, canvasSize) {
         const name = nameInput.value;
         const config = templateConfig[currentTemplatePrefix] || {};
-        const defaultNameArea = { x: 18, y: 85, width: 180, height: 40 };
+        const defaultNameArea = { x: 15, y: 77, width: 180, height: 40 };
         const baseNameArea = config.nameArea || defaultNameArea;
 
         if (!name && !DEBUG_MODE) return;
@@ -509,9 +504,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 finalCtx.drawImage(charCanvas, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
             }
 
-            const config = templateConfig[currentTemplatePrefix] || {};
-            const baseAssetName = config.assetName || currentTemplatePrefix;
-            const bgImg = imageCache[`./assets/backgrounds/${baseAssetName}_cp.webp`];
+            const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
             drawImageCover(finalCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
 
             await drawMiscIcons(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
