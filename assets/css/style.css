@@ -42,7 +42,7 @@ body {
     flex-direction: column;
     gap: 2rem;
     padding: 2rem;
-    max-width: 680px; 
+    max-width: 100%;
     margin: 0 auto;
     flex-grow: 1;
 }
@@ -75,15 +75,9 @@ body {
     background-color: transparent;
     display: block;
 }
-#background-layer {
-    background-color: #000;
-}
-#ui-layer {
-    cursor: grab;
-}
-#ui-layer:active {
-    cursor: grabbing;
-}
+#background-layer { background-color: #000; }
+#ui-layer { cursor: grab; }
+#ui-layer:active { cursor: grabbing; }
 #controls { display: flex; flex-direction: column; gap: 2.5rem; }
 
 /* ミニローダー */
@@ -135,26 +129,28 @@ select {
     color: var(--text-color);
 }
 input[type="text"]:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.2); }
-select:invalid {
+select:invalid { color: var(--text-secondary-color); }
+.file-upload-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    border-radius: 8px;
     color: var(--text-secondary-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
-.file-upload-label { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; background: var(--bg-color); border: 1px solid var(--border-color); padding: 0.75rem; border-radius: 8px; color: var(--text-secondary-color); cursor: pointer; transition: all 0.2s ease; }
 .file-upload-label:hover { border-color: var(--primary-color); color: var(--primary-color); }
 .file-upload-label svg { stroke: currentColor; }
 .file-upload-input { display: none; }
 .file-name-display { font-size: 0.8rem; color: var(--text-secondary-color); text-align: center; margin-top: 0.5rem; height: 1em; }
 
-/* 注意事項 */
-.usage-notes { 
-    margin-top: 0.5rem;
-    text-align: center;
-}
-.notes-text {
-    font-size: 14px;
-    color: var(--text-secondary-color);
-    margin: 0;
-    line-height: 1.5;
-}
+.usage-notes { margin-top: 0.5rem; text-align: center; }
+.notes-text { font-size: 14px; color: var(--text-secondary-color); margin: 0; line-height: 1.5; }
 
 /* グリッドレイアウト */
 .grid-col-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
@@ -164,12 +160,46 @@ select:invalid {
 
 /* ボタン */
 .button-group, .button-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.button-group button, .button-grid button { background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-secondary-color); padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease; }
+.button-group button, .button-grid button {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary-color);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
 .button-group button:hover, .button-grid button:hover { border-color: var(--primary-hover-color); color: var(--primary-hover-color); }
 .button-group button.active, .button-grid button.active { background-color: var(--primary-color); border-color: var(--primary-color); color: white; }
-.generate-btn { display: flex; align-items: center; justify-content: center; gap: 0.75rem; width: 100%; background-color: var(--bg-color); color: var(--text-secondary-color); font-size: 1.1rem; font-weight: 600; border: 1px solid var(--border-color); padding: 1rem; border-radius: 8px; cursor: pointer; margin-top: 1.5rem; transition: all 0.2s ease; }
-.generate-btn:hover { background-color: var(--surface-color); border-color: var(--primary-hover-color); color: var(--primary-hover-color); }
-.generate-btn img { width: 32px; height: 32px; transition: transform 0.3s ease; }
+
+.generate-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    background-color: var(--bg-color);
+    color: var(--text-secondary-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 1.5rem;
+    transition: all 0.2s ease;
+}
+.generate-btn:hover {
+    background-color: var(--surface-color);
+    border-color: var(--primary-hover-color);
+    color: var(--primary-hover-color);
+}
+.generate-btn img {
+    width: 32px;
+    height: 32px;
+    transition: transform 0.3s ease;
+}
 .generate-btn:hover img { transform: rotate(-15deg) scale(1.1); }
 
 /* チェックボックス */
@@ -185,9 +215,29 @@ select:invalid {
 .checkbox-group-single { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 1.5rem; }
 .checkbox-group label, .checkbox-group-single label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.95rem; }
 input[type="checkbox"] { display: none; }
-input[type="checkbox"] + span { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border-color); border-radius: 5px; transition: all 0.2s ease; position: relative; }
-input[type="checkbox"]:checked + span { background-color: var(--primary-color); border-color: var(--primary-color); }
-input[type="checkbox"]:checked + span::after { content: '✓'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 14px; font-weight: bold; }
+input[type="checkbox"] + span {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border-color);
+    border-radius: 5px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+input[type="checkbox"]:checked + span {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+input[type="checkbox"]:checked + span::after {
+    content: '✓';
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    font-weight: bold;
+}
 
 #mainjobSelect { margin-bottom: 1.5rem; }
 #subjobSection h3 { margin: 0 0 1rem; }
@@ -199,21 +249,80 @@ input[type="checkbox"]:checked + span::after { content: '✓'; color: white; pos
 }
 
 /* フッターとTOPに戻るボタン */
-.site-footer { display: flex; justify-content: center; align-items: center; gap: 0.5rem; padding: 2rem; border-top: 1px solid var(--border-color); color: var(--text-secondary-color); }
-.site-footer a { color: var(--text-secondary-color); text-decoration: none; transition: color 0.2s ease; }
+.site-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary-color);
+}
+.site-footer a {
+    color: var(--text-secondary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
 .site-footer a:hover { color: var(--primary-hover-color); }
 .site-footer svg { width: 18px; height: 18px; }
-#toTopBtn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background-color: var(--surface-color); color: var(--primary-color); border: 1px solid var(--border-color); border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: opacity 0.3s, transform 0.3s; opacity: 0; transform: translateY(20px); pointer-events: none; }
-#toTopBtn.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+#toTopBtn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background-color: var(--surface-color);
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: opacity 0.3s, transform 0.3s;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+}
+#toTopBtn.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
 #toTopBtn:hover { background-color: var(--border-color); }
 
-/* iPhone保存用モーダル */
+/* モーダル */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
 .modal-overlay:not(.hidden) { opacity: 1; pointer-events: auto; }
-.modal-content { background: var(--bg-color); padding: 2rem; border-radius: 12px; max-width: 90vw; max-height: 90vh; overflow-y: auto; text-align: center; position: relative; }
-.close-button { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; color: var(--text-secondary-color); background: none; border: none; cursor: pointer; }
+.modal-content {
+    background: var(--bg-color);
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    text-align: center;
+    position: relative;
+}
+.close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    color: var(--text-secondary-color);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
 .modal-content h3 { margin-top: 0; }
-.modal-content img { max-width: 100%; height: auto; border-radius: 8px; margin-top: 1rem; }
+.modal-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
 
 /* レスポンシブ対応 */
 @media (max-width: 600px) {
@@ -222,7 +331,7 @@ input[type="checkbox"]:checked + span::after { content: '✓'; color: white; pos
     .grid-col-2, .grid-col-3, .grid-col-2-gap { grid-template-columns: 1fr; }
 }
 
-/* === PC表示時の2カラムレイアウト調整 === */
+/* === PC表示時の2カラムレイアウト === */
 @media (min-width: 768px) {
   .content-wrapper {
     flex-direction: row;
@@ -241,11 +350,10 @@ input[type="checkbox"]:checked + span::after { content: '✓'; color: white; pos
   .controls-panel {
     flex: 1;
     overflow-y: auto;
-    max-height: calc(100vh - 120px); /* ヘッダーと余白を考慮して調整 */
+    max-height: calc(100vh - 120px);
     padding-right: 1rem;
   }
 
-  /* TOPボタンをPC時にも見やすく調整 */
   #toTopBtn {
     right: 1.5rem;
     bottom: 1.5rem;
