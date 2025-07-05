@@ -341,7 +341,9 @@ input[type="checkbox"]:checked + span::after {
   }
 
   .preview-panel {
-    flex: 0 0 60%;
+    flex: 1;
+    min-width: 700px;  /* ← Canvasの最小幅 */
+    max-width: 800px;
     position: sticky;
     top: 85px;
     z-index: 1;
@@ -349,10 +351,12 @@ input[type="checkbox"]:checked + span::after {
 
   .controls-panel {
     flex: 1;
+    min-width: 360px;
     overflow-y: auto;
     max-height: calc(100vh - 120px);
     padding-right: 1rem;
   }
+}
 
   #toTopBtn {
     right: 1.5rem;
