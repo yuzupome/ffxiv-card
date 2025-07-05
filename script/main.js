@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (Final Version)
- * - v20.0: Final version with debugging disabled.
+ * - v21.1: Finalized sub job selection logic.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentTemplatePrefix = 'Gothic_black';
     let imageTransform = { img: null, x: EDIT_WIDTH / 2, y: EDIT_HEIGHT / 2, scale: 1.0, isDragging: false, lastX: 0, lastY: 0, lastTouchDistance: 0 };
     let isDownloading = false;
+    let previousMainJob = '';
 
     // --- アセット読み込み処理 ---
     async function loadAssetsForTemplate(templateName, isInitialLoad = false) {
@@ -344,15 +345,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     mainJobSelect.addEventListener('input', (e) => {
-        const selectedJobValue = e.target.value;
+        const newMainJob = e.target.value;
 
-        if (selectedJobValue) {
-            const subJobButton = Array.from(subJobButtons).find(btn => btn.dataset.value === selectedJobValue);
-            if (subJobButton) {
-                subJobButton.classList.add('active');
+        // 前のメインジョブに連動したサブジョブの選択を解除
+        if (previousMainJob) {
+            const previousSubJobButton = Array.from(subJobButtons).find(btn => btn.dataset.value === previousMainJob);
+            if (previousSubJobButton) {
+                previousSubJobButton.classList.remove('active');
+            }
+        }
+        
+        // 新しいメインジョブに対応するサブジョブを選択
+        if (newMainJob) {
+            const newSubJobButton = Array.from(subJobButtons).find(btn => btn.dataset.value === newMainJob);
+            if (newSubJobButton) {
+                newSubJobButton.classList.add('active');
             }
         }
 
+        // 選択されたジョブを記憶
+        previousMainJob = newMainJob;
+
+        // メインジョブとサブジョブの両方の描画を更新
         debouncedRedrawMainJob();
         debouncedRedrawSubJob();
     });
