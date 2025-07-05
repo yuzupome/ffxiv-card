@@ -46,25 +46,35 @@ body {
     margin: 0 auto;
     flex-grow: 1;
 }
-.preview-panel, .core-controls-panel, .style-controls-panel {
+.preview-panel {
+    position: sticky;
+    top: 85px;
+    z-index: 1;
+    width: 100%;
+}
+.controls-panel {
     width: 100%;
 }
 
-/* [変更点] PC版の3カラムレイアウト設定 */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
     .content-wrapper {
-        display: grid;
-        grid-template-columns: 1fr 360px 360px; /* プレビュー | 基本設定 | 詳細設定 */
+        flex-direction: row;
         align-items: flex-start;
-        gap: 2rem;
     }
-    .core-controls-panel, .style-controls-panel {
+    .preview-panel {
+        flex: 1;
+    }
+    .controls-panel {
+        width: 700px;
+        flex-shrink: 0;
         height: calc(100vh - 85px - 4rem);
-        overflow-y: auto;
-        padding-right: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 2.5rem;
+        column-count: 2;
+        column-gap: 2rem;
+    }
+    .control-section {
+        break-inside: avoid;
+        padding-top: 0;
+        margin-bottom: 2.5rem;
     }
 }
 
@@ -95,6 +105,7 @@ body {
 #ui-layer:active {
     cursor: grabbing;
 }
+#controls { display: flex; flex-direction: column; gap: 2.5rem; }
 
 /* ミニローダー */
 .mini-loader {
@@ -127,11 +138,7 @@ body {
 
 /* セクションのスタイル */
 .control-section { padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
-.core-controls-panel > .control-section:first-of-type,
-.style-controls-panel > .control-section:first-of-type { 
-    border-top: none; 
-    padding-top: 0;
-}
+#controls > div:first-of-type { border-top: none; padding-top: 0; }
 .section-title { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 600; margin: 0 0 1rem 0; color: var(--text-color); }
 .section-title-nested { font-size: 0.9rem; margin-bottom: 1rem; color: var(--text-secondary-color); font-family: 'Orbitron', sans-serif; }
 
@@ -230,10 +237,8 @@ input[type="checkbox"]:checked + span::after { content: '✓'; color: white; pos
 .modal-content img { max-width: 100%; height: auto; border-radius: 8px; margin-top: 1rem; }
 
 /* レスポンシブ対応 */
-@media (max-width: 1279px) {
+@media (max-width: 600px) {
     .site-header { padding: 1rem; }
     .content-wrapper { padding: 1rem; }
-}
-@media (max-width: 600px) {
     .grid-col-2, .grid-col-3, .grid-col-2-gap { grid-template-columns: 1fr; }
 }
