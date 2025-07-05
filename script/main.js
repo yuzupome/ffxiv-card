@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator Script (Refactored Version)
- * - v19.7: Reduced max font size for name text.
+ * - v19.8: Further reduced max font size for name text.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -281,8 +281,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             width: baseNameArea.width * scale, 
             height: baseNameArea.height * scale
         };
-        // [変更点] 最大フォントサイズを 40 から 36 に変更
-        const MAX_FONT_SIZE = 36 * scale;
+        // [変更点] 最大フォントサイズを 36 から 26 に変更
+        const MAX_FONT_SIZE = 26 * scale;
         
         if (DEBUG_MODE) {
             const lineWidth = 2 * scale;
