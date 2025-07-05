@@ -134,7 +134,7 @@ body {
 /* セクションのスタイル */
 .control-section { padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
 #controls > div:first-of-type { border-top: none; padding-top: 0; }
-.section-title { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 600; margin: 0 0 1.5rem 0; color: var(--text-color); }
+.section-title { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 600; margin: 0 0 1rem 0; color: var(--text-color); }
 .section-title-nested { font-size: 0.9rem; margin-bottom: 1rem; color: var(--text-secondary-color); font-family: 'Orbitron', sans-serif; }
 
 /* フォーム要素 */
@@ -161,7 +161,10 @@ select:invalid {
 .file-name-display { font-size: 0.8rem; color: var(--text-secondary-color); text-align: center; margin-top: 0.5rem; height: 1em; }
 
 /* 注意事項 */
-.usage-notes { margin-top: 0.5rem; }
+.usage-notes { 
+    margin-top: 0.5rem;
+    text-align: center;
+}
 .notes-text {
     font-size: 14px;
     color: var(--text-secondary-color);
@@ -206,7 +209,9 @@ input[type="checkbox"]:checked + span::after { content: '✓'; color: white; pos
 #subjobSection h3 { margin: 0 0 1rem; }
 .grid-break {
     flex-basis: 100%;
-    height: 3px;
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 0.5rem 0;
 }
 
 /* フッターとTOPに戻るボタン */
@@ -231,6 +236,4 @@ input[type="checkbox"]:checked + span::after { content: '✓'; color: white; pos
     .site-header { padding: 1rem; }
     .content-wrapper { padding: 1rem; }
     .grid-col-2, .grid-col-3, .grid-col-2-gap { grid-template-columns: 1fr; }
-    .time-section { flex-direction: column; align-items: flex-start; }
-    .time-section > span { text-align: left; margin-bottom: 0.5rem; }
 }
