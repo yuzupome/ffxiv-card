@@ -1,4 +1,3 @@
-// Final version check
 document.addEventListener('DOMContentLoaded', () => {
     // --- 1. 初期設定と要素の取得 ---
     const app = document.getElementById('app');
@@ -188,19 +187,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const y = positions.subjob.startY + row * (positions.subjob.h + positions.subjob.gap);
             
             const bgTheme = (cardState.template.startsWith('Water') || cardState.template.startsWith('Lovely_')) ? 'Circle' : 'Common';
-            const bgPath = `assets/images/common/${bgTheme}_icon_bg.webp`;
+            const bgPath = `assets/images/job/${bgTheme}_job_${job}_sub_bg.webp`;
             const bgImg = await loadImage(bgPath);
             const color = getDefaultBgColor(cardState.template, 'subjob');
             drawImageWithTint(ctx, bgImg, x, y, positions.subjob.w, positions.subjob.h, cardState.iconBgColor || color);
 
-            const framePath = `assets/images/job/Common_job_${job}_sub_frame.webp`;
-            const frameImg = await loadImage(framePath);
-            const tint = getIconTint(cardState.template);
-            if(tint) {
-                drawImageWithTint(ctx, frameImg, x, y, positions.subjob.w, positions.subjob.h, tint);
-            } else {
-                ctx.drawImage(frameImg, x, y, positions.subjob.w, positions.subjob.h);
-            }
+            // サブジョブの_frameは存在しないので、描画しない
         });
     }
 
