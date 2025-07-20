@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-PKSZ7BSD');</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usage Notes - FFXIV Character Card Generator</title>
+    <link rel="icon" type="image/png" href="./assets/favicon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" href="./assets/css/style.css" />
+    <style>
+        /* このページ専用のスタイル */
+        .notes-container {
+            background-color: var(--surface-color);
+            padding: 2rem 3rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+        .notes-container h1 {
+            font-family: 'Orbitron', sans-serif;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-top: 0;
+            /* [変更点] フォントサイズを約18pxに調整 */
+            font-size: 1.125rem; 
+            color: var(--primary-color);
+        }
+        .notes-container p {
+            margin-bottom: 1.5rem;
+        }
+        .notes-container a {
+            color: #777;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .notes-container a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 2rem;
+            font-weight: 500;
+            color: #777;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PKSZ7BSD"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<div id="app">
+    <div id="header-placeholder"></div>
+
+    <div class="content-wrapper">
+        <div class="notes-container">
+            <h1>ご利用上の注意</h1>
+            <p>
+                このキャラクターカードジェネレーターは、ファン活動の一環として個人が制作した非公式ツールです。<br>
+                株式会社スクウェア・エニックスとは一切関係ありません。
+            </p>
+            <p>
+                著作権および関連する一切の権利は、株式会社スクウェア・エニックスに帰属します。<br>
+                詳細は公式ガイドライン「<a href="https://support.jp.square-enix.com/rule.php?id=5381&la=0&tag=authc" target="_blank" rel="noopener noreferrer">ファイナルファンタジーXIV 著作物利用許諾条件</a>」をご確認ください。
+            </p>
+            <p>
+                本ツールは営利目的での利用を想定しておらず、個人的な利用の範囲でのみご使用いただけます。<br>
+                利用によって生じた損害について、制作者は一切の責任を負いませんのでご了承ください。
+            </p>
+
+            <a href="./index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Generator</a>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+</div>
+
+<script src="./script/common.js"></script>
+</body>
+</html>

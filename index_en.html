@@ -66,21 +66,6 @@
                     </select>
                 </div>
 
-                <div class="control-section">
-                    <h2 class="section-title">Icon BG Color</h2>
-                    <div class="color-picker-wrapper">
-                        <input type="color" id="iconBgColorPicker" value="#A142CD">
-                        <div id="colorPresetButtons" class="color-presets">
-                            <button class="preset-color-btn" data-color="#A142CD" style="background-color: #A142CD;"></button>
-                            <button class="preset-color-btn" data-color="#6CD9D6" style="background-color: #6CD9D6;"></button>
-                            <button class="preset-color-btn" data-color="#D34669" style="background-color: #D34669;"></button>
-                            <button class="preset-color-btn" data-color="#B70016" style="background-color: #B70016;"></button>
-                            <button class="preset-color-btn" data-color="#FFF500" style="background-color: #FFF500;"></button>
-                            <button class="preset-color-btn" data-color="#FFFFFF" style="background-color: #FFFFFF;"></button>
-                            <button class="preset-color-btn" data-color="#000000" style="background-color: #000000;"></button>
-                        </div>
-                    </div>
-                </div>
                 <div id="top-controls" class="control-section">
                     <label for="uploadImage" class="file-upload-label">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
@@ -112,25 +97,7 @@
                     <div class="grid-col-3" style="margin-top: 1rem;">
                         <select id="dcSelect" required>
                             <option value="" disabled selected>DC</option>
-                            <optgroup label="JP">
-                                <option value="elemental">Elemental</option>
-                                <option value="gaia">Gaia</option>
-                                <option value="mana">Mana</option>
-                                <option value="meteor">Meteor</option>
-                            </optgroup>
-                            <optgroup label="NA">
-                                <option value="aether">Aether</option>
-                                <option value="primal">Primal</option>
-                                <option value="crystal">Crystal</option>
-                                <option value="dynamis">Dynamis</option>
-                            </optgroup>
-                            <optgroup label="EU">
-                                <option value="chaos">Chaos</option>
-                                <option value="light">Light</option>
-                            </optgroup>
-                            <optgroup label="OCE">
-                                <option value="materia">Materia</option>
-                            </optgroup>
+                            <option value="mana">Mana</option> <option value="gaia">Gaia</option> <option value="elemental">Elemental</option> <option value="meteor">Meteor</option>
                         </select>
                         <select id="raceSelect" required>
                             <option value="" disabled selected>種族</option>

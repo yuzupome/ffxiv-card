@@ -363,3 +363,78 @@ input[type="checkbox"]:checked + span::after {
     bottom: 1.5rem;
   }
 }
+
+
+/* 言語切り替え */
+.language-switcher {
+    margin-left: auto; /* 右寄せ */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+}
+.lang-link {
+    font-family: 'Orbitron', sans-serif;
+    text-decoration: none;
+    color: var(--text-secondary-color);
+    font-size: 0.8rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    transition: all 0.2s ease;
+}
+.lang-link:hover {
+    background-color: var(--surface-color);
+    color: var(--text-color);
+}
+.lang-link.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+.lang-separator {
+    color: var(--border-color);
+}
+
+
+/* カラーピッカー */
+.color-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+input[type="color"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    background-color: transparent;
+}
+input[type="color"]::-webkit-color-swatch {
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+}
+input[type="color"]::-moz-color-swatch {
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+}
+.color-presets {
+    display: flex;
+    gap: 0.75rem;
+}
+.preset-color-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.preset-color-btn:hover {
+    transform: scale(1.1);
+}
