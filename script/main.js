@@ -100,15 +100,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 4. コア関数 ---
     function getAssetPath(options) {
-        const theme = options.theme || 'Common';
-        const langSuffix = (options.isEn && options.langResource) ? '_en' : '';
-        let path = `./assets/images/${options.category}/`;
-        if (options.type) path += `${options.type}/`;
-        const variant = options.variant || '';
-        const cp = options.isDownload ? '_cp' : '';
-        path += `${theme}_${options.category}_${options.value}${variant}${cp}${langSuffix}.webp`;
-        return path.replace('Common_background', options.value);
+    // 背景画像用の特別な処理
+    if (options.category === 'background' && options.type === 'base') {
+        const langSuffix = state.lang === 'en' ? '_en' : '';
+        const cpSuffix = options.isDownload ? '_cp' : '';
+        // 英語バージョンにはcpサフィックスも付く可能性があるため、順番を考慮
+        return `./assets/images/background/base/${options.value}${cpSuffix}${langSuffix}.webp`;
     }
+
+    // アイコンなど、その他のアセット用の処理
+    const theme = options.theme || 'Common';
+    const langSuffix = (state.lang === 'en' && options.langResource) ? '_en' : '';
+    
+    let path = `./assets/images/${options.category}/`;
+    if (options.type) {
+        path += `${options.type}/`;
+    }
+    
+    const variant = options.variant || '';
+    
+    path += `${theme}_${options.category}_${options.value}${variant}${langSuffix}.webp`;
+    
+    return path;
+}
     
     function loadImage(src) {
         if (imageCache[src]) return Promise.resolve(imageCache[src]);
