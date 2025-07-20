@@ -123,13 +123,15 @@ document.addEventListener('DOMContentLoaded', () => {
             await drawLowLayerIcons(bgCtx);
 
             // --- 3. オーバーレイフレームの描画 ---
-            let framePath = 'assets/images/background/frame/Common_square_frame.webp';
+            // ▼▼▼ [ここを修正] ファイル名を修正 ▼▼▼
+            let framePath = 'assets/images/background/frame/Common_background_square_frame.webp';
             let frameTint = getFrameTint(cardState.template);
             if (cardState.template.startsWith('Water') || cardState.template.startsWith('Lovely_')) {
-                framePath = 'assets/images/background/frame/Common_circle_frame.webp';
+                framePath = 'assets/images/background/frame/Common_background_circle_frame.webp';
             } else if (cardState.template.startsWith('Neon_')) {
-                framePath = 'assets/images/background/frame/Neon_square_frame.webp';
+                framePath = 'assets/images/background/frame/Neon_background_square_frame.webp';
             }
+            // ▲▲▲ [修正完了] ▲▲▲
             const frameImg = await loadImage(framePath);
             if(frameTint) {
                 drawImageWithTint(bgCtx, frameImg, 0, 0, 1000, 600, frameTint);
