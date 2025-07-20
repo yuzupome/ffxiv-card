@@ -4,7 +4,7 @@
  * - test.js の新機能（多言語対応、アイコン色変更、Sticky UI）を統合
  * - 新しいアセット構造とHTML構造に完全対応
  * - 画像操作、ダウンロード処理を含むすべての機能を実装
- * - 2025-07-20 v23.20: レイヤー、フォント、パスに関するバグを修正
+ * - 2025-07-21 v00.17: フォント適用、レイヤー、複数アセットのパス生成に関するバグを修正
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -92,7 +92,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 3. 状態管理 ---
     let state = {
-        lang: 'jp', template: 'Gothic_black', iconBgColor: '#A142CD', characterName: '', font: "'Exo 2', sans-serif", dc: '', race: '', progress: '', playstyles: [], playtimes: [], difficulties: [], mainjob: '', subjobs: [],
+        lang: 'jp', template: 'Gothic_black', iconBgColor: '#A142CD', characterName: '',
+        font: "'Exo 2', sans-serif",
+        dc: '', race: '', progress: '', playstyles: [], playtimes: [], difficulties: [], mainjob: '', subjobs: [],
     };
     let imageTransform = { img: null, x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, scale: 1.0, isDragging: false, lastX: 0, lastY: 0, lastTouchDistance: 0 };
     let imageCache = {};
@@ -107,21 +109,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             const cpSuffix = options.isDownload ? '_cp' : '';
             return `./assets/images/background/base/${options.value}${cpSuffix}${langSuffix}.webp`;
         }
-
+    
         // アイコンなど、その他のアセット用の処理
         const theme = options.theme || 'Common';
         const langSuffix = (state.lang === 'en' && options.langResource) ? '_en' : '';
-        
         let path = `./assets/images/${options.category}/`;
-        if (options.type) {
-            path += `${options.type}/`;
-        }
-        
+        if (options.type) path += `${options.type}/`;
         const variant = options.variant || '';
-        const typeSuffix = options.type && ['bg', 'frame'].includes(options.type) ? `_${options.type}` : '';
-        
-        path += `${theme}_${options.category}_${options.value}${typeSuffix}${variant}${langSuffix}.webp`;
-        
+
+        if (options.category === 'playstyle' && options.type === 'bg') {
+             path += `${theme}_${options.category}_${options.mappedValue}${variant}${langSuffix}.webp`;
+        } else {
+             path += `${theme}_${options.category}_${options.value}${variant}${langSuffix}.webp`;
+        }
         return path;
     }
     
@@ -137,17 +137,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function drawImageWithTint(ctx, image, color) {
-        if (!color) {
-            ctx.drawImage(image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            return;
-        }
+        if (!image) return;
         const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = CANVAS_WIDTH; tempCanvas.height = CANVAS_HEIGHT;
+        tempCanvas.width = image.width; tempCanvas.height = image.height;
         const tempCtx = tempCanvas.getContext('2d');
-        tempCtx.drawImage(image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        tempCtx.globalCompositeOperation = 'source-in';
-        tempCtx.fillStyle = color;
-        tempCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        tempCtx.drawImage(image, 0, 0);
+
+        if(color) {
+            tempCtx.globalCompositeOperation = 'source-in';
+            tempCtx.fillStyle = color;
+            tempCtx.fillRect(0, 0, image.width, image.height);
+        }
         ctx.drawImage(tempCanvas, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     }
     
@@ -192,7 +192,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function drawCharacterLayer() {
-        // ユーザー画像を最背面のbgCtxに描画
         bgCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         if (imageTransform.img) {
             bgCtx.save();
@@ -207,7 +206,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const path = getAssetPath({ category: 'background', value: state.template, type: 'base', isEn: state.lang === 'en' });
         try {
             const bgImg = await loadImage(path);
-            // テンプレートを2番目のcharCtxに描画
             charCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             charCtx.drawImage(bgImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         } catch (error) { console.error('背景の描画に失敗:', error); }
@@ -235,49 +233,81 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     // --- 7. 描画ヘルパー ---
-    async function drawSingleIcon(ctx, options) {
-        const { category, value, type, theme, iconTint } = options;
-        const path = getAssetPath({ category, value, type, theme, isEn: state.lang === 'en', langResource: options.langResource });
-        try {
-            const img = await loadImage(path);
-            if(type === 'bg') drawImageWithTint(ctx, img, state.iconBgColor);
-            else drawImageWithTint(ctx, img, iconTint);
-        } catch(e) {/* ignore */}
-    }
-
     async function drawMiscIcons(ctx) {
-        const isEn = state.lang === 'en';
         const config = templateConfig[state.template];
         if (!config) return;
 
-        if(state.dc) await drawSingleIcon(ctx, { category: 'dc', value: state.dc, theme: config.iconTheme, iconTint: config.iconTint });
-        if(state.race) {
-            await drawSingleIcon(ctx, { category: 'race', value: state.race, type: 'bg' });
-            await drawSingleIcon(ctx, { category: 'race', value: state.race, type: 'frame', theme: config.iconTheme, iconTint: config.iconTint });
+        const playstyleMap = {
+            leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
+            streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
+        };
+
+        const drawIcon = async (path, tintColor) => {
+            try {
+                const img = await loadImage(path);
+                drawImageWithTint(ctx, img, tintColor);
+            } catch (e) { /* 画像がなければ無視 */ }
+        };
+
+        if (state.dc) await drawIcon(getAssetPath({ category: 'dc', value: state.dc, theme: config.iconTheme }), config.iconTint);
+        
+        if (state.race) {
+            await drawIcon(getAssetPath({ category: 'race', value: state.race, type: 'bg', variant: '_bg'}), state.iconBgColor);
+            await drawIcon(getAssetPath({ category: 'race', value: state.race, type: 'frame', variant: '_frame', theme: config.iconTheme }), config.iconTint);
         }
-        if(state.progress) {
-            await drawSingleIcon(ctx, { category: 'progress', value: state.progress, type: 'frame', theme: config.iconTheme, iconTint: config.iconTint, langResource: true });
+        
+        if (state.progress) {
+            const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
+            const currentIndex = progressStages.indexOf(state.progress);
+            if(currentIndex > -1) {
+                for(let i = 0; i <= currentIndex; i++) {
+                    await drawIcon(getAssetPath({ category: 'progress', value: progressStages[i], type: 'bg', variant: '_bg' }), state.iconBgColor);
+                }
+            }
+            if(state.progress === 'all_clear') {
+                for(const stage of progressStages) {
+                     await drawIcon(getAssetPath({ category: 'progress', value: stage, type: 'bg', variant: '_bg' }), state.iconBgColor);
+                }
+                await drawIcon(getAssetPath({ category: 'progress', value: 'all_clear', type: 'bg', variant: '_bg' }), state.iconBgColor);
+            }
+
+            await drawIcon(getAssetPath({ category: 'progress', value: state.progress, type: 'frame', variant: '_frame', theme: config.iconTheme, langResource: true }), config.iconTint);
         }
-        for(const style of state.playstyles) {
-            await drawSingleIcon(ctx, { category: 'playstyle', value: style, type: 'frame', theme: config.iconTheme, iconTint: config.iconTint, langResource: true });
+
+        for (const style of state.playstyles) {
+            await drawIcon(getAssetPath({ category: 'playstyle', value: style, type: 'bg', mappedValue: playstyleMap[style], variant: '_bg' }), state.iconBgColor);
+            await drawIcon(getAssetPath({ category: 'playstyle', value: style, type: 'frame', variant: '_frame', theme: config.iconTheme, langResource: true }), config.iconTint);
         }
-        for(const time of state.playtimes) {
+        for (const time of state.playtimes) {
             const isSpecial = time === 'random' || time === 'fulltime';
-            await drawSingleIcon(ctx, { category: 'time', value: time, type: isSpecial ? 'frame' : 'icon', theme: config.iconTheme, iconTint: config.iconTint, langResource: isSpecial });
+            if (isSpecial) await drawIcon(getAssetPath({ category: 'time', value: time, type: 'bg', variant: '_bg' }), state.iconBgColor);
+            await drawIcon(getAssetPath({ category: 'time', value: time, type: isSpecial ? 'frame' : 'icon', variant: isSpecial ? '_frame' : '' , theme: config.iconTheme, langResource: isSpecial }), config.iconTint);
         }
-        for(const diff of state.difficulties) {
-             await drawSingleIcon(ctx, { category: 'raid', value: diff, type: 'bg', theme: config.frame.includes('circle') ? 'Circle' : (config.frame.includes('Neon') ? 'Neon' : 'Common') });
+        for (const diff of state.difficulties) {
+            const theme = config.frame.includes('circle') ? 'Circle' : (config.frame.includes('Neon') ? 'Neon' : 'Common');
+            await drawIcon(getAssetPath({ category: 'raid', value: diff, type: 'bg', theme, variant: '_bg' }), state.iconBgColor);
+        }
+        if (state.difficulties.length > 0) {
+            await drawIcon(getAssetPath({ category: 'raid', value: 'frame', theme: config.iconTheme, langResource: true }), config.iconTint);
         }
     }
 
     async function drawJobIcon(ctx, jobName, type) {
         const config = templateConfig[state.template];
         if (!config) return;
+
+        const drawIcon = async (path, tintColor) => {
+            try {
+                const img = await loadImage(path);
+                drawImageWithTint(ctx, img, tintColor);
+            } catch (e) { /* 画像がなければ無視 */ }
+        };
+
         if (type === 'main') {
-            await drawSingleIcon(ctx, { category: 'job', value: jobName, variant: '_main', iconTint: config.iconTint });
+            await drawIcon(getAssetPath({ category: 'job', value: jobName, variant: '_main' }), config.iconTint);
         } else {
             const theme = config.frame.includes('circle') ? 'Circle' : 'Common';
-            await drawSingleIcon(ctx, { category: 'job', value: jobName, variant: '_sub_bg', theme: theme });
+            await drawIcon(getAssetPath({ category: 'job', value: jobName, theme: theme, variant: '_sub_bg' }), state.iconBgColor);
         }
     }
     
@@ -286,17 +316,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         const config = templateConfig[state.template];
         if(!config) return;
         
-        try { await document.fonts.load(`32px "${state.font}"`); } catch (err) { console.warn(`フォントの読み込みに失敗: ${state.font}`, err); }
+        const fontName = state.font.split(',')[0].replace(/'/g, '');
+
+        try { await document.fonts.load(`32px "${fontName}"`); } catch (err) { console.warn(`フォントの読み込みに失敗: ${fontName}`, err); }
         
         ctx.fillStyle = config.nameColor || '#ffffff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         let fontSize = 32;
         const nameArea = config.nameArea;
-        ctx.font = `${fontSize}px "${state.font}"`;
+        ctx.font = `${fontSize}px "${fontName}"`;
         while(ctx.measureText(state.characterName).width > nameArea.width && fontSize > 10) {
             fontSize--;
-            ctx.font = `${fontSize}px "${state.font}"`;
+            ctx.font = `${fontSize}px "${fontName}"`;
         }
         ctx.fillText(state.characterName, nameArea.x + nameArea.width / 2, nameArea.y + nameArea.height / 2);
     }
@@ -480,23 +512,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             finalCtx.imageSmoothingEnabled = true;
             finalCtx.imageSmoothingQuality = 'high';
 
-            // 1. ユーザー画像を描画
             if (imageTransform.img) {
-                finalCtx.drawImage(backgroundLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // bgCtxが描画したレイヤー
+                finalCtx.drawImage(backgroundLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             }
 
-            // 2. キャラクター画像の上にかぶせるテンプレート部分を描画
             const bgCpPath = getAssetPath({ category: 'background', value: state.template, type: 'base', isEn: state.lang === 'en', isDownload: true, langResource: true });
             const bgCpImg = await loadImage(bgCpPath);
             finalCtx.drawImage(bgCpImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-            // 3. UI要素をすべて再描画
             await drawMiscIcons(finalCtx);
             for(const job of state.subjobs) { await drawJobIcon(finalCtx, job, 'sub'); }
             if(state.mainjob) await drawJobIcon(finalCtx, state.mainjob, 'main');
             await drawNameText(finalCtx);
 
-            // 4. ダウンロードまたはモーダル表示
             const imageUrl = finalCanvas.toDataURL('image/jpeg', 0.92);
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             if (isIOS) {
@@ -522,13 +550,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 12. 初期化処理 ---
     async function initialize() {
         console.log("統合版ジェネレーターを初期化します。");
-        updateState();
-        const initialConfig = templateConfig[state.template];
-        if (initialConfig) setColor(initialConfig.defaultBg);
         
         fontSelect.value = state.font;
+        updateState();
+        
+        const initialConfig = templateConfig[state.template];
+        if (initialConfig) setColor(initialConfig.defaultBg);
 
-        await drawCharacterLayer(); //
+        await drawCharacterLayer();
         await drawBackgroundLayer();
         await Promise.all([ redrawMiscIconComposite(), redrawMainJobComposite(), redrawSubJobComposite() ]);
         await drawUiLayer();
