@@ -1,3 +1,4 @@
+// Final version check
 document.addEventListener('DOMContentLoaded', () => {
     // --- 1. 初期設定と要素の取得 ---
     const app = document.getElementById('app');
