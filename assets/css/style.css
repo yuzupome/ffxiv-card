@@ -438,3 +438,95 @@ input[type="color"]::-moz-color-swatch {
 .preset-color-btn:hover {
     transform: scale(1.1);
 }
+
+/* === [ここから追加] 言語タブと追従型カラーピッカーのスタイル === */
+
+/* 言語タブ */
+.lang-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+.lang-tab-btn {
+    font-family: 'Orbitron', sans-serif;
+    background: none;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-secondary-color);
+    position: relative;
+    top: 1px;
+    border-bottom: 3px solid transparent;
+}
+.lang-tab-btn.active {
+    color: var(--primary-hover-color);
+    border-bottom-color: var(--primary-hover-color);
+}
+
+/* 追従型カラーピッカー */
+.sticky-color-picker-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1500;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+.sticky-color-picker-container.is-hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+}
+.sticky-picker-toggle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: var(--primary-color);
+}
+.sticky-picker-panel {
+    position: absolute;
+    bottom: 75px; /* ボタンの上に表示 */
+    right: 0;
+    width: 280px;
+    padding: 1.5rem;
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease-in-out;
+    pointer-events: none;
+}
+.sticky-color-picker-container.is-open .sticky-picker-panel {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.sticky-picker-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--text-color);
+}
+.sticky-picker-panel .color-picker-wrapper {
+    gap: 0.75rem;
+}
+
+/* toTopBtnとの位置調整 */
+#toTopBtn {
+    bottom: 2rem;
+    /* 追従ピッカーが表示されている時は少し上にずらす */
+    transition: bottom 0.3s ease-in-out;
+}
+#toTopBtn.with-sticky-picker {
+    bottom: 6.5rem; /* 2rem + 60px + 1.5rem */
+}
