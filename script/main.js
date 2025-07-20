@@ -4,6 +4,7 @@
  * - test.js の新機能（多言語対応、アイコン色変更、Sticky UI）を統合
  * - 新しいアセット構造とHTML構造に完全対応
  * - 画像操作、ダウンロード処理を含むすべての機能を実装
+ * - 2025-07-20 v23.20: レイヤー、フォント、パスに関するバグを修正
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -72,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         'Gothic_white':   { nameColor: '#000000', iconTint: '#000000',   defaultBg: '#6CD9D6', frame: 'Common_background_square_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Gothic_pink':    { nameColor: '#ffffff', iconTint: null,       defaultBg: '#A142CD', frame: 'Common_background_square_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Neon_mono':      { nameColor: '#ffffff', iconTint: null,       defaultBg: '#B70016', frame: 'Neon_background_square_frame',   iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
-        'Neon_duotonek':  { nameColor: '#ffffff', iconTint: null,       defaultBg: '#FFF500', frame: 'Neon_background_square_frame',   iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Neon_duotone':   { nameColor: '#ffffff', iconTint: null,       defaultBg: '#FFF500', frame: 'Neon_background_square_frame',   iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Neon_meltdown':  { nameColor: '#ffffff', iconTint: null,       defaultBg: '#FF00CF', frame: 'Neon_background_square_frame',   iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Water':          { nameColor: '#ffffff', iconTint: null,       defaultBg: '#FFFFFF', frame: 'Common_background_circle_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Lovely_heart':   { nameColor: '#E1C8D2', iconTint: '#E1C8D2',   defaultBg: '#D34669', frame: 'Common_background_circle_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
@@ -91,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 3. 状態管理 ---
     let state = {
-        lang: 'jp', template: 'Gothic_black', iconBgColor: '#A142CD', characterName: '', font: '', dc: '', race: '', progress: '', playstyles: [], playtimes: [], difficulties: [], mainjob: '', subjobs: [],
+        lang: 'jp', template: 'Gothic_black', iconBgColor: '#A142CD', characterName: '', font: "'Exo 2', sans-serif", dc: '', race: '', progress: '', playstyles: [], playtimes: [], difficulties: [], mainjob: '', subjobs: [],
     };
     let imageTransform = { img: null, x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, scale: 1.0, isDragging: false, lastX: 0, lastY: 0, lastTouchDistance: 0 };
     let imageCache = {};
@@ -100,29 +101,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 4. コア関数 ---
     function getAssetPath(options) {
-    // 背景画像用の特別な処理
-    if (options.category === 'background' && options.type === 'base') {
-        const langSuffix = state.lang === 'en' ? '_en' : '';
-        const cpSuffix = options.isDownload ? '_cp' : '';
-        // 英語バージョンにはcpサフィックスも付く可能性があるため、順番を考慮
-        return `./assets/images/background/base/${options.value}${cpSuffix}${langSuffix}.webp`;
-    }
+        // 背景画像用の特別な処理
+        if (options.category === 'background' && options.type === 'base') {
+            const langSuffix = state.lang === 'en' ? '_en' : '';
+            const cpSuffix = options.isDownload ? '_cp' : '';
+            return `./assets/images/background/base/${options.value}${cpSuffix}${langSuffix}.webp`;
+        }
 
-    // アイコンなど、その他のアセット用の処理
-    const theme = options.theme || 'Common';
-    const langSuffix = (state.lang === 'en' && options.langResource) ? '_en' : '';
-    
-    let path = `./assets/images/${options.category}/`;
-    if (options.type) {
-        path += `${options.type}/`;
+        // アイコンなど、その他のアセット用の処理
+        const theme = options.theme || 'Common';
+        const langSuffix = (state.lang === 'en' && options.langResource) ? '_en' : '';
+        
+        let path = `./assets/images/${options.category}/`;
+        if (options.type) {
+            path += `${options.type}/`;
+        }
+        
+        const variant = options.variant || '';
+        const typeSuffix = options.type && ['bg', 'frame'].includes(options.type) ? `_${options.type}` : '';
+        
+        path += `${theme}_${options.category}_${options.value}${typeSuffix}${variant}${langSuffix}.webp`;
+        
+        return path;
     }
-    
-    const variant = options.variant || '';
-    
-    path += `${theme}_${options.category}_${options.value}${variant}${langSuffix}.webp`;
-    
-    return path;
-}
     
     function loadImage(src) {
         if (imageCache[src]) return Promise.resolve(imageCache[src]);
@@ -191,13 +192,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function drawCharacterLayer() {
-        charCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        // ユーザー画像を最背面のbgCtxに描画
+        bgCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         if (imageTransform.img) {
-            charCtx.save();
-            charCtx.translate(imageTransform.x, imageTransform.y);
-            charCtx.scale(imageTransform.scale, imageTransform.scale);
-            charCtx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
-            charCtx.restore();
+            bgCtx.save();
+            bgCtx.translate(imageTransform.x, imageTransform.y);
+            bgCtx.scale(imageTransform.scale, imageTransform.scale);
+            bgCtx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
+            bgCtx.restore();
         }
     }
 
@@ -205,8 +207,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const path = getAssetPath({ category: 'background', value: state.template, type: 'base', isEn: state.lang === 'en' });
         try {
             const bgImg = await loadImage(path);
-            bgCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            bgCtx.drawImage(bgImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            // テンプレートを2番目のcharCtxに描画
+            charCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            charCtx.drawImage(bgImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         } catch (error) { console.error('背景の描画に失敗:', error); }
     }
 
@@ -413,7 +416,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     // --- 10. イベントリスナー (画像操作) ---
-    // main(1).jsからそのまま移植
     function getEventLocation(e) {
         const rect = uiLayer.getBoundingClientRect();
         const scaleX = uiLayer.width / rect.width;
@@ -480,7 +482,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // 1. ユーザー画像を描画
             if (imageTransform.img) {
-                finalCtx.drawImage(characterLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                finalCtx.drawImage(backgroundLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // bgCtxが描画したレイヤー
             }
 
             // 2. キャラクター画像の上にかぶせるテンプレート部分を描画
@@ -523,9 +525,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateState();
         const initialConfig = templateConfig[state.template];
         if (initialConfig) setColor(initialConfig.defaultBg);
+        
+        fontSelect.value = state.font;
 
-        // TODO: アセットのプリロード処理をここに実装すると、初回テンプレート変更時の待ち時間をなくせます。
-
+        await drawCharacterLayer(); //
         await drawBackgroundLayer();
         await Promise.all([ redrawMiscIconComposite(), redrawMainJobComposite(), redrawSubJobComposite() ]);
         await drawUiLayer();
