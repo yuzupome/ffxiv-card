@@ -1,6 +1,6 @@
 /**
- * FFXIV Character Card Generator - Final Version
- * - 2025-07-21 v22:30: パフォーマンスを改善し、描画遅延を解消。テーマ判定のバグを修正。
+ * FFXIV Character Card Generator - Final Japanese Version
+ * - 2025-07-21 v23:10: 画像アップロード機能を修正し、メイン・サブジョブ連動機能を追加
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const charCtx = characterLayer.getContext('2d');
     const uiCtx = uiLayer.getContext('2d');
     
-    // パフォーマンス向上のためのオフスクリーンCanvas
     const miscCompositeCanvas = document.createElement('canvas');
     const miscCtx = miscCompositeCanvas.getContext('2d');
     const mainJobCompositeCanvas = document.createElement('canvas');
@@ -73,6 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let imageCache = {};
     let isDownloading = false;
     let userHasManuallyPickedColor = false;
+    let previousMainJob = '';
 
     // --- 4. パフォーマンス最適化 ---
     const createDebouncer = (func, delay) => {
@@ -117,6 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     
     const drawTemplateLayer = async () => {
+        updateState();
         charCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         const path = getAssetPath({ category: 'background/base', filename: state.template });
         await drawTinted(charCtx, path);
@@ -153,7 +154,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const drawMiscIcons = async (ctx) => {
         const config = templateConfig[state.template];
         if (!config) return;
-
         const raceAssetMap = { 'au_ra': 'aura' };
         const playstyleBgNumMap = {
              leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
@@ -276,7 +276,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     
     const redrawAll = async () => {
-        updateState();
         await drawTemplateLayer();
         await Promise.all([
             redrawMiscComposite(),
@@ -305,7 +304,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    mainjobSelect.addEventListener('change', () => { updateState(); debouncedRedrawMainJob(); });
+    mainjobSelect.addEventListener('change', (e) => {
+        updateState();
+        const newMainJob = e.target.value;
+
+        if (previousMainJob) {
+            const prevBtn = subjobSection.querySelector(`button[data-value="${previousMainJob}"]`);
+            if (prevBtn) {
+                prevBtn.classList.remove('active');
+            }
+        }
+        
+        if (newMainJob) {
+            const newBtn = subjobSection.querySelector(`button[data-value="${newMainJob}"]`);
+            if (newBtn) {
+                newBtn.classList.add('active');
+            }
+        }
+
+        previousMainJob = newMainJob;
+        updateState();
+        
+        debouncedRedrawMainJob();
+        debouncedRedrawSubJob();
+    });
+
     subjobSection.addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') {
             e.target.classList.toggle('active');
@@ -333,8 +356,155 @@ document.addEventListener('DOMContentLoaded', async () => {
         debouncedRedrawSubJob();
     });
     
-    uploadImageInput.addEventListener('change', (e) => { /* ... */ });
-    // ... マウス・タッチ操作、ダウンロード等のリスナー ...
+    uploadImageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            imageTransform.img = null;
+            fileNameDisplay.textContent = '';
+            drawCharacterLayer();
+            return;
+        }
+        fileNameDisplay.textContent = file.name;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                imageTransform.img = img;
+                const canvasAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
+                const imgAspect = img.width / img.height;
+                imageTransform.scale = (imgAspect > canvasAspect) ? (CANVAS_HEIGHT / img.height) : (CANVAS_WIDTH / img.width);
+                imageTransform.x = CANVAS_WIDTH / 2;
+                imageTransform.y = CANVAS_HEIGHT / 2;
+                drawCharacterLayer();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    const handleDrag = (e, isTouch = false) => {
+        if (!imageTransform.isDragging || !imageTransform.img) return;
+        e.preventDefault();
+        const loc = isTouch ? e.touches[0] : e;
+        const dx = loc.clientX - imageTransform.lastX;
+        const dy = loc.clientY - imageTransform.lastY;
+        imageTransform.x += dx;
+        imageTransform.y += dy;
+        imageTransform.lastX = loc.clientX;
+        imageTransform.lastY = loc.clientY;
+        drawCharacterLayer();
+    };
+    uiLayer.addEventListener('mousedown', (e) => {
+        if (!imageTransform.img) return;
+        imageTransform.isDragging = true;
+        imageTransform.lastX = e.clientX;
+        imageTransform.lastY = e.clientY;
+    });
+    window.addEventListener('mousemove', (e) => handleDrag(e, false));
+    window.addEventListener('mouseup', () => { imageTransform.isDragging = false; });
+    uiLayer.addEventListener('wheel', (e) => {
+        if (!imageTransform.img) return;
+        e.preventDefault();
+        const scaleAmount = e.deltaY < 0 ? 1.05 : 1 / 1.05;
+        imageTransform.scale *= scaleAmount;
+        drawCharacterLayer();
+    });
+    
+    let lastTouchDistance = 0;
+    uiLayer.addEventListener('touchstart', (e) => {
+        if (!imageTransform.img) return;
+        e.preventDefault();
+        if (e.touches.length === 1) {
+            imageTransform.isDragging = true;
+            imageTransform.lastX = e.touches[0].clientX;
+            imageTransform.lastY = e.touches[0].clientY;
+        } else if (e.touches.length === 2) {
+            imageTransform.isDragging = false;
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+        }
+    }, { passive: false });
+    uiLayer.addEventListener('touchmove', (e) => {
+        if (!imageTransform.img) return;
+        e.preventDefault();
+        if (e.touches.length === 1 && imageTransform.isDragging) {
+            handleDrag(e, true);
+        } else if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const newDist = Math.sqrt(dx * dx + dy * dy);
+            if (lastTouchDistance > 0) {
+                const scaleAmount = newDist / lastTouchDistance;
+                imageTransform.scale *= scaleAmount;
+            }
+            lastTouchDistance = newDist;
+            drawCharacterLayer();
+        }
+    }, { passive: false });
+    window.addEventListener('touchend', (e) => {
+        imageTransform.isDragging = false;
+        lastTouchDistance = 0;
+    });
+    
+    downloadBtn.addEventListener('click', async () => {
+        if (isDownloading) return;
+        isDownloading = true;
+        downloadBtn.querySelector('span').textContent = '画像を生成中...';
+        
+        try {
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = CANVAS_WIDTH;
+            finalCanvas.height = CANVAS_HEIGHT;
+            const finalCtx = finalCanvas.getContext('2d');
+            
+            if (imageTransform.img) finalCtx.drawImage(backgroundLayer, 0, 0);
+            finalCtx.drawImage(characterLayer, 0, 0);
+
+            const config = templateConfig[state.template];
+            if(config) {
+                await drawMiscIcons(finalCtx);
+                await drawSubJobIcons(finalCtx);
+                await drawMainJobIcon(finalCtx);
+                const framePath = getAssetPath({ category: 'background/frame', filename: config.frame });
+                await drawTinted(finalCtx, framePath, config.iconTint);
+                await drawNameText(finalCtx);
+            }
+
+            const imageUrl = finalCanvas.toDataURL('image/jpeg', 0.92);
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+            if (isIOS) {
+                modalImage.src = imageUrl;
+                saveModal.classList.remove('hidden');
+            } else {
+                const link = document.createElement('a');
+                link.download = 'ffxiv_character_card.jpeg';
+                link.href = imageUrl;
+                link.click();
+            }
+        } catch (error) {
+            console.error("ダウンロード画像の生成に失敗しました:", error);
+            alert("画像の生成に失敗しました。");
+        } finally {
+            isDownloading = false;
+            downloadBtn.querySelector('span').textContent = 'この内容で作る？🐕';
+        }
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+        saveModal.classList.add('hidden');
+    });
+
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        toTopBtn.classList.toggle('visible', scrollTop > 100);
+    });
+
+    toTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 
     // --- 7. 初期化処理 ---
     const initialize = async () => {
