@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator - Final Japanese Version
- * - 2025-07-21 v23:10: 画像アップロード機能を修正し、メイン・サブジョブ連動機能を追加
+ * - 2025-07-21 v23:59: Full version with all features, including asset preloading.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const appElement = document.getElementById('app');
     const loaderElement = document.getElementById('loader');
+    const miniLoader = document.getElementById('mini-loader');
     
     const toTopBtn = document.getElementById('toTopBtn');
     const saveModal = document.getElementById('saveModal');
@@ -74,13 +75,76 @@ document.addEventListener('DOMContentLoaded', async () => {
     let userHasManuallyPickedColor = false;
     let previousMainJob = '';
 
-    // --- 4. パフォーマンス最適化 ---
+    // --- 4. パフォーマンス最適化 & プリロード ---
     const createDebouncer = (func, delay) => {
         let timer;
         return (...args) => {
             clearTimeout(timer);
             timer = setTimeout(() => func(...args), delay);
         };
+    };
+
+    const preloadFonts = () => {
+        const fonts = Array.from(fontSelect.options).filter(o => o.value).map(o => o.value);
+        const promises = fonts.map(font => document.fonts.load(`10px ${font}`).catch(e => console.warn(`Font failed to preload: ${font}`)));
+        return Promise.all(promises);
+    };
+
+    const preloadTemplateAssets = async (templateName) => {
+        miniLoader.classList.remove('hidden');
+        const config = templateConfig[templateName];
+        if (!config) {
+            miniLoader.classList.add('hidden');
+            return;
+        }
+
+        const assetsToLoad = new Set();
+        const raceAssetMap = { 'au_ra': 'aura' };
+        
+        // プリロード対象のリスト
+        const races = Array.from(raceSelect.options).filter(o => o.value).map(o => o.value);
+        const dcs = Array.from(dcSelect.options).filter(o => o.value).map(o => o.value);
+        const progresses = Array.from(progressSelect.options).filter(o => o.value).map(o => o.value);
+        const styles = Array.from(styleButtonsContainer.querySelectorAll('button')).map(b => b.dataset.value);
+        const difficulties = Array.from(difficultyOptionsContainer.querySelectorAll('input')).map(i => i.value);
+        const mainJobs = Array.from(mainjobSelect.options).filter(o => o.value).map(o => o.value);
+        const subJobs = Array.from(subjobSection.querySelectorAll('button')).map(b => b.dataset.value);
+
+        // 各カテゴリのアセットパスを生成
+        for (const race of races) {
+            const raceValue = raceAssetMap[race] || race;
+            assetsToLoad.add(getAssetPath({ category: 'race/bg', filename: `Common_race_${raceValue}_bg` }));
+            assetsToLoad.add(getAssetPath({ category: 'race/frame', filename: `${config.iconTheme}_race_${raceValue}_frame` }));
+        }
+        for (const dc of dcs) {
+            assetsToLoad.add(getAssetPath({ category: 'dc', filename: `${config.iconTheme}_dc_${dc}` }));
+        }
+        for (const progress of progresses) {
+            const progressFile = progress === 'gyougetsu' ? 'gyogetsu' : progress;
+            assetsToLoad.add(getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progress}_bg` }));
+            assetsToLoad.add(getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${progressFile}_frame` }));
+        }
+        for (const style of styles) {
+            assetsToLoad.add(getAssetPath({ category: 'playstyle/frame', filename: `Common_playstyle_${style}_frame` }));
+        }
+        for (const diff of difficulties) {
+            ['Common', 'Neon', 'Circle'].forEach(theme => {
+                assetsToLoad.add(getAssetPath({ category: 'raid/bg', filename: `${theme}_raid_${diff}_bg` }));
+            });
+        }
+        for (const job of mainJobs) {
+            assetsToLoad.add(getAssetPath({ category: 'job', filename: `Common_job_${job}_main` }));
+        }
+        for (const job of subJobs) {
+             ['Common', 'Circle'].forEach(theme => {
+                assetsToLoad.add(getAssetPath({ category: 'job/bg', filename: `${theme}_job_${job}_sub_bg` }));
+            });
+            assetsToLoad.add(getAssetPath({ category: 'job/frame', filename: `Common_job_${job}_sub_frame` }));
+        }
+
+        const promises = [...assetsToLoad].map(src => loadImage(src));
+        await Promise.all(promises);
+        miniLoader.classList.add('hidden');
     };
 
     // --- 5. 描画ロジック ---
@@ -169,13 +233,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         if (state.progress) {
-            const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
-            const currentIndex = progressStages.indexOf(state.progress);
-            if (currentIndex > -1) {
-                for (let i = 0; i <= currentIndex; i++) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), state.iconBgColor);
-            }
             if (state.progress === 'all_clear') {
-                for (const stage of progressStages) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${stage}_bg` }), state.iconBgColor);
+                await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: 'Common_progress_all_clear_bg' }), state.iconBgColor);
+            } else {
+                const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
+                const currentIndex = progressStages.indexOf(state.progress);
+                if (currentIndex > -1) {
+                    for (let i = 0; i <= currentIndex; i++) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), state.iconBgColor);
+                }
             }
             const progressFile = state.progress === 'gyougetsu' ? 'gyogetsu' : state.progress;
             await drawTinted(ctx, getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${progressFile}_frame` }), config.iconTint);
@@ -213,7 +278,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const drawSubJobIcons = async (ctx) => {
         const config = templateConfig[state.template];
         for (const job of state.subjobs) {
-            await drawTinted(ctx, getAssetPath({ category: 'job/bg', filename: `Common_job_${job}_sub_bg` }), state.iconBgColor);
+            const subJobBgTheme = (state.template.startsWith('Lovely') || state.template.startsWith('Water')) ? 'Circle' : 'Common';
+            await drawTinted(ctx, getAssetPath({ category: 'job/bg', filename: `${subJobBgTheme}_job_${job}_sub_bg` }), state.iconBgColor);
             await drawTinted(ctx, getAssetPath({ category: 'job/frame', filename: `Common_job_${job}_sub_frame` }), config.iconTint);
         }
     };
@@ -276,6 +342,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     
     const redrawAll = async () => {
+        updateState();
         await drawTemplateLayer();
         await Promise.all([
             redrawMiscComposite(),
@@ -285,12 +352,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- 6. イベントリスナー ---
-    templateSelect.addEventListener('change', () => {
+    templateSelect.addEventListener('change', async () => {
         if (!userHasManuallyPickedColor) {
             const newColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
             iconBgColorPicker.value = newColor;
         }
-        redrawAll();
+        await redrawAll();
+        await preloadTemplateAssets(templateSelect.value);
     });
 
     [dcSelect, raceSelect, progressSelect].forEach(el => el.addEventListener('change', () => { updateState(); debouncedRedrawMisc(); }));
@@ -307,24 +375,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     mainjobSelect.addEventListener('change', (e) => {
         updateState();
         const newMainJob = e.target.value;
-
         if (previousMainJob) {
             const prevBtn = subjobSection.querySelector(`button[data-value="${previousMainJob}"]`);
-            if (prevBtn) {
-                prevBtn.classList.remove('active');
-            }
+            if (prevBtn) prevBtn.classList.remove('active');
         }
-        
         if (newMainJob) {
             const newBtn = subjobSection.querySelector(`button[data-value="${newMainJob}"]`);
-            if (newBtn) {
-                newBtn.classList.add('active');
-            }
+            if (newBtn) newBtn.classList.add('active');
         }
-
         previousMainJob = newMainJob;
         updateState();
-        
         debouncedRedrawMainJob();
         debouncedRedrawSubJob();
     });
@@ -508,12 +568,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 7. 初期化処理 ---
     const initialize = async () => {
+        await preloadFonts();
         fontSelect.value = state.font;
         const initialColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
         iconBgColorPicker.value = initialColor;
         
         drawCharacterLayer();
         await redrawAll();
+        await preloadTemplateAssets(templateSelect.value);
         
         loaderElement.style.display = 'none';
         appElement.style.visibility = 'visible';
