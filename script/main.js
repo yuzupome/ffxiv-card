@@ -248,6 +248,29 @@ async function drawMiscIcons(ctx) {
     };
 
     // 描画用の内部ヘルパー関数
+async function drawMiscIcons(ctx) {
+    const config = templateConfig[state.template];
+    if (!config) return;
+
+    // valueとアセット名の差異を吸収するマッピング
+    const raceAssetMap = {
+        'au_ra': 'aura', // HTMLのvalue 'au_ra' をファイル名の 'aura' に変換
+        'roegadyn': 'roegadyn',
+        'miqote': 'miqote',
+        'hyur': 'hyur',
+        'elezen': 'elezen',
+        'lalafell': 'lalafell',
+        'hrothgar': 'hrothgar',
+        'viera': 'viera'
+    };
+    const playstyleAssetMap = {
+        raid: 'dd', // 「レイド」ボタンは「dd」のアセットを使う
+    };
+    const playstyleBgNumMap = {
+        leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
+        streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
+    };
+
     const drawIcon = async (path, tintColor) => {
         try {
             const img = await loadImage(path);
@@ -260,25 +283,28 @@ async function drawMiscIcons(ctx) {
     if (state.dc) await drawIcon(getAssetPath({ category: 'dc', value: state.dc, theme: config.iconTheme }), config.iconTint);
     
     if (state.race) {
-        await drawIcon(getAssetPath({ category: 'race', value: state.race, type: 'bg', variant: '_bg'}), state.iconBgColor);
-        await drawIcon(getAssetPath({ category: 'race', value: state.race, type: 'frame', variant: '_frame', theme: config.iconTheme }), config.iconTint);
+        const raceValueForAsset = raceAssetMap[state.race] || state.race;
+        await drawIcon(getAssetPath({ category: 'race', value: raceValueForAsset, type: 'bg', variant: '_bg'}), state.iconBgColor);
+        await drawIcon(getAssetPath({ category: 'race', value: raceValueForAsset, type: 'frame', variant: '_frame', theme: config.iconTheme }), config.iconTint);
     }
     
     if (state.progress) {
         const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
         const isAllClear = state.progress === 'all_clear';
-        const currentIndex = isAllClear ? progressStages.length -1 : progressStages.indexOf(state.progress);
+        const currentIndex = isAllClear ? progressStages.length - 1 : progressStages.indexOf(state.progress);
         
-        if(currentIndex > -1) {
-            for(let i = 0; i <= currentIndex; i++) {
+        if (currentIndex > -1) {
+            for (let i = 0; i <= currentIndex; i++) {
                 await drawIcon(getAssetPath({ category: 'progress', value: progressStages[i], type: 'bg', variant: '_bg' }), state.iconBgColor);
             }
         }
-        if(isAllClear) {
+        if (isAllClear) {
             await drawIcon(getAssetPath({ category: 'progress', value: 'all_clear', type: 'bg', variant: '_bg' }), state.iconBgColor);
         }
 
-        await drawIcon(getAssetPath({ category: 'progress', value: state.progress, type: 'frame', variant: '_frame', theme: config.iconTheme, langResource: true }), config.iconTint);
+        // Royalテーマのall_clearは英語素材しかないので、強制的に英語パスにする
+        const isRoyalAllClear = config.iconTheme === 'Royal' && state.progress === 'all_clear';
+        await drawIcon(getAssetPath({ category: 'progress', value: state.progress, type: 'frame', variant: '_frame', theme: config.iconTheme, langResource: true, isEn: isRoyalAllClear || state.lang === 'en' }), config.iconTint);
     }
 
     for (const style of state.playstyles) {
@@ -289,12 +315,11 @@ async function drawMiscIcons(ctx) {
 
     for (const time of state.playtimes) {
         const isSpecial = time === 'random' || time === 'fulltime';
-        // ★ 時間帯アイコンは必ず'Common'テーマを参照するように修正
-        const timeTheme = isSpecial ? config.iconTheme : 'Common'; 
+        const timeTheme = isSpecial ? config.iconTheme : 'Common';
         if (isSpecial) {
             await drawIcon(getAssetPath({ category: 'time', value: time, type: 'bg', variant: '_bg' }), state.iconBgColor);
         }
-        await drawIcon(getAssetPath({ category: 'time', value: time, type: isSpecial ? 'frame' : 'icon', variant: isSpecial ? '_frame' : '' , theme: timeTheme, langResource: isSpecial }), config.iconTint);
+        await drawIcon(getAssetPath({ category: 'time', value: time, type: isSpecial ? 'frame' : 'icon', variant: isSpecial ? '_frame' : '', theme: timeTheme, langResource: isSpecial }), config.iconTint);
     }
 
     for (const diff of state.difficulties) {
@@ -305,25 +330,6 @@ async function drawMiscIcons(ctx) {
         await drawIcon(getAssetPath({ category: 'raid', value: 'frame', theme: config.iconTheme, langResource: true }), config.iconTint);
     }
 }
-
-    async function drawJobIcon(ctx, jobName, type) {
-        const config = templateConfig[state.template];
-        if (!config) return;
-
-        const drawIcon = async (path, tintColor) => {
-            try {
-                const img = await loadImage(path);
-                drawImageWithTint(ctx, img, tintColor);
-            } catch (e) { /* 画像がなければ無視 */ }
-        };
-
-        if (type === 'main') {
-            await drawIcon(getAssetPath({ category: 'job', value: jobName, variant: '_main' }), config.iconTint);
-        } else {
-            const theme = config.frame.includes('circle') ? 'Circle' : 'Common';
-            await drawIcon(getAssetPath({ category: 'job', value: jobName, theme: theme, variant: '_sub_bg' }), state.iconBgColor);
-        }
-    }
     
     async function drawNameText(ctx) {
         if(!state.characterName || !state.font) return;
