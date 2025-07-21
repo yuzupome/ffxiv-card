@@ -4,7 +4,7 @@
  * - test.js の新機能（多言語対応、アイコン色変更、Sticky UI）を統合
  * - 新しいアセット構造とHTML構造に完全対応
  * - 画像操作、ダウンロード処理を含むすべての機能を実装
- * - 2025-07-21 v00.17: フォント適用、レイヤー、複数アセットのパス生成に関するバグを修正
+ * - 2025-07-21 v11:15: 参照エラーを含む最終バグ修正
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -103,25 +103,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 4. コア関数 ---
     function getAssetPath(options) {
-        // 背景画像用の特別な処理
         if (options.category === 'background' && options.type === 'base') {
-            const langSuffix = state.lang === 'en' ? '_en' : '';
+            const langSuffix = (state.lang === 'en' && options.langResource) ? '_en' : '';
             const cpSuffix = options.isDownload ? '_cp' : '';
             return `./assets/images/background/base/${options.value}${cpSuffix}${langSuffix}.webp`;
         }
     
-        // アイコンなど、その他のアセット用の処理
         const theme = options.theme || 'Common';
-        const langSuffix = (state.lang === 'en' && options.langResource) ? '_en' : '';
+        const langSuffix = (options.isEn && options.langResource) ? '_en' : '';
         let path = `./assets/images/${options.category}/`;
         if (options.type) path += `${options.type}/`;
         const variant = options.variant || '';
 
-        if (options.category === 'playstyle' && options.type === 'bg') {
-             path += `${theme}_${options.category}_${options.mappedValue}${variant}${langSuffix}.webp`;
-        } else {
-             path += `${theme}_${options.category}_${options.value}${variant}${langSuffix}.webp`;
-        }
+        const value = options.mappedValue || options.value;
+        path += `${theme}_${options.category}_${value}${variant}${langSuffix}.webp`;
         return path;
     }
     
@@ -232,88 +227,118 @@ document.addEventListener('DOMContentLoaded', async () => {
         await drawNameText(uiCtx);
     }
     
-async function drawMiscIcons(ctx) {
-    const config = templateConfig[state.template];
-    if (!config) return;
+    // --- 7. 描画ヘルパー ---
+    async function drawMiscIcons(ctx) {
+        const config = templateConfig[state.template];
+        if (!config) return;
 
-    // valueとアセット名の差異を吸収するマッピング
-    const raceAssetMap = {
-        'au_ra': 'aura', // HTMLのvalue 'au_ra' をファイル名の 'aura' に変換
-        'roegadyn': 'roegadyn',
-        'miqote': 'miqote',
-        'hyur': 'hyur',
-        'elezen': 'elezen',
-        'lalafell': 'lalafell',
-        'hrothgar': 'hrothgar',
-        'viera': 'viera'
-    };
-    const playstyleAssetMap = {
-        raid: 'dd', // 「レイド」ボタンは「dd」のアセットを使う
-    };
-    const playstyleBgNumMap = {
-        leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
-        streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
-    };
+        const raceAssetMap = {
+            'au_ra': 'aura', 'roegadyn': 'roegadyn', 'miqote': 'miqote', 'hyur': 'hyur', 'elezen': 'elezen',
+            'lalafell': 'lalafell', 'hrothgar': 'hrothgar', 'viera': 'viera'
+        };
+        const playstyleAssetMap = { raid: 'dd' };
+        const playstyleBgNumMap = {
+            leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
+            streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
+        };
 
-    const drawIcon = async (path, tintColor) => {
-        try {
-            const img = await loadImage(path);
-            drawImageWithTint(ctx, img, tintColor);
-        } catch (e) { /* 画像がなければ無視 */ }
-    };
+        const drawIcon = async (path, tintColor) => {
+            try {
+                const img = await loadImage(path);
+                drawImageWithTint(ctx, img, tintColor);
+            } catch (e) { /* 画像がなければ無視 */ }
+        };
 
-    // --- 各アイコンの描画処理 ---
-
-    if (state.dc) await drawIcon(getAssetPath({ category: 'dc', value: state.dc, theme: config.iconTheme }), config.iconTint);
-    
-    if (state.race) {
-        const raceValueForAsset = raceAssetMap[state.race] || state.race;
-        await drawIcon(getAssetPath({ category: 'race', value: raceValueForAsset, type: 'bg', variant: '_bg'}), state.iconBgColor);
-        await drawIcon(getAssetPath({ category: 'race', value: raceValueForAsset, type: 'frame', variant: '_frame', theme: config.iconTheme }), config.iconTint);
-    }
-    
-    if (state.progress) {
-        const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
-        const isAllClear = state.progress === 'all_clear';
-        const currentIndex = isAllClear ? progressStages.length - 1 : progressStages.indexOf(state.progress);
+        if (state.dc) await drawIcon(getAssetPath({ category: 'dc', value: state.dc, theme: config.iconTheme }), config.iconTint);
         
-        if (currentIndex > -1) {
-            for (let i = 0; i <= currentIndex; i++) {
-                await drawIcon(getAssetPath({ category: 'progress', value: progressStages[i], type: 'bg', variant: '_bg' }), state.iconBgColor);
+        if (state.race) {
+            const raceValueForAsset = raceAssetMap[state.race] || state.race;
+            await drawIcon(getAssetPath({ category: 'race', value: raceValueForAsset, type: 'bg', variant: '_bg'}), state.iconBgColor);
+            await drawIcon(getAssetPath({ category: 'race', value: raceValueForAsset, type: 'frame', variant: '_frame', theme: config.iconTheme }), config.iconTint);
+        }
+        
+        if (state.progress) {
+            const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
+            const isAllClear = state.progress === 'all_clear';
+            const currentIndex = isAllClear ? progressStages.length - 1 : progressStages.indexOf(state.progress);
+            
+            if (currentIndex > -1) {
+                for (let i = 0; i <= currentIndex; i++) {
+                    await drawIcon(getAssetPath({ category: 'progress', value: progressStages[i], type: 'bg', variant: '_bg' }), state.iconBgColor);
+                }
             }
+            if (isAllClear) {
+                await drawIcon(getAssetPath({ category: 'progress', value: 'all_clear', type: 'bg', variant: '_bg' }), state.iconBgColor);
+            }
+
+            const isRoyalAllClear = config.iconTheme === 'Royal' && state.progress === 'all_clear';
+            await drawIcon(getAssetPath({ category: 'progress', value: state.progress, type: 'frame', variant: '_frame', theme: config.iconTheme, langResource: true, isEn: isRoyalAllClear || state.lang === 'en' }), config.iconTint);
         }
-        if (isAllClear) {
-            await drawIcon(getAssetPath({ category: 'progress', value: 'all_clear', type: 'bg', variant: '_bg' }), state.iconBgColor);
+
+        for (const style of state.playstyles) {
+            const assetValue = playstyleAssetMap[style] || style;
+            await drawIcon(getAssetPath({ category: 'playstyle', mappedValue: playstyleBgNumMap[style], type: 'bg', variant: '_bg' }), state.iconBgColor);
+            await drawIcon(getAssetPath({ category: 'playstyle', value: assetValue, type: 'frame', variant: '_frame', theme: config.iconTheme, langResource: true }), config.iconTint);
         }
 
-        // Royalテーマのall_clearは英語素材しかないので、強制的に英語パスにする
-        const isRoyalAllClear = config.iconTheme === 'Royal' && state.progress === 'all_clear';
-        await drawIcon(getAssetPath({ category: 'progress', value: state.progress, type: 'frame', variant: '_frame', theme: config.iconTheme, langResource: true, isEn: isRoyalAllClear || state.lang === 'en' }), config.iconTint);
-    }
-
-    for (const style of state.playstyles) {
-        const assetValue = playstyleAssetMap[style] || style;
-        await drawIcon(getAssetPath({ category: 'playstyle', value: assetValue, type: 'bg', mappedValue: playstyleBgNumMap[style], variant: '_bg' }), state.iconBgColor);
-        await drawIcon(getAssetPath({ category: 'playstyle', value: assetValue, type: 'frame', variant: '_frame', theme: config.iconTheme, langResource: true }), config.iconTint);
-    }
-
-    for (const time of state.playtimes) {
-        const isSpecial = time === 'random' || time === 'fulltime';
-        const timeTheme = isSpecial ? config.iconTheme : 'Common';
-        if (isSpecial) {
-            await drawIcon(getAssetPath({ category: 'time', value: time, type: 'bg', variant: '_bg' }), state.iconBgColor);
+        for (const time of state.playtimes) {
+            const isSpecial = time === 'random' || time === 'fulltime';
+            const timeTheme = isSpecial ? config.iconTheme : 'Common';
+            if (isSpecial) {
+                await drawIcon(getAssetPath({ category: 'time', value: time, type: 'bg', variant: '_bg' }), state.iconBgColor);
+            }
+            await drawIcon(getAssetPath({ category: 'time', value: time, type: isSpecial ? 'frame' : 'icon', variant: isSpecial ? '_frame' : '', theme: timeTheme, langResource: isSpecial }), config.iconTint);
         }
-        await drawIcon(getAssetPath({ category: 'time', value: time, type: isSpecial ? 'frame' : 'icon', variant: isSpecial ? '_frame' : '', theme: timeTheme, langResource: isSpecial }), config.iconTint);
+
+        for (const diff of state.difficulties) {
+            const theme = config.frame.includes('circle') ? 'Circle' : (config.frame.includes('Neon') ? 'Neon' : 'Common');
+            await drawIcon(getAssetPath({ category: 'raid', value: diff, type: 'bg', theme, variant: '_bg' }), state.iconBgColor);
+        }
+        if (state.difficulties.length > 0) {
+            await drawIcon(getAssetPath({ category: 'raid', value: 'frame', theme: config.iconTheme, langResource: true }), config.iconTint);
+        }
     }
 
-    for (const diff of state.difficulties) {
-        const theme = config.frame.includes('circle') ? 'Circle' : (config.frame.includes('Neon') ? 'Neon' : 'Common');
-        await drawIcon(getAssetPath({ category: 'raid', value: diff, type: 'bg', theme, variant: '_bg' }), state.iconBgColor);
+    async function drawJobIcon(ctx, jobName, type) {
+        const config = templateConfig[state.template];
+        if (!config) return;
+
+        const drawIcon = async (path, tintColor) => {
+            try {
+                const img = await loadImage(path);
+                drawImageWithTint(ctx, img, tintColor);
+            } catch (e) { /* 画像がなければ無視 */ }
+        };
+
+        if (type === 'main') {
+            await drawIcon(getAssetPath({ category: 'job', value: jobName, variant: '_main' }), config.iconTint);
+        } else {
+            const theme = config.frame.includes('circle') ? 'Circle' : 'Common';
+            await drawIcon(getAssetPath({ category: 'job', value: jobName, theme: theme, variant: '_sub_bg' }), state.iconBgColor);
+        }
     }
-    if (state.difficulties.length > 0) {
-        await drawIcon(getAssetPath({ category: 'raid', value: 'frame', theme: config.iconTheme, langResource: true }), config.iconTint);
+    
+    async function drawNameText(ctx) {
+        if(!state.characterName || !state.font) return;
+        const config = templateConfig[state.template];
+        if(!config) return;
+        
+        const fontName = state.font.split(',')[0].replace(/'/g, '');
+
+        try { await document.fonts.load(`32px "${fontName}"`); } catch (err) { console.warn(`フォントの読み込みに失敗: ${fontName}`, err); }
+        
+        ctx.fillStyle = config.nameColor || '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        let fontSize = 32;
+        const nameArea = config.nameArea;
+        ctx.font = `${fontSize}px "${fontName}"`;
+        while(ctx.measureText(state.characterName).width > nameArea.width && fontSize > 10) {
+            fontSize--;
+            ctx.font = `${fontSize}px "${fontName}"`;
+        }
+        ctx.fillText(state.characterName, nameArea.x + nameArea.width / 2, nameArea.y + nameArea.height / 2);
     }
-}
     
     // --- 8. UIロジックと言語対応 ---
     function handleImageUpload(file) {
