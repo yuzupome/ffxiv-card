@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator - Final Version
- * - 2025-07-21 v19:52: RaidおよびSub-jobの描画ロジックを最終仕様に更新
+ * - 2025-07-21 v21:30: Advanced color logic and all bug fixes integrated.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -34,6 +34,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const saveModal = document.getElementById('saveModal');
     const modalImage = document.getElementById('modalImage');
     const closeModalBtn = document.getElementById('closeModal');
+    
+    const iconBgColorPicker = document.getElementById('iconBgColorPicker');
+    const resetColorBtn = document.getElementById('resetColorBtn');
 
     // --- 2. 定数と設定 ---
     const CANVAS_WIDTH = 1000;
@@ -60,6 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let imageTransform = { img: null, x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, scale: 1.0, isDragging: false, lastX: 0, lastY: 0 };
     let imageCache = {};
     let isDownloading = false;
+    let userHasManuallyPickedColor = false;
 
     // --- 4. コア関数 ---
     const getAssetPath = (options) => `./assets/images/${options.category}/${options.filename}.webp`;
@@ -96,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const updateState = () => {
         state = {
             template: templateSelect.value,
-            iconBgColor: document.getElementById('iconBgColorPicker')?.value || '#A142CD',
+            iconBgColor: iconBgColorPicker.value,
             characterName: nameInput.value,
             font: fontSelect.value,
             dc: dcSelect.value,
@@ -144,16 +148,13 @@ document.addEventListener('DOMContentLoaded', async () => {
              streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
         };
 
-        // 1. アイコン背景 (BG)
         const raceValue = raceAssetMap[state.race] || state.race;
         if (raceValue) await drawTinted(targetCtx, getAssetPath({ category: 'race/bg', filename: `Common_race_${raceValue}_bg` }), state.iconBgColor);
         
         const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
         const currentIndex = progressStages.indexOf(state.progress);
         if (currentIndex > -1) {
-            for (let i = 0; i <= currentIndex; i++) {
-                await drawTinted(targetCtx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), state.iconBgColor);
-            }
+            for (let i = 0; i <= currentIndex; i++) await drawTinted(targetCtx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), state.iconBgColor);
         }
         if (state.progress === 'all_clear') {
             for (const stage of progressStages) await drawTinted(targetCtx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${stage}_bg` }), state.iconBgColor);
@@ -165,25 +166,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         for (const time of state.playtimes) {
-            const isSpecial = time === 'random' || time === 'fulltime';
-            if (isSpecial) await drawTinted(targetCtx, getAssetPath({ category: 'time/bg', filename: `Common_time_${time}_bg` }), state.iconBgColor);
+            if (time === 'random' || time === 'fulltime') await drawTinted(targetCtx, getAssetPath({ category: 'time/bg', filename: `Common_time_${time}_bg` }), state.iconBgColor);
         }
 
         for (const diff of state.difficulties) {
             let raidTheme = 'Common';
-            if (state.template.startsWith('Lovely') || state.template.startsWith('Water')) {
-                raidTheme = 'Circle';
-            } else if (state.template.startsWith('Neon')) {
-                raidTheme = 'Neon';
-            }
+            if (state.template.startsWith('Lovely') || state.template.startsWith('Water')) raidTheme = 'Circle';
+            else if (state.template.startsWith('Neon')) raidTheme = 'Neon';
             await drawTinted(targetCtx, getAssetPath({ category: 'raid/bg', filename: `${raidTheme}_raid_${diff}_bg` }), state.iconBgColor);
         }
         
-        for (const job of state.subjobs) {
-            await drawTinted(targetCtx, getAssetPath({ category: 'job/bg', filename: `Common_job_${job}_sub_bg` }), state.iconBgColor);
-        }
+        for (const job of state.subjobs) await drawTinted(targetCtx, getAssetPath({ category: 'job/bg', filename: `Common_job_${job}_sub_bg` }), state.iconBgColor);
 
-        // 2. アイコン本体・フレーム (Frame)
         if(state.dc) await drawTinted(targetCtx, getAssetPath({ category: 'dc', filename: `${config.iconTheme}_dc_${state.dc}` }), config.iconTint);
         if (raceValue) await drawTinted(targetCtx, getAssetPath({ category: 'race/frame', filename: `${config.iconTheme}_race_${raceValue}_frame` }), config.iconTint);
         
@@ -201,18 +195,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const category = `time/${isSpecial ? 'frame' : 'icon'}`;
             await drawTinted(targetCtx, getAssetPath({ category, filename }), config.iconTint);
         }
-
-        for (const job of state.subjobs) {
-            await drawTinted(targetCtx, getAssetPath({ category: 'job/frame', filename: `Common_job_${job}_sub_frame` }), config.iconTint);
-        }
-
+        
+        for (const job of state.subjobs) await drawTinted(targetCtx, getAssetPath({ category: 'job/frame', filename: `Common_job_${job}_sub_frame` }), config.iconTint);
         if(state.mainjob) await drawTinted(targetCtx, getAssetPath({ category: 'job', filename: `Common_job_${state.mainjob}_main` }), config.iconTint);
 
-        // 3. UIの基本フレーム
         const framePath = getAssetPath({ category: 'background/frame', filename: config.frame });
-        await drawTinted(targetCtx, framePath);
+        await drawTinted(targetCtx, framePath, config.iconTint);
 
-        // 4. テキスト
         if (state.characterName && state.font) {
             const fontName = state.font.split(',')[0].replace(/'/g, '');
             const nameArea = config.nameArea;
@@ -238,16 +227,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- 6. イベントリスナー ---
-    document.querySelectorAll('#controls input, #controls select').forEach(el => {
+    [nameInput, fontSelect, dcSelect, raceSelect, progressSelect].forEach(el => {
         el.addEventListener('change', redrawAll);
-        el.addEventListener('input', redrawAll);
+    });
+    nameInput.addEventListener('input', redrawAll);
+    [styleButtonsContainer, playtimeOptionsContainer, difficultyOptionsContainer, subjobSection].forEach(container => {
+        container.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') e.target.classList.toggle('active');
+            if (e.target.tagName === 'BUTTON' || e.target.type === 'checkbox') redrawAll();
+        });
     });
 
-    document.querySelectorAll('#controls button[data-value]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            btn.classList.toggle('active');
-            redrawAll();
-        });
+    templateSelect.addEventListener('change', () => {
+        if (!userHasManuallyPickedColor) {
+            const newColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
+            iconBgColorPicker.value = newColor;
+        }
+        redrawAll();
+    });
+
+    iconBgColorPicker.addEventListener('input', () => {
+        userHasManuallyPickedColor = true;
+        redrawAll();
+    });
+
+    resetColorBtn.addEventListener('click', () => {
+        userHasManuallyPickedColor = false;
+        const currentColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
+        iconBgColorPicker.value = currentColor;
+        redrawAll();
     });
     
     uploadImageInput.addEventListener('change', (e) => {
@@ -259,9 +267,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const img = new Image();
             img.onload = () => {
                 imageTransform.img = img;
-                const canvasAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
-                const imgAspect = img.width / img.height;
-                imageTransform.scale = (imgAspect > canvasAspect) ? (CANVAS_HEIGHT / img.height) : (CANVAS_WIDTH / img.width);
+                imageTransform.scale = (img.width / img.height > CANVAS_WIDTH / CANVAS_HEIGHT) ? (CANVAS_HEIGHT / img.height) : (CANVAS_WIDTH / img.width);
                 imageTransform.x = CANVAS_WIDTH / 2;
                 imageTransform.y = CANVAS_HEIGHT / 2;
                 drawCharacterLayer();
@@ -271,15 +277,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         reader.readAsDataURL(file);
     });
 
-    const handleDrag = (e) => {
+    // --- マウス & タッチ操作 ---
+    const handleDrag = (e, isTouch = false) => {
         if (!imageTransform.isDragging || !imageTransform.img) return;
         e.preventDefault();
-        const dx = e.clientX - imageTransform.lastX;
-        const dy = e.clientY - imageTransform.lastY;
+        const loc = isTouch ? e.touches[0] : e;
+        const dx = loc.clientX - imageTransform.lastX;
+        const dy = loc.clientY - imageTransform.lastY;
         imageTransform.x += dx;
         imageTransform.y += dy;
-        imageTransform.lastX = e.clientX;
-        imageTransform.lastY = e.clientY;
+        imageTransform.lastX = loc.clientX;
+        imageTransform.lastY = loc.clientY;
         drawCharacterLayer();
     };
     uiLayer.addEventListener('mousedown', (e) => {
@@ -288,7 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         imageTransform.lastX = e.clientX;
         imageTransform.lastY = e.clientY;
     });
-    window.addEventListener('mousemove', handleDrag);
+    window.addEventListener('mousemove', (e) => handleDrag(e, false));
     window.addEventListener('mouseup', () => { imageTransform.isDragging = false; });
     uiLayer.addEventListener('wheel', (e) => {
         if (!imageTransform.img) return;
@@ -299,23 +307,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     let lastTouchDistance = 0;
-    const getTouchLocation = (e) => {
-        const rect = uiLayer.getBoundingClientRect();
-        const scaleX = uiLayer.width / rect.width;
-        const scaleY = uiLayer.height / rect.height;
-        return {
-            x: (e.touches[0].clientX - rect.left) * scaleX,
-            y: (e.touches[0].clientY - rect.top) * scaleY,
-        };
-    };
     uiLayer.addEventListener('touchstart', (e) => {
         if (!imageTransform.img) return;
         e.preventDefault();
         if (e.touches.length === 1) {
-            const loc = getTouchLocation(e);
             imageTransform.isDragging = true;
-            imageTransform.lastX = loc.x;
-            imageTransform.lastY = loc.y;
+            imageTransform.lastX = e.touches[0].clientX;
+            imageTransform.lastY = e.touches[0].clientY;
         } else if (e.touches.length === 2) {
             imageTransform.isDragging = false;
             const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -327,14 +325,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!imageTransform.img) return;
         e.preventDefault();
         if (e.touches.length === 1 && imageTransform.isDragging) {
-            const loc = getTouchLocation(e);
-            const dx = loc.x - imageTransform.lastX;
-            const dy = loc.y - imageTransform.lastY;
-            imageTransform.x += dx;
-            imageTransform.y += dy;
-            imageTransform.lastX = loc.x;
-            imageTransform.lastY = loc.y;
-            drawCharacterLayer();
+            handleDrag(e, true);
         } else if (e.touches.length === 2) {
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -342,7 +333,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (lastTouchDistance > 0) {
                 const scaleAmount = newDist / lastTouchDistance;
                 imageTransform.scale *= scaleAmount;
-                imageTransform.scale = Math.max(0.1, Math.min(imageTransform.scale, 5.0));
             }
             lastTouchDistance = newDist;
             drawCharacterLayer();
@@ -353,6 +343,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         lastTouchDistance = 0;
     });
     
+    // --- ダウンロード、モーダル、トップへ戻るボタン ---
     downloadBtn.addEventListener('click', async () => {
         if (isDownloading) return;
         isDownloading = true;
@@ -405,8 +396,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 7. 初期化処理 ---
     const initialize = async () => {
         fontSelect.value = state.font;
+        const initialColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
+        iconBgColorPicker.value = initialColor;
+        
         drawCharacterLayer();
         await redrawAll();
+        
         loaderElement.style.display = 'none';
         appElement.style.visibility = 'visible';
     };
