@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator - Final Version
- * - 2025-07-21 v19:25: All features and bug fixes integrated.
+ * - 2025-07-21 v19:52: RaidおよびSub-jobの描画ロジックを最終仕様に更新
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -169,8 +169,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (isSpecial) await drawTinted(targetCtx, getAssetPath({ category: 'time/bg', filename: `Common_time_${time}_bg` }), state.iconBgColor);
         }
 
-        for (const diff of state.difficulties) await drawTinted(targetCtx, getAssetPath({ category: 'raid/bg', filename: `Common_raid_${diff}_bg` }), state.iconBgColor);
-        for (const job of state.subjobs) await drawTinted(targetCtx, getAssetPath({ category: 'job', filename: `Common_job_${job}_sub_bg` }), state.iconBgColor);
+        for (const diff of state.difficulties) {
+            let raidTheme = 'Common';
+            if (state.template.startsWith('Lovely') || state.template.startsWith('Water')) {
+                raidTheme = 'Circle';
+            } else if (state.template.startsWith('Neon')) {
+                raidTheme = 'Neon';
+            }
+            await drawTinted(targetCtx, getAssetPath({ category: 'raid/bg', filename: `${raidTheme}_raid_${diff}_bg` }), state.iconBgColor);
+        }
+        
+        for (const job of state.subjobs) {
+            await drawTinted(targetCtx, getAssetPath({ category: 'job/bg', filename: `Common_job_${job}_sub_bg` }), state.iconBgColor);
+        }
 
         // 2. アイコン本体・フレーム (Frame)
         if(state.dc) await drawTinted(targetCtx, getAssetPath({ category: 'dc', filename: `${config.iconTheme}_dc_${state.dc}` }), config.iconTint);
@@ -191,7 +202,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             await drawTinted(targetCtx, getAssetPath({ category, filename }), config.iconTint);
         }
 
-        if (state.difficulties.length > 0) await drawTinted(targetCtx, getAssetPath({ category: 'raid/frame', filename: `${config.iconTheme}_raid_frame` }), config.iconTint);
+        for (const job of state.subjobs) {
+            await drawTinted(targetCtx, getAssetPath({ category: 'job/frame', filename: `Common_job_${job}_sub_frame` }), config.iconTint);
+        }
+
         if(state.mainjob) await drawTinted(targetCtx, getAssetPath({ category: 'job', filename: `Common_job_${state.mainjob}_main` }), config.iconTint);
 
         // 3. UIの基本フレーム
@@ -257,7 +271,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         reader.readAsDataURL(file);
     });
 
-    // --- マウス操作 ---
     const handleDrag = (e) => {
         if (!imageTransform.isDragging || !imageTransform.img) return;
         e.preventDefault();
@@ -284,8 +297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         imageTransform.scale *= scaleAmount;
         drawCharacterLayer();
     });
-
-    // --- タッチ操作 ---
+    
     let lastTouchDistance = 0;
     const getTouchLocation = (e) => {
         const rect = uiLayer.getBoundingClientRect();
@@ -340,8 +352,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         imageTransform.isDragging = false;
         lastTouchDistance = 0;
     });
-
-    // --- ダウンロード、モーダル、トップへ戻るボタン ---
+    
     downloadBtn.addEventListener('click', async () => {
         if (isDownloading) return;
         isDownloading = true;
@@ -355,7 +366,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             if (imageTransform.img) finalCtx.drawImage(backgroundLayer, 0, 0);
             finalCtx.drawImage(characterLayer, 0, 0);
-            
             await drawUiLayer(finalCtx);
 
             const imageUrl = finalCanvas.toDataURL('image/jpeg', 0.92);
