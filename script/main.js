@@ -232,22 +232,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await drawNameText(uiCtx);
     }
     
-    // --- 7. 描画ヘルパー ---
-async function drawMiscIcons(ctx) {
-    const config = templateConfig[state.template];
-    if (!config) return;
-
-    // valueとアセット名の差異を吸収するマッピング
-    const playstyleAssetMap = {
-        raid: 'dd', // 「レイド」ボタンは「dd」のアセットを使う
-        // 他に差異があればここに追加
-    };
-    const playstyleBgNumMap = {
-        leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
-        streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
-    };
-
-    // 描画用の内部ヘルパー関数
 async function drawMiscIcons(ctx) {
     const config = templateConfig[state.template];
     if (!config) return;
@@ -330,28 +314,6 @@ async function drawMiscIcons(ctx) {
         await drawIcon(getAssetPath({ category: 'raid', value: 'frame', theme: config.iconTheme, langResource: true }), config.iconTint);
     }
 }
-    
-    async function drawNameText(ctx) {
-        if(!state.characterName || !state.font) return;
-        const config = templateConfig[state.template];
-        if(!config) return;
-        
-        const fontName = state.font.split(',')[0].replace(/'/g, '');
-
-        try { await document.fonts.load(`32px "${fontName}"`); } catch (err) { console.warn(`フォントの読み込みに失敗: ${fontName}`, err); }
-        
-        ctx.fillStyle = config.nameColor || '#ffffff';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        let fontSize = 32;
-        const nameArea = config.nameArea;
-        ctx.font = `${fontSize}px "${fontName}"`;
-        while(ctx.measureText(state.characterName).width > nameArea.width && fontSize > 10) {
-            fontSize--;
-            ctx.font = `${fontSize}px "${fontName}"`;
-        }
-        ctx.fillText(state.characterName, nameArea.x + nameArea.width / 2, nameArea.y + nameArea.height / 2);
-    }
     
     // --- 8. UIロジックと言語対応 ---
     function handleImageUpload(file) {
