@@ -4,7 +4,7 @@
  * - test.js の新機能（多言語対応、アイコン色変更、Sticky UI）を統合
  * - 新しいアセット構造とHTML構造に完全対応
  * - 画像操作、ダウンロード処理を含むすべての機能を実装
- * - 2025-07-21 v11:15: 参照エラーを含む最終バグ修正
+ * - 2025-07-21 v11:38: UIフレームの描画抜けを含む最終バグ修正
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 4. コア関数 ---
     function getAssetPath(options) {
         if (options.category === 'background' && options.type === 'base') {
-            const langSuffix = (state.lang === 'en' && options.langResource) ? '_en' : '';
+            const langSuffix = (state.lang === 'en') ? '_en' : '';
             const cpSuffix = options.isDownload ? '_cp' : '';
             return `./assets/images/background/base/${options.value}${cpSuffix}${langSuffix}.webp`;
         }
@@ -221,6 +221,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function drawUiLayer() {
         uiCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        const config = templateConfig[state.template];
+        if (config && config.frame) {
+            try {
+                const framePath = `./assets/images/background/frame/${config.frame}.webp`;
+                const frameImg = await loadImage(framePath);
+                uiCtx.drawImage(frameImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            } catch (e) {
+                console.error("UI Frameの描画に失敗:", e);
+            }
+        }
+
         uiCtx.drawImage(miscIconCompositeCanvas, 0, 0);
         uiCtx.drawImage(subJobCompositeCanvas, 0, 0);
         uiCtx.drawImage(mainJobCompositeCanvas, 0, 0);
@@ -522,6 +534,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (imageTransform.img) {
                 finalCtx.drawImage(backgroundLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             }
+            
+            finalCtx.drawImage(characterLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
             const bgCpPath = getAssetPath({ category: 'background', value: state.template, type: 'base', isEn: state.lang === 'en', isDownload: true, langResource: true });
             const bgCpImg = await loadImage(bgCpPath);
