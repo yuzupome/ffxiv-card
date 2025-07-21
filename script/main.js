@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator - Final Version
- * - 2025-07-21 v19:00: すべての描画ロジックとUI機能を統合した最終版
+ * - 2025-07-21 v19:25: All features and bug fixes integrated.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     const drawUiLayer = async (targetCtx = uiCtx) => {
-        if(targetCtx === uiCtx) {
+        if (targetCtx === uiCtx) {
             uiCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         }
         const config = templateConfig[state.template];
@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         for (const time of state.playtimes) {
             const isSpecial = time === 'random' || time === 'fulltime';
-            if(isSpecial) await drawTinted(targetCtx, getAssetPath({ category: 'time/bg', filename: `Common_time_${time}_bg` }), state.iconBgColor);
+            if (isSpecial) await drawTinted(targetCtx, getAssetPath({ category: 'time/bg', filename: `Common_time_${time}_bg` }), state.iconBgColor);
         }
 
         for (const diff of state.difficulties) await drawTinted(targetCtx, getAssetPath({ category: 'raid/bg', filename: `Common_raid_${diff}_bg` }), state.iconBgColor);
@@ -186,7 +186,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (const time of state.playtimes) {
             const isSpecial = time === 'random' || time === 'fulltime';
             const timeTheme = isSpecial ? config.iconTheme : 'Common';
-            await drawTinted(targetCtx, getAssetPath({ category: `time/${isSpecial ? 'frame' : 'icon'}`, filename: `${timeTheme}_time_${time}${isSpecial ? '_frame' : ''}` }), config.iconTint);
+            const filename = `${timeTheme}_time_${time}${isSpecial ? '_frame' : ''}`;
+            const category = `time/${isSpecial ? 'frame' : 'icon'}`;
+            await drawTinted(targetCtx, getAssetPath({ category, filename }), config.iconTint);
         }
 
         if (state.difficulties.length > 0) await drawTinted(targetCtx, getAssetPath({ category: 'raid/frame', filename: `${config.iconTheme}_raid_frame` }), config.iconTint);
@@ -255,6 +257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         reader.readAsDataURL(file);
     });
 
+    // --- マウス操作 ---
     const handleDrag = (e) => {
         if (!imageTransform.isDragging || !imageTransform.img) return;
         e.preventDefault();
@@ -281,7 +284,63 @@ document.addEventListener('DOMContentLoaded', async () => {
         imageTransform.scale *= scaleAmount;
         drawCharacterLayer();
     });
-    
+
+    // --- タッチ操作 ---
+    let lastTouchDistance = 0;
+    const getTouchLocation = (e) => {
+        const rect = uiLayer.getBoundingClientRect();
+        const scaleX = uiLayer.width / rect.width;
+        const scaleY = uiLayer.height / rect.height;
+        return {
+            x: (e.touches[0].clientX - rect.left) * scaleX,
+            y: (e.touches[0].clientY - rect.top) * scaleY,
+        };
+    };
+    uiLayer.addEventListener('touchstart', (e) => {
+        if (!imageTransform.img) return;
+        e.preventDefault();
+        if (e.touches.length === 1) {
+            const loc = getTouchLocation(e);
+            imageTransform.isDragging = true;
+            imageTransform.lastX = loc.x;
+            imageTransform.lastY = loc.y;
+        } else if (e.touches.length === 2) {
+            imageTransform.isDragging = false;
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+        }
+    }, { passive: false });
+    uiLayer.addEventListener('touchmove', (e) => {
+        if (!imageTransform.img) return;
+        e.preventDefault();
+        if (e.touches.length === 1 && imageTransform.isDragging) {
+            const loc = getTouchLocation(e);
+            const dx = loc.x - imageTransform.lastX;
+            const dy = loc.y - imageTransform.lastY;
+            imageTransform.x += dx;
+            imageTransform.y += dy;
+            imageTransform.lastX = loc.x;
+            imageTransform.lastY = loc.y;
+            drawCharacterLayer();
+        } else if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const newDist = Math.sqrt(dx * dx + dy * dy);
+            if (lastTouchDistance > 0) {
+                const scaleAmount = newDist / lastTouchDistance;
+                imageTransform.scale *= scaleAmount;
+                imageTransform.scale = Math.max(0.1, Math.min(imageTransform.scale, 5.0));
+            }
+            lastTouchDistance = newDist;
+            drawCharacterLayer();
+        }
+    }, { passive: false });
+    window.addEventListener('touchend', (e) => {
+        imageTransform.isDragging = false;
+        lastTouchDistance = 0;
+    });
+
     // --- ダウンロード、モーダル、トップへ戻るボタン ---
     downloadBtn.addEventListener('click', async () => {
         if (isDownloading) return;
@@ -294,12 +353,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             finalCanvas.height = CANVAS_HEIGHT;
             const finalCtx = finalCanvas.getContext('2d');
             
-            // 1. ユーザー画像
             if (imageTransform.img) finalCtx.drawImage(backgroundLayer, 0, 0);
-            // 2. テンプレート背景
             finalCtx.drawImage(characterLayer, 0, 0);
             
-            // 3. UI要素をダウンロード用に再描画
             await drawUiLayer(finalCtx);
 
             const imageUrl = finalCanvas.toDataURL('image/jpeg', 0.92);
