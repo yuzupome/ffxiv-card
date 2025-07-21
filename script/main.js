@@ -74,14 +74,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             tempCanvas.width = CANVAS_WIDTH;
             tempCanvas.height = CANVAS_HEIGHT;
             const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // Ensure image fills canvas
+            
+            // ★★★ 修正点：画像を描画する際に、Canvas全体に引き伸ばすよう指定 ★★★
+            tempCtx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); 
+            
             if (tintColor) {
                 tempCtx.globalCompositeOperation = 'source-in';
                 tempCtx.fillStyle = tintColor;
                 tempCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             }
             ctx.drawImage(tempCanvas, 0, 0);
-        } catch (e) { /* Ignore failed loads */ }
+        } catch (e) { /* 画像の読み込みに失敗した場合は無視 */ }
     };
 
     // --- 5. 描画ロジック ---
