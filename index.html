@@ -40,11 +40,6 @@
         </main>
 
         <aside class="controls-panel">
-            <div class="lang-tabs">
-                <button class="lang-tab-btn active" data-lang="jp">日本語</button>
-                <button class="lang-tab-btn" data-lang="en">English</button>
-            </div>
-
             <div id="controls-jp" class="controls-container">
                 <div id="controls">
                     <div class="control-section">
@@ -81,15 +76,11 @@
 
                     <div id="top-controls" class="control-section">
                         <label for="uploadImage" class="file-upload-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                            <svg xmlns="http://www.w.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                             <span>画像をアップロード</span>
                         </label>
                         <input type="file" id="uploadImage" accept="image/*" class="file-upload-input">
                         <p id="fileName" class="file-name-display"></p>
-                        
-                        <div class="usage-notes">
-                            <p class="notes-text">⚠️ 著作権表記は画像出力時に自動で付与されます</p>
-                        </div>
                     </div>
 
                     <div class="control-section">
@@ -143,7 +134,13 @@
                             </select>
                             <select id="progressSelect" required>
                                 <option value="" disabled selected>進行度</option>
-                                <option value="shinsei">新生</option> <option value="souten">蒼天</option> <option value="guren">紅蓮</option> <option value="shikkoku">漆黒</option> <option value="gyougetsu">暁月</option> <option value="ougon">黄金</option> <option value="all_clear">ALL CLEAR</option>
+                                <option value="shinsei">新生</option>
+                                <option value="souten">蒼天</option>
+                                <option value="guren">紅蓮</option>
+                                <option value="shikkoku">漆黒</option>
+                                <option value="gyougetsu">暁月</option>
+                                <option value="ougon">黄金</option>
+                                <option value="all_clear">ALL CLEAR</option>
                             </select>
                         </div>
                     </div>
@@ -152,7 +149,8 @@
                         <h2 class="section-title">Play Style</h2>
                         <div id="styleButtons" class="button-grid">
                             <button data-value="leveling">レベリング</button>
-                            <button data-value="dd">レイド</button>
+                            <button data-value="raid">レイド</button>
+                            <button data-value="dd">DD</button>
                             <button data-value="pvp">PvP</button>
                             <button data-value="hunt">モブハン</button>
                             <button data-value="map">地図</button>
@@ -173,23 +171,57 @@
                     <div class="control-section">
                         <h2 class="section-title">Play Time</h2>
                         <div id="playtimeOptions" class="checkbox-group">
+                            <div class="time-section">
+                                <span>平日</span>
+                                <div class="options-row">
+                                    <label><input type="checkbox" class="weekday" value="morning" /><span></span>朝</label>
+                                    <label><input type="checkbox" class="weekday" value="daytime" /><span></span>昼</label>
+                                    <label><input type="checkbox" class="weekday" value="night" /><span></span>夜</label>
+                                    <label><input type="checkbox" class="weekday" value="midnight" /><span></span>深夜</label>
+                                </div>
                             </div>
+                            <div class="time-section">
+                                <span>休日</span>
+                                <div class="options-row">
+                                    <label><input type="checkbox" class="holiday" value="morning" /><span></span>朝</label>
+                                    <label><input type="checkbox" class="holiday" value="daytime" /><span></span>昼</label>
+                                    <label><input type="checkbox" class="holiday" value="night" /><span></span>夜</label>
+                                    <label><input type="checkbox" class="holiday" value="midnight" /><span></span>深夜</label>
+                                </div>
+                            </div>
+                            <div class="time-section">
+                                <span>その他</span>
+                                <div class="options-row">
+                                    <label><input type="checkbox" class="other" value="random" /><span></span>不定期</label>
+                                    <label><input type="checkbox" class="other" value="fulltime" /><span></span>エオ在住</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="control-section">
                         <h2 class="section-title">Difficulty</h2>
                         <div id="difficultyOptions" class="checkbox-group-single">
-                            </div>
+                            <label><input type="checkbox" value="extreme" /><span></span>極</label>
+                            <label><input type="checkbox" value="unreal" /><span></span>幻</label>
+                            <label><input type="checkbox" value="savage" /><span></span>零式</label>
+                            <label><input type="checkbox" value="ultimate" /><span></span>絶</label>
+                        </div>
                     </div>
                 
                     <div class="control-section">
                         <h2 class="section-title">Main Job</h2>
                         <select id="mainjobSelect" required>
-                           </select>
+                           <option value="" disabled selected>メインジョブを選ぶ</option>
+                           <option value="paladin">ナイト</option> <option value="warrior">戦士</option> <option value="darkknight">暗黒騎士</option> <option value="gunbreaker">ガンブレイカー</option> <option value="whitemage">白魔導士</option> <option value="scholar">学者</option> <option value="astrologian">占星術師</option> <option value="sage">賢者</option> <option value="monk">モンク</option> <option value="dragoon">竜騎士</option> <option value="ninja">忍者</option> <option value="samurai">侍</option> <option value="reaper">リーパー</option> <option value="viper">ヴァイパー</option> <option value="bard">吟遊詩人</option> <option value="machinist">機工士</option> <option value="dancer">踊り子</option> <option value="blackmage">黒魔導士</option> <option value="summoner">召喚士</option> <option value="redmage">赤魔導士</option> <option value="pictomancer">ピクトマンサー</option> <option value="bluemage">青魔導士</option>
+                        </select>
                         <div id="subjobSection">
                             <h3 class="section-title-nested">Sub Job</h3>
                             <div class="button-grid">
-                                </div>
+                                <button data-value="paladin">ナイト</button> <button data-value="warrior">戦士</button> <button data-value="darkknight">暗黒騎士</button> <button data-value="gunbreaker">ガンブレイカー</button> <button data-value="whitemage">白魔導士</button> <button data-value="scholar">学者</button> <button data-value="astrologian">占星術師</button> <button data-value="sage">賢者</button> <button data-value="monk">モンク</option> <button data-value="dragoon">竜騎士</button> <button data-value="ninja">忍者</button> <button data-value="samurai">侍</button> <button data-value="reaper">リーパー</button> <button data-value="viper">ヴァイパー</button> <button data-value="bard">吟遊詩人</button> <button data-value="machinist">機工士</button> <button data-value="dancer">踊り子</button> <button data-value="blackmage">黒魔導士</button> <button data-value="summoner">召喚士</button> <button data-value="redmage">赤魔導士</button> <button data-value="pictomancer">ピクトマンサー</button> <button data-value="bluemage">青魔導士</button>
+                                <div class="grid-break"></div>
+                                <button data-value="carpenter">木工師</button> <button data-value="blacksmith">鍛冶師</button> <button data-value="armorer">甲冑師</button> <button data-value="goldsmith">彫金師</button> <button data-value="leatherworker">革細工師</button> <button data-value="weaver">裁縫師</button> <button data-value="alchemist">錬金術師</button> <button data-value="culinarian">調理師</button> <button data-value="miner">採掘師</button> <button data-value="botanist">園芸師</button> <button data-value="fisher">漁師</button>
+                            </div>
                         </div>
                     </div>
 
@@ -224,7 +256,17 @@
   </div>
 
   <div id="sticky-color-picker" class="sticky-color-picker-container is-hidden">
+      <div class="sticky-picker-toggle" id="sticky-picker-toggle-btn">
+          </div>
+      <div class="sticky-picker-panel">
+          <h3 class="sticky-picker-title">Icon BG Color</h3>
+          <div class="color-picker-wrapper">
+              <input type="color" id="stickyIconBgColorPicker" value="#A142CD">
+              <div id="stickyColorPresetButtons" class="color-presets">
+                  </div>
+          </div>
       </div>
+  </div>
 
   <script src="./script/common.js"></script>
   <script src="./script/main.js"></script>

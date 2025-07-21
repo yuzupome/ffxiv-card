@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator - Final Version
- * - 2025-07-21 v13:10: より安定的でシンプルな描画ロジックにリファクタリング
+ * - 2025-07-21 v18:24: DC, Progress, Playstyleの描画ロジックを修正
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -74,17 +74,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             tempCanvas.width = CANVAS_WIDTH;
             tempCanvas.height = CANVAS_HEIGHT;
             const tempCtx = tempCanvas.getContext('2d');
-            
-            // ★★★ 修正点：画像を描画する際に、Canvas全体に引き伸ばすよう指定 ★★★
-            tempCtx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); 
-            
+            tempCtx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             if (tintColor) {
                 tempCtx.globalCompositeOperation = 'source-in';
                 tempCtx.fillStyle = tintColor;
                 tempCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             }
             ctx.drawImage(tempCanvas, 0, 0);
-        } catch (e) { /* 画像の読み込みに失敗した場合は無視 */ }
+        } catch (e) { /* Ignore failed loads */ }
     };
 
     // --- 5. 描画ロジック ---
@@ -127,10 +124,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const raceAssetMap = { 'au_ra': 'aura' };
         const playstyleBgNumMap = {
-             leveling: '01', dd: '02', pvp: '03', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
+             leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
              streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
         };
 
+        // --- 描画実行 (下層から順番に) ---
+        // 1. アイコン背景 (BG)
         const raceValue = raceAssetMap[state.race] || state.race;
         if (raceValue) await drawTinted(uiCtx, getAssetPath({ category: 'race/bg', filename: `Common_race_${raceValue}_bg` }), state.iconBgColor);
         
@@ -153,14 +152,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (const diff of state.difficulties) await drawTinted(uiCtx, getAssetPath({ category: 'raid/bg', filename: `Common_raid_${diff}_bg` }), state.iconBgColor);
         for (const job of state.subjobs) await drawTinted(uiCtx, getAssetPath({ category: 'job', filename: `Common_job_${job}_sub_bg` }), state.iconBgColor);
 
+        // 2. アイコン本体・フレーム (Frame)
+        if (state.dc) await drawTinted(uiCtx, getAssetPath({ category: 'dc', filename: `${config.iconTheme}_dc_${state.dc}` }), config.iconTint);
         if (raceValue) await drawTinted(uiCtx, getAssetPath({ category: 'race/frame', filename: `${config.iconTheme}_race_${raceValue}_frame` }), config.iconTint);
-        if (state.progress) await drawTinted(uiCtx, getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${state.progress}_frame` }), config.iconTint);
-        for (const style of state.playstyles) await drawTinted(uiCtx, getAssetPath({ category: 'playstyle/frame', filename: `Common_playstyle_${style}_frame` }), config.iconTint);
+        if (state.progress) {
+            // ★ 'gyougetsu' のタイポを修正
+            const progressFilename = state.progress === 'gyougetsu' ? 'gyogetsu' : state.progress;
+            await drawTinted(uiCtx, getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${progressFilename}_frame` }), config.iconTint);
+        }
+        for (const style of state.playstyles) {
+            // ★ 'raid' と 'dd' のフレームを正しく指定
+            const frameStyle = (style === 'raid' || style === 'dd') ? style : style;
+            await drawTinted(uiCtx, getAssetPath({ category: 'playstyle/frame', filename: `Common_playstyle_${frameStyle}_frame` }), config.iconTint);
+        }
         if (state.difficulties.length > 0) await drawTinted(uiCtx, getAssetPath({ category: 'raid/frame', filename: `${config.iconTheme}_raid_frame` }), config.iconTint);
 
+        // 3. UIの基本フレーム
         const framePath = getAssetPath({ category: 'background/frame', filename: config.frame });
         await drawTinted(uiCtx, framePath);
 
+        // 4. テキスト
         if (state.characterName && state.font) {
             const fontName = state.font.split(',')[0].replace(/'/g, '');
             const nameArea = config.nameArea;
