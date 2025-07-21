@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator - Final Version
- * - 2025-07-21 v18:24: DC, Progress, Playstyleの描画ロジックを修正
+ * - 2025-07-21 v19:00: すべての描画ロジックとUI機能を統合した最終版
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -21,12 +21,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dcSelect = document.getElementById('dcSelect');
     const progressSelect = document.getElementById('progressSelect');
     const styleButtonsContainer = document.getElementById('styleButtons');
+    const playtimeOptionsContainer = document.getElementById('playtimeOptions');
     const difficultyOptionsContainer = document.getElementById('difficultyOptions');
+    const mainjobSelect = document.getElementById('mainjobSelect');
     const subjobSection = document.getElementById('subjobSection');
     const downloadBtn = document.getElementById('downloadBtn');
     
     const appElement = document.getElementById('app');
     const loaderElement = document.getElementById('loader');
+    
+    const toTopBtn = document.getElementById('toTopBtn');
+    const saveModal = document.getElementById('saveModal');
+    const modalImage = document.getElementById('modalImage');
+    const closeModalBtn = document.getElementById('closeModal');
 
     // --- 2. 定数と設定 ---
     const CANVAS_WIDTH = 1000;
@@ -52,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     let imageTransform = { img: null, x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, scale: 1.0, isDragging: false, lastX: 0, lastY: 0 };
     let imageCache = {};
+    let isDownloading = false;
 
     // --- 4. コア関数 ---
     const getAssetPath = (options) => `./assets/images/${options.category}/${options.filename}.webp`;
@@ -95,7 +103,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             race: raceSelect.value,
             progress: progressSelect.value,
             playstyles: [...styleButtonsContainer.querySelectorAll('button.active')].map(btn => btn.dataset.value),
+            playtimes: [...playtimeOptionsContainer.querySelectorAll('input:checked')].map(cb => {
+                const value = cb.value;
+                const className = cb.className;
+                return className.includes('other') ? value : `${className}_${value}`;
+            }),
             difficulties: [...difficultyOptionsContainer.querySelectorAll('input:checked')].map(cb => cb.value),
+            mainjob: mainjobSelect.value,
             subjobs: [...subjobSection.querySelectorAll('button.active')].map(btn => btn.dataset.value),
         };
     };
@@ -117,8 +131,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         await drawTinted(charCtx, path);
     };
 
-    const drawUiLayer = async () => {
-        uiCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    const drawUiLayer = async (targetCtx = uiCtx) => {
+        if(targetCtx === uiCtx) {
+            uiCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        }
         const config = templateConfig[state.template];
         if (!config) return;
 
@@ -128,63 +144,72 @@ document.addEventListener('DOMContentLoaded', async () => {
              streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
         };
 
-        // --- 描画実行 (下層から順番に) ---
         // 1. アイコン背景 (BG)
         const raceValue = raceAssetMap[state.race] || state.race;
-        if (raceValue) await drawTinted(uiCtx, getAssetPath({ category: 'race/bg', filename: `Common_race_${raceValue}_bg` }), state.iconBgColor);
+        if (raceValue) await drawTinted(targetCtx, getAssetPath({ category: 'race/bg', filename: `Common_race_${raceValue}_bg` }), state.iconBgColor);
         
         const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
         const currentIndex = progressStages.indexOf(state.progress);
         if (currentIndex > -1) {
             for (let i = 0; i <= currentIndex; i++) {
-                await drawTinted(uiCtx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), state.iconBgColor);
+                await drawTinted(targetCtx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), state.iconBgColor);
             }
         }
         if (state.progress === 'all_clear') {
-            for (const stage of progressStages) await drawTinted(uiCtx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${stage}_bg` }), state.iconBgColor);
+            for (const stage of progressStages) await drawTinted(targetCtx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${stage}_bg` }), state.iconBgColor);
         }
 
         for (const style of state.playstyles) {
             const bgNum = playstyleBgNumMap[style];
-            if (bgNum) await drawTinted(uiCtx, getAssetPath({ category: 'playstyle/bg', filename: `Common_playstyle_${bgNum}_bg` }), state.iconBgColor);
+            if (bgNum) await drawTinted(targetCtx, getAssetPath({ category: 'playstyle/bg', filename: `Common_playstyle_${bgNum}_bg` }), state.iconBgColor);
         }
 
-        for (const diff of state.difficulties) await drawTinted(uiCtx, getAssetPath({ category: 'raid/bg', filename: `Common_raid_${diff}_bg` }), state.iconBgColor);
-        for (const job of state.subjobs) await drawTinted(uiCtx, getAssetPath({ category: 'job', filename: `Common_job_${job}_sub_bg` }), state.iconBgColor);
+        for (const time of state.playtimes) {
+            const isSpecial = time === 'random' || time === 'fulltime';
+            if(isSpecial) await drawTinted(targetCtx, getAssetPath({ category: 'time/bg', filename: `Common_time_${time}_bg` }), state.iconBgColor);
+        }
+
+        for (const diff of state.difficulties) await drawTinted(targetCtx, getAssetPath({ category: 'raid/bg', filename: `Common_raid_${diff}_bg` }), state.iconBgColor);
+        for (const job of state.subjobs) await drawTinted(targetCtx, getAssetPath({ category: 'job', filename: `Common_job_${job}_sub_bg` }), state.iconBgColor);
 
         // 2. アイコン本体・フレーム (Frame)
-        if (state.dc) await drawTinted(uiCtx, getAssetPath({ category: 'dc', filename: `${config.iconTheme}_dc_${state.dc}` }), config.iconTint);
-        if (raceValue) await drawTinted(uiCtx, getAssetPath({ category: 'race/frame', filename: `${config.iconTheme}_race_${raceValue}_frame` }), config.iconTint);
+        if(state.dc) await drawTinted(targetCtx, getAssetPath({ category: 'dc', filename: `${config.iconTheme}_dc_${state.dc}` }), config.iconTint);
+        if (raceValue) await drawTinted(targetCtx, getAssetPath({ category: 'race/frame', filename: `${config.iconTheme}_race_${raceValue}_frame` }), config.iconTint);
+        
         if (state.progress) {
-            // ★ 'gyougetsu' のタイポを修正
-            const progressFilename = state.progress === 'gyougetsu' ? 'gyogetsu' : state.progress;
-            await drawTinted(uiCtx, getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${progressFilename}_frame` }), config.iconTint);
+            const progressFile = state.progress === 'gyougetsu' ? 'gyogetsu' : state.progress;
+            await drawTinted(targetCtx, getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${progressFile}_frame` }), config.iconTint);
         }
-        for (const style of state.playstyles) {
-            // ★ 'raid' と 'dd' のフレームを正しく指定
-            const frameStyle = (style === 'raid' || style === 'dd') ? style : style;
-            await drawTinted(uiCtx, getAssetPath({ category: 'playstyle/frame', filename: `Common_playstyle_${frameStyle}_frame` }), config.iconTint);
+
+        for (const style of state.playstyles) await drawTinted(targetCtx, getAssetPath({ category: 'playstyle/frame', filename: `Common_playstyle_${style}_frame` }), config.iconTint);
+        
+        for (const time of state.playtimes) {
+            const isSpecial = time === 'random' || time === 'fulltime';
+            const timeTheme = isSpecial ? config.iconTheme : 'Common';
+            await drawTinted(targetCtx, getAssetPath({ category: `time/${isSpecial ? 'frame' : 'icon'}`, filename: `${timeTheme}_time_${time}${isSpecial ? '_frame' : ''}` }), config.iconTint);
         }
-        if (state.difficulties.length > 0) await drawTinted(uiCtx, getAssetPath({ category: 'raid/frame', filename: `${config.iconTheme}_raid_frame` }), config.iconTint);
+
+        if (state.difficulties.length > 0) await drawTinted(targetCtx, getAssetPath({ category: 'raid/frame', filename: `${config.iconTheme}_raid_frame` }), config.iconTint);
+        if(state.mainjob) await drawTinted(targetCtx, getAssetPath({ category: 'job', filename: `Common_job_${state.mainjob}_main` }), config.iconTint);
 
         // 3. UIの基本フレーム
         const framePath = getAssetPath({ category: 'background/frame', filename: config.frame });
-        await drawTinted(uiCtx, framePath);
+        await drawTinted(targetCtx, framePath);
 
         // 4. テキスト
         if (state.characterName && state.font) {
             const fontName = state.font.split(',')[0].replace(/'/g, '');
             const nameArea = config.nameArea;
             let fontSize = 32;
-            uiCtx.font = `${fontSize}px "${fontName}"`;
-            while(uiCtx.measureText(state.characterName).width > nameArea.width && fontSize > 10) {
+            targetCtx.font = `${fontSize}px "${fontName}"`;
+            while(targetCtx.measureText(state.characterName).width > nameArea.width && fontSize > 10) {
                 fontSize--;
-                uiCtx.font = `${fontSize}px "${fontName}"`;
+                targetCtx.font = `${fontSize}px "${fontName}"`;
             }
-            uiCtx.fillStyle = config.nameColor || '#ffffff';
-            uiCtx.textAlign = 'center';
-            uiCtx.textBaseline = 'middle';
-            uiCtx.fillText(state.characterName, nameArea.x + nameArea.width / 2, nameArea.y + nameArea.height / 2);
+            targetCtx.fillStyle = config.nameColor || '#ffffff';
+            targetCtx.textAlign = 'center';
+            targetCtx.textBaseline = 'middle';
+            targetCtx.fillText(state.characterName, nameArea.x + nameArea.width / 2, nameArea.y + nameArea.height / 2);
         }
     };
     
@@ -257,6 +282,60 @@ document.addEventListener('DOMContentLoaded', async () => {
         drawCharacterLayer();
     });
     
+    // --- ダウンロード、モーダル、トップへ戻るボタン ---
+    downloadBtn.addEventListener('click', async () => {
+        if (isDownloading) return;
+        isDownloading = true;
+        downloadBtn.querySelector('span').textContent = '画像を生成中...';
+        
+        try {
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = CANVAS_WIDTH;
+            finalCanvas.height = CANVAS_HEIGHT;
+            const finalCtx = finalCanvas.getContext('2d');
+            
+            // 1. ユーザー画像
+            if (imageTransform.img) finalCtx.drawImage(backgroundLayer, 0, 0);
+            // 2. テンプレート背景
+            finalCtx.drawImage(characterLayer, 0, 0);
+            
+            // 3. UI要素をダウンロード用に再描画
+            await drawUiLayer(finalCtx);
+
+            const imageUrl = finalCanvas.toDataURL('image/jpeg', 0.92);
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+            if (isIOS) {
+                modalImage.src = imageUrl;
+                saveModal.classList.remove('hidden');
+            } else {
+                const link = document.createElement('a');
+                link.download = 'ffxiv_character_card.jpeg';
+                link.href = imageUrl;
+                link.click();
+            }
+        } catch (error) {
+            console.error("ダウンロード画像の生成に失敗しました:", error);
+            alert("画像の生成に失敗しました。");
+        } finally {
+            isDownloading = false;
+            downloadBtn.querySelector('span').textContent = 'この内容で作る？🐕';
+        }
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+        saveModal.classList.add('hidden');
+    });
+
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        toTopBtn.classList.toggle('visible', scrollTop > 100);
+    });
+
+    toTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
     // --- 7. 初期化処理 ---
     const initialize = async () => {
         fontSelect.value = state.font;
