@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) { /* Ignore failed loads */ }
     };
     
-    const drawMiscIcons = async (ctx) => {
+const drawMiscIcons = async (ctx) => {
         const config = templateConfig[state.template];
         if (!config) return;
         const raceAssetMap = { 'au_ra': 'aura' };
@@ -233,15 +233,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         if (state.progress) {
+            // ★★★ 修正点：変数をif/elseの外で定義 ★★★
+            const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
+
             if (state.progress === 'all_clear') {
-                // 新生から黄金までのすべての背景を描画
                 for (const stage of progressStages) {
                     await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${stage}_bg` }), state.iconBgColor);
                 }
-                // 最後にall_clearの背景を描画
                 await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: 'Common_progress_all_clear_bg' }), state.iconBgColor);
             } else {
-                // all_clear以外が選択された場合の通常の処理
                 const currentIndex = progressStages.indexOf(state.progress);
                 if (currentIndex > -1) {
                     for (let i = 0; i <= currentIndex; i++) {
@@ -249,6 +249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
             }
+            
             const progressFile = state.progress === 'gyougetsu' ? 'gyogetsu' : state.progress;
             await drawTinted(ctx, getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${progressFile}_frame` }), config.iconTint);
         }
