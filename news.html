@@ -12,21 +12,49 @@
     <link rel="stylesheet" href="./assets/css/style.css" />
 
     <style>
-        .news-wrapper { max-width: 800px; margin: 2rem auto; padding: 1rem; }
-        .generator-links { text-align: center; margin-bottom: 3rem; }
+        /* ヘッダーとのマージンを半分に */
+        .news-wrapper { max-width: 800px; margin: 1rem auto; padding: 1rem; }
+        
+        .generator-links {
+            text-align: center;
+            margin: 2rem auto 3rem auto;
+            max-width: 400px; /* ボタン全体の最大幅を制限 */
+        }
+        /* ボタンの幅を揃える */
         .generator-links a {
-            display: inline-block;
-            padding: 1rem 2rem;
-            background-color: var(--primary-hover-color); /* 目立つ色に */
+            display: block; /* ブロック要素にして幅を親に合わせる */
+            padding: 1rem;
+            background-color: var(--primary-hover-color);
             color: white;
             font-family: 'Orbitron', sans-serif;
             font-size: 1.1rem;
             text-decoration: none;
             border-radius: 8px;
-            margin: 0.5rem;
+            margin: 1rem 0; /* 上下のマージンに変更 */
             transition: opacity 0.2s ease;
         }
         .generator-links a:hover { opacity: 0.85; }
+
+        /* 「更新情報」セクション用のスタイル（背景なし） */
+        .update-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .update-section .section-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        .update-section ul {
+            font-family: 'Noto Sans JP', sans-serif;
+            font-weight: 500;
+            color: var(--text-muted-color);
+            font-size: 0.9rem;
+            list-style: none; padding: 0;
+        }
+        .update-section ul li { margin-bottom: 0.5rem; }
+
         .info-section {
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
@@ -49,15 +77,6 @@
             font-size: 0.9rem; opacity: 0.7;
         }
         .lang-switcher button.active { font-weight: 700; opacity: 1; text-decoration: underline; }
-        .news-list {
-            /* 指定のフォントスタイルを適用 */
-            font-family: 'Noto Sans JP', sans-serif;
-            font-weight: 500;
-            color: var(--text-muted-color);
-            font-size: 0.9rem;
-            list-style: none; padding: 0;
-        }
-        .news-list li { margin-bottom: 0.5rem; }
     </style>
 </head>
 <body>
@@ -77,9 +96,9 @@
                     <a href="./index_en.html" data-key="linkEn">English Generator</a>
                 </div>
 
-                <div class="info-section">
-                    <h2 class="section-title" data-key="newsTitle">サイト情報</h2>
-                    <ul class="news-list">
+                <div class="update-section">
+                    <h2 class="section-title" data-key="newsTitle">更新情報</h2>
+                    <ul>
                         <li data-key="launchDate">開設日: 2025/07/05</li>
                         <li><span data-key="lastUpdated">最終更新日</span>: <span id="last-updated-date"></span></li>
                     </ul>
@@ -103,14 +122,14 @@
                 ja: {
                     linkJa: '日本語版ジェネレーター',
                     linkEn: 'English Generator',
-                    newsTitle: 'サイト情報',
+                    newsTitle: '更新情報', // 文言変更
                     launchDate: '開設日: 2025/07/05',
                     lastUpdated: '最終更新日'
                 },
                 en: {
                     linkJa: 'Japanese Generator',
                     linkEn: 'English Generator',
-                    newsTitle: 'Site Information',
+                    newsTitle: 'Update', // 文言変更
                     launchDate: 'Launch Date: 2025/07/05',
                     lastUpdated: 'Last Updated'
                 }
