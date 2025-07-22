@@ -358,7 +358,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ]);
     };
 
-    // --- 6. イベントリスナー ---
+// --- 6. イベントリスナー ---
     templateSelect.addEventListener('change', async () => {
         if (!userHasManuallyPickedColor) {
             const newColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
@@ -495,6 +495,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     let lastTouchDistance = 0;
+    const getTouchLocation = (e) => {
+        const rect = uiLayer.getBoundingClientRect();
+        const scaleX = uiLayer.width / rect.width;
+        const scaleY = uiLayer.height / rect.height;
+        return {
+            x: (e.touches[0].clientX - rect.left) * scaleX,
+            y: (e.touches[0].clientY - rect.top) * scaleY,
+        };
+    };
     uiLayer.addEventListener('touchstart', (e) => {
         if (!imageTransform.img) return;
         e.preventDefault();
@@ -600,7 +609,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     drawerHandle.addEventListener('click', () => {
         stickyColorDrawer.classList.toggle('is-closed');
     });
-
+    
     // --- 7. 初期化処理 ---
     const initialize = async () => {
         await preloadFonts();
