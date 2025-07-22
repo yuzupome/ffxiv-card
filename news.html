@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News - FFXIV Character Card Generator</title>
+    
+    <link rel="icon" type="image/png" href="./assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="./assets/css/style.css" />
+
+    <style>
+        /* このページ専用のスタイル */
+        .news-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .info-section {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+        }
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+        .lang-switcher {
+            text-align: right;
+            margin-bottom: 1rem;
+        }
+        .lang-switcher button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        .lang-switcher button.active {
+            font-weight: 700;
+            opacity: 1;
+            text-decoration: underline;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            font-weight: 500;
+            color: var(--text-muted-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="header-placeholder"></div>
+
+        <div class="content-wrapper">
+            <div class="news-wrapper">
+                <div class="lang-switcher">
+                    <button id="lang-ja" class="active">日本語</button>
+                    <span>/</span>
+                    <button id="lang-en">English</button>
+                </div>
+
+                <div class="info-section">
+                    <h2 class="section-title" data-key="newsTitle">サイト情報</h2>
+                    <ul>
+                        <li data-key="launchDate">開設日: 2025/07/05</li>
+                        <li><span data-key="lastUpdated">最終更新日</span>: <span id="last-updated-date"></span></li>
+                    </ul>
+                </div>
+
+                <div class="info-section">
+                    <h2 class="section-title">#yzpmcard Posts</h2>
+                    <a class="twitter-timeline" data-height="800" data-theme="dark" href="https://twitter.com/hashtag/yzpmcard?src=twsrc%5Etfw"></a>
+                </div>
+                
+                <a href="./index.html" class="back-link">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span data-key="backLink">ジェネレーターに戻る</span>
+                </a>
+            </div>
+        </div>
+
+        <div id="footer-placeholder"></div>
+    </div>
+    
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    
+    <script src="./script/common.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const translations = {
+                ja: {
+                    newsTitle: 'サイト情報',
+                    launchDate: '開設日: 2025/07/05',
+                    lastUpdated: '最終更新日',
+                    backLink: 'ジェネレーターに戻る'
+                },
+                en: {
+                    newsTitle: 'Site Information',
+                    launchDate: 'Launch Date: 2025/07/05',
+                    lastUpdated: 'Last Updated',
+                    backLink: 'Back to Generator'
+                }
+            };
+            const setLanguage = (lang) => {
+                document.querySelectorAll('[data-key]').forEach(el => {
+                    el.textContent = translations[lang][el.dataset.key];
+                });
+                document.documentElement.lang = lang;
+                document.getElementById('lang-ja').classList.toggle('active', lang === 'ja');
+                document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+            };
+            document.getElementById('lang-ja').addEventListener('click', () => setLanguage('ja'));
+            document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
+            
+            const lastUpdatedElement = document.getElementById('last-updated-date');
+            if(lastUpdatedElement) {
+                const lastMod = new Date(document.lastModified);
+                lastUpdatedElement.textContent = `${lastMod.getFullYear()}/${String(lastMod.getMonth() + 1).padStart(2, '0')}/${String(lastMod.getDate()).padStart(2, '0')}`;
+            }
+            setLanguage('ja');
+        });
+    </script>
+</body>
+</html>

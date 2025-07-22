@@ -1,0 +1,420 @@
+フォルダー パスの一覧:  ボリューム Windows
+ボリューム シリアル番号は 987E-E36B です
+C:.
+│  .nojekyll
+│  copyright.html
+│  copyright_en.html
+│  index.html
+│  index_en.html
+│  README.md
+│  sitemap.xml
+│  structure.txt
+│  _footer.html
+│  _header.html
+│  
+├─assets
+│  │  favicon.png
+│  │  
+│  ├─common
+│  ├─css
+│  │      style.css
+│  │      
+│  └─images
+│      ├─background
+│      │  ├─base
+│      │  │      Gothic_black.webp
+│      │  │      Gothic_black_cp.webp
+│      │  │      Gothic_black_cp_en.webp
+│      │  │      Gothic_black_en.webp
+│      │  │      Gothic_pink.webp
+│      │  │      Gothic_pink_cp.webp
+│      │  │      Gothic_pink_cp_en.webp
+│      │  │      Gothic_pink_en.webp
+│      │  │      Gothic_white.webp
+│      │  │      Gothic_white_cp.webp
+│      │  │      Gothic_white_cp_en.webp
+│      │  │      Gothic_white_en.webp
+│      │  │      Lovely_heart.webp
+│      │  │      Lovely_heart_cp.webp
+│      │  │      Lovely_heart_cp_en.webp
+│      │  │      Lovely_heart_en.webp
+│      │  │      Neon_duotone.webp
+│      │  │      Neon_duotone_cp.webp
+│      │  │      Neon_duotone_cp_en.webp
+│      │  │      Neon_duotone_en.webp
+│      │  │      Neon_meltdown.webp
+│      │  │      Neon_meltdown_cp.webp
+│      │  │      Neon_meltdown_cp_en.webp
+│      │  │      Neon_meltdown_en.webp
+│      │  │      Neon_mono.webp
+│      │  │      Neon_mono_cp.webp
+│      │  │      Neon_mono_cp_en.webp
+│      │  │      Neon_mono_en.webp
+│      │  │      Royal_garnet.webp
+│      │  │      Royal_garnet_cp.webp
+│      │  │      Royal_garnet_cp_en.webp
+│      │  │      Royal_garnet_en.webp
+│      │  │      Royal_sapphire.webp
+│      │  │      Royal_sapphire_cp.webp
+│      │  │      Royal_sapphire_cp_en.webp
+│      │  │      Royal_sapphire_en.webp
+│      │  │      Water.webp
+│      │  │      Water_cp.webp
+│      │  │      Water_cp_en.webp
+│      │  │      Water_en.webp
+│      │  │      
+│      │  └─frame
+│      │          Common_background_circle_frame.webp
+│      │          Common_background_square_frame.webp
+│      │          Neon_background_square_frame.webp
+│      │          
+│      ├─dc
+│      │      Common_dc_aether.webp
+│      │      Common_dc_chaos.webp
+│      │      Common_dc_crystal.webp
+│      │      Common_dc_dynamis.webp
+│      │      Common_dc_elemental.webp
+│      │      Common_dc_gaia.webp
+│      │      Common_dc_light.webp
+│      │      Common_dc_mana.webp
+│      │      Common_dc_materia.webp
+│      │      Common_dc_meteor.webp
+│      │      Common_dc_primal.webp
+│      │      Royal_dc_aether.webp
+│      │      Royal_dc_chaos.webp
+│      │      Royal_dc_crystal.webp
+│      │      Royal_dc_dynamis.webp
+│      │      Royal_dc_elemental.webp
+│      │      Royal_dc_gaia.webp
+│      │      Royal_dc_light.webp
+│      │      Royal_dc_mana.webp
+│      │      Royal_dc_materia.webp
+│      │      Royal_dc_meteor.webp
+│      │      Royal_dc_primal.webp
+│      │      
+│      ├─job
+│      │  │  Common_job_astrologian_main.webp
+│      │  │  Common_job_bard_main.webp
+│      │  │  Common_job_blackmage_main.webp
+│      │  │  Common_job_bluemage_main.webp
+│      │  │  Common_job_dancer_main.webp
+│      │  │  Common_job_darkknight_main.webp
+│      │  │  Common_job_dragoon_main.webp
+│      │  │  Common_job_gunbreaker_main.webp
+│      │  │  Common_job_machinist_main.webp
+│      │  │  Common_job_monk_main.webp
+│      │  │  Common_job_ninja_main.webp
+│      │  │  Common_job_paladin_main.webp
+│      │  │  Common_job_pictomancer_main.webp
+│      │  │  Common_job_reaper_main.webp
+│      │  │  Common_job_redmage_main.webp
+│      │  │  Common_job_sage_main.webp
+│      │  │  Common_job_samurai_main.webp
+│      │  │  Common_job_scholar_main.webp
+│      │  │  Common_job_summoner_main.webp
+│      │  │  Common_job_viper_main.webp
+│      │  │  Common_job_warrior_main.webp
+│      │  │  Common_job_whitemage_main.webp
+│      │  │  
+│      │  ├─bg
+│      │  │      Circle_job_alchemist_sub_bg.webp
+│      │  │      Circle_job_armorer_sub_bg.webp
+│      │  │      Circle_job_astrologian_sub_bg.webp
+│      │  │      Circle_job_bard_sub_bg.webp
+│      │  │      Circle_job_blackmage_sub_bg.webp
+│      │  │      Circle_job_blacksmith_sub_bg.webp
+│      │  │      Circle_job_bluemage_sub_bg.webp
+│      │  │      Circle_job_botanist_sub_bg.webp
+│      │  │      Circle_job_carpenter_sub_bg.webp
+│      │  │      Circle_job_culinarian_sub_bg.webp
+│      │  │      Circle_job_dancer_sub_bg.webp
+│      │  │      Circle_job_darkknight_sub_bg.webp
+│      │  │      Circle_job_dragoon_sub_bg.webp
+│      │  │      Circle_job_fisher_sub_bg.webp
+│      │  │      Circle_job_goldsmith_sub_bg.webp
+│      │  │      Circle_job_gunbreaker_sub_bg.webp
+│      │  │      Circle_job_leatherworker_sub_bg.webp
+│      │  │      Circle_job_machinist_sub_bg.webp
+│      │  │      Circle_job_miner_sub_bg.webp
+│      │  │      Circle_job_monk_sub_bg.webp
+│      │  │      Circle_job_ninja_sub_bg.webp
+│      │  │      Circle_job_paladin_sub_bg.webp
+│      │  │      Circle_job_pictomancer_sub_bg.webp
+│      │  │      Circle_job_reaper_sub_bg.webp
+│      │  │      Circle_job_redmage_sub_bg.webp
+│      │  │      Circle_job_sage_sub_bg.webp
+│      │  │      Circle_job_samurai_sub_bg.webp
+│      │  │      Circle_job_scholar_sub_bg.webp
+│      │  │      Circle_job_summoner_sub_bg.webp
+│      │  │      Circle_job_viper_sub_bg.webp
+│      │  │      Circle_job_warrior_sub_bg.webp
+│      │  │      Circle_job_weaver_sub_bg.webp
+│      │  │      Circle_job_whitemage_sub_bg.webp
+│      │  │      Common_job_alchemist_sub_bg.webp
+│      │  │      Common_job_armorer_sub_bg.webp
+│      │  │      Common_job_astrologian_sub_bg.webp
+│      │  │      Common_job_bard_sub_bg.webp
+│      │  │      Common_job_blackmage_sub_bg.webp
+│      │  │      Common_job_blacksmith_sub_bg.webp
+│      │  │      Common_job_bluemage_sub_bg.webp
+│      │  │      Common_job_botanist_sub_bg.webp
+│      │  │      Common_job_carpenter_sub_bg.webp
+│      │  │      Common_job_culinarian_sub_bg.webp
+│      │  │      Common_job_dancer_sub_bg.webp
+│      │  │      Common_job_darkknight_sub_bg.webp
+│      │  │      Common_job_dragoon_sub_bg.webp
+│      │  │      Common_job_fisher_sub_bg.webp
+│      │  │      Common_job_goldsmith_sub_bg.webp
+│      │  │      Common_job_gunbreaker_sub_bg.webp
+│      │  │      Common_job_leatherworker_sub_bg.webp
+│      │  │      Common_job_machinist_sub_bg.webp
+│      │  │      Common_job_miner_sub_bg.webp
+│      │  │      Common_job_monk_sub_bg.webp
+│      │  │      Common_job_ninja_sub_bg.webp
+│      │  │      Common_job_paladin_sub_bg.webp
+│      │  │      Common_job_pictomancer_sub_bg.webp
+│      │  │      Common_job_reaper_sub_bg.webp
+│      │  │      Common_job_redmage_sub_bg.webp
+│      │  │      Common_job_sage_sub_bg.webp
+│      │  │      Common_job_samurai_sub_bg.webp
+│      │  │      Common_job_scholar_sub_bg.webp
+│      │  │      Common_job_summoner_sub_bg.webp
+│      │  │      Common_job_viper_sub_bg.webp
+│      │  │      Common_job_warrior_sub_bg.webp
+│      │  │      Common_job_weaver_sub_bg.webp
+│      │  │      Common_job_whitemage_sub_bg.webp
+│      │  │      
+│      │  └─frame
+│      │          Common_job_alchemist_sub_frame.webp
+│      │          Common_job_armorer_sub_frame.webp
+│      │          Common_job_astrologian_sub_frame.webp
+│      │          Common_job_bard_sub_frame.webp
+│      │          Common_job_blackmage_sub_frame.webp
+│      │          Common_job_blacksmith_sub_frame.webp
+│      │          Common_job_bluemage_sub_frame.webp
+│      │          Common_job_botanist_sub_frame.webp
+│      │          Common_job_carpenter_sub_frame.webp
+│      │          Common_job_culinarian_sub_frame.webp
+│      │          Common_job_dancer_sub_frame.webp
+│      │          Common_job_darkknight_sub_frame.webp
+│      │          Common_job_dragoon_sub_frame.webp
+│      │          Common_job_fisher_sub_frame.webp
+│      │          Common_job_goldsmith_sub_frame.webp
+│      │          Common_job_gunbreaker_sub_frame.webp
+│      │          Common_job_leatherworker_sub_frame.webp
+│      │          Common_job_machinist_sub_frame.webp
+│      │          Common_job_miner_sub_frame.webp
+│      │          Common_job_monk_sub_frame.webp
+│      │          Common_job_ninja_sub_frame.webp
+│      │          Common_job_paladin_sub_frame.webp
+│      │          Common_job_pictomancer_sub_frame.webp
+│      │          Common_job_reaper_sub_frame.webp
+│      │          Common_job_redmage_sub_frame.webp
+│      │          Common_job_sage_sub_frame.webp
+│      │          Common_job_samurai_sub_frame.webp
+│      │          Common_job_scholar_sub_frame.webp
+│      │          Common_job_summoner_sub_frame.webp
+│      │          Common_job_viper_sub_frame.webp
+│      │          Common_job_warrior_sub_frame.webp
+│      │          Common_job_weaver_sub_frame.webp
+│      │          Common_job_whitemage_sub_frame.webp
+│      │          
+│      ├─playstyle
+│      │  ├─bg
+│      │  │      Common_playstyle_01_bg.webp
+│      │  │      Common_playstyle_02_bg.webp
+│      │  │      Common_playstyle_03_bg.webp
+│      │  │      Common_playstyle_04_bg.webp
+│      │  │      Common_playstyle_05_bg.webp
+│      │  │      Common_playstyle_06_bg.webp
+│      │  │      Common_playstyle_07_bg.webp
+│      │  │      Common_playstyle_08_bg.webp
+│      │  │      Common_playstyle_09_bg.webp
+│      │  │      Common_playstyle_10_bg.webp
+│      │  │      Common_playstyle_11_bg.webp
+│      │  │      Common_playstyle_12_bg.webp
+│      │  │      Common_playstyle_13_bg.webp
+│      │  │      Common_playstyle_14_bg.webp
+│      │  │      Common_playstyle_15_bg.webp
+│      │  │      Common_playstyle_16_bg.webp
+│      │  │      Common_playstyle_17_bg.webp
+│      │  │      
+│      │  └─frame
+│      │          Common_playstyle_crafter_frame.webp
+│      │          Common_playstyle_crafter_frame_en.webp
+│      │          Common_playstyle_dd_frame.webp
+│      │          Common_playstyle_drawing_frame.webp
+│      │          Common_playstyle_drawing_frame_en.webp
+│      │          Common_playstyle_gatherer_frame.webp
+│      │          Common_playstyle_gatherer_frame_en.webp
+│      │          Common_playstyle_gil_frame.webp
+│      │          Common_playstyle_gil_frame_en.webp
+│      │          Common_playstyle_glam_frame.webp
+│      │          Common_playstyle_glam_frame_en.webp
+│      │          Common_playstyle_housing_frame.webp
+│      │          Common_playstyle_housing_frame_en.webp
+│      │          Common_playstyle_hunt_frame.webp
+│      │          Common_playstyle_hunt_frame_en.webp
+│      │          Common_playstyle_leveling_frame.webp
+│      │          Common_playstyle_leveling_frame_en.webp
+│      │          Common_playstyle_map_frame.webp
+│      │          Common_playstyle_map_frame_en.webp
+│      │          Common_playstyle_perform_frame.webp
+│      │          Common_playstyle_perform_frame_en.webp
+│      │          Common_playstyle_pvp_frame.webp
+│      │          Common_playstyle_raid_frame.webp
+│      │          Common_playstyle_raid_frame_en.webp
+│      │          Common_playstyle_roleplay_frame.webp
+│      │          Common_playstyle_roleplay_frame_en.webp
+│      │          Common_playstyle_screenshot_frame.webp
+│      │          Common_playstyle_screenshot_frame_en.webp
+│      │          Common_playstyle_streaming_frame.webp
+│      │          Common_playstyle_streaming_frame_en.webp
+│      │          Common_playstyle_studio_frame.webp
+│      │          Common_playstyle_studio_frame_en.webp
+│      │          Royal_playstyle_crafter_frame.webp
+│      │          Royal_playstyle_crafter_frame_en.webp
+│      │          Royal_playstyle_dd_frame.webp
+│      │          Royal_playstyle_drawing_frame.webp
+│      │          Royal_playstyle_drawing_frame_en.webp
+│      │          Royal_playstyle_gatherer_frame.webp
+│      │          Royal_playstyle_gatherer_frame_en.webp
+│      │          Royal_playstyle_gil_frame.webp
+│      │          Royal_playstyle_gil_frame_en.webp
+│      │          Royal_playstyle_glam_frame.webp
+│      │          Royal_playstyle_glam_frame_en.webp
+│      │          Royal_playstyle_housing_frame.webp
+│      │          Royal_playstyle_housing_frame_en.webp
+│      │          Royal_playstyle_hunt_frame.webp
+│      │          Royal_playstyle_hunt_frame_en.webp
+│      │          Royal_playstyle_leveling_frame.webp
+│      │          Royal_playstyle_leveling_frame_en.webp
+│      │          Royal_playstyle_map_frame.webp
+│      │          Royal_playstyle_map_frame_en.webp
+│      │          Royal_playstyle_perform_frame.webp
+│      │          Royal_playstyle_perform_frame_en.webp
+│      │          Royal_playstyle_pvp_frame.webp
+│      │          Royal_playstyle_raid_frame.webp
+│      │          Royal_playstyle_raid_frame_en.webp
+│      │          Royal_playstyle_roleplay_frame.webp
+│      │          Royal_playstyle_roleplay_frame_en.webp
+│      │          Royal_playstyle_screenshot_frame.webp
+│      │          Royal_playstyle_screenshot_frame_en.webp
+│      │          Royal_playstyle_streaming_frame.webp
+│      │          Royal_playstyle_streaming_frame_en.webp
+│      │          Royal_playstyle_studio_frame.webp
+│      │          Royal_playstyle_studio_frame_en.webp
+│      │          
+│      ├─progress
+│      │  ├─bg
+│      │  │      Common_progress_all_clear_bg.webp
+│      │  │      Common_progress_guren_bg.webp
+│      │  │      Common_progress_gyougetsu_bg.webp
+│      │  │      Common_progress_ougon_bg.webp
+│      │  │      Common_progress_shikkoku_bg.webp
+│      │  │      Common_progress_shinsei_bg.webp
+│      │  │      Common_progress_souten_bg.webp
+│      │  │      
+│      │  └─frame
+│      │          Common_progress_all_clear_frame.webp
+│      │          Common_progress_guren_frame.webp
+│      │          Common_progress_guren_frame_en.webp
+│      │          Common_progress_gyogetsu_frame.webp
+│      │          Common_progress_gyogetsu_frame_en.webp
+│      │          Common_progress_ougon_frame.webp
+│      │          Common_progress_ougon_frame_en.webp
+│      │          Common_progress_shikkoku_frame.webp
+│      │          Common_progress_shikkoku_frame_en.webp
+│      │          Common_progress_shinsei_frame.webp
+│      │          Common_progress_shinsei_frame_en.webp
+│      │          Common_progress_souten_frame.webp
+│      │          Common_progress_souten_frame_en.webp
+│      │          Royal_progress_all_clear_frame.webp
+│      │          Royal_progress_guren_frame.webp
+│      │          Royal_progress_guren_frame_en.webp
+│      │          Royal_progress_gyogetsu_frame.webp
+│      │          Royal_progress_gyogetsu_frame_en.webp
+│      │          Royal_progress_ougon_frame.webp
+│      │          Royal_progress_ougon_frame_en.webp
+│      │          Royal_progress_shikkoku_frame.webp
+│      │          Royal_progress_shikkoku_frame_en.webp
+│      │          Royal_progress_shinsei_frame.webp
+│      │          Royal_progress_shinsei_frame_en.webp
+│      │          Royal_progress_souten_frame.webp
+│      │          Royal_progress_souten_frame_en.webp
+│      │          
+│      ├─race
+│      │  ├─bg
+│      │  │      Common_race_aura_bg.webp
+│      │  │      Common_race_elezen_bg.webp
+│      │  │      Common_race_hrothgar_bg.webp
+│      │  │      Common_race_hyur_bg.webp
+│      │  │      Common_race_lalafell_bg.webp
+│      │  │      Common_race_miqote_bg.webp
+│      │  │      Common_race_roegadyn_bg.webp
+│      │  │      Common_race_viera_bg.webp
+│      │  │      
+│      │  └─frame
+│      │          Common_race_aura_frame.webp
+│      │          Common_race_elezen_frame.webp
+│      │          Common_race_hrothgar_frame.webp
+│      │          Common_race_hyur_frame.webp
+│      │          Common_race_lalafell_frame.webp
+│      │          Common_race_miqote_frame.webp
+│      │          Common_race_roegadyn_frame.webp
+│      │          Common_race_viera_frame.webp
+│      │          Royal_race_aura_frame.webp
+│      │          Royal_race_elezen_frame.webp
+│      │          Royal_race_hrothgar_frame.webp
+│      │          Royal_race_hyur_frame.webp
+│      │          Royal_race_lalafell_frame.webp
+│      │          Royal_race_miqote_frame.webp
+│      │          Royal_race_roegadyn_frame.webp
+│      │          Royal_race_viera_frame.webp
+│      │          
+│      ├─raid
+│      │  └─bg
+│      │          Circle_raid_extreme_bg.webp
+│      │          Circle_raid_savage_bg.webp
+│      │          Circle_raid_ultimate_bg.webp
+│      │          Circle_raid_unreal_bg.webp
+│      │          Common_raid_extreme_bg.webp
+│      │          Common_raid_frame.webp
+│      │          Common_raid_frame_en.webp
+│      │          Common_raid_savage_bg.webp
+│      │          Common_raid_ultimate_bg.webp
+│      │          Common_raid_unreal_bg.webp
+│      │          Neon_raid_extreme_bg.webp
+│      │          Neon_raid_savage_bg.webp
+│      │          Neon_raid_ultimate_bg.webp
+│      │          Neon_raid_unreal_bg.webp
+│      │          
+│      └─time
+│          ├─bg
+│          │      Common_time_fulltime_bg.webp
+│          │      Common_time_random_bg.webp
+│          │      
+│          ├─frame
+│          │      Common_time_fulltime_frame.webp
+│          │      Common_time_fulltime_frame_en.webp
+│          │      Common_time_random_frame.webp
+│          │      Common_time_random_frame_en.webp
+│          │      Royal_time_fulltime_frame.webp
+│          │      Royal_time_fulltime_frame_en.webp
+│          │      Royal_time_random_frame.webp
+│          │      Royal_time_random_frame_en.webp
+│          │      
+│          └─icon
+│                  Common_time_holiday_daytime.webp
+│                  Common_time_holiday_midnight.webp
+│                  Common_time_holiday_morning.webp
+│                  Common_time_holiday_night.webp
+│                  Common_time_weekday_daytime.webp
+│                  Common_time_weekday_midnight.webp
+│                  Common_time_weekday_morning.webp
+│                  Common_time_weekday_night.webp
+│                  
+└─script
+        common.js
+        main.js
+        
