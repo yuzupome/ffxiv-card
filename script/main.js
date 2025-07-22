@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator - Final Japanese Version
- * - 2025-07-21 v23:59: Full version with all features, including asset preloading.
+ * - 2025-07-23 v01:06: UI/UX improvements and all features integrated. This is the complete version.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -43,8 +43,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalImage = document.getElementById('modalImage');
     const closeModalBtn = document.getElementById('closeModal');
     
+    const mainColorPickerSection = document.getElementById('main-color-picker-section');
     const iconBgColorPicker = document.getElementById('iconBgColorPicker');
     const resetColorBtn = document.getElementById('resetColorBtn');
+    const colorPickerBtn = document.getElementById('colorPickerBtn');
+    const colorSwatch = document.getElementById('colorSwatch');
+
+    const stickyColorDrawer = document.getElementById('stickyColorDrawer');
+    const drawerHandle = document.getElementById('drawerHandle');
+    const stickyIconBgColorPicker = document.getElementById('stickyIconBgColorPicker');
+    const stickyColorPickerBtn = document.getElementById('stickyColorPickerBtn');
+    const stickyColorSwatch = document.getElementById('stickyColorSwatch');
 
     // --- 2. 定数と設定 ---
     const CANVAS_WIDTH = 1000;
@@ -86,8 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const preloadFonts = () => {
         const fonts = Array.from(fontSelect.options).filter(o => o.value).map(o => o.value);
-        const promises = fonts.map(font => document.fonts.load(`10px ${font}`).catch(e => console.warn(`Font failed to preload: ${font}`)));
-        return Promise.all(promises);
+        return Promise.all(fonts.map(font => document.fonts.load(`10px ${font}`).catch(e => console.warn(`Font failed to preload: ${font}`))));
     };
 
     const preloadTemplateAssets = async (templateName) => {
@@ -101,7 +109,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const assetsToLoad = new Set();
         const raceAssetMap = { 'au_ra': 'aura' };
         
-        // プリロード対象のリスト
         const races = Array.from(raceSelect.options).filter(o => o.value).map(o => o.value);
         const dcs = Array.from(dcSelect.options).filter(o => o.value).map(o => o.value);
         const progresses = Array.from(progressSelect.options).filter(o => o.value).map(o => o.value);
@@ -110,7 +117,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const mainJobs = Array.from(mainjobSelect.options).filter(o => o.value).map(o => o.value);
         const subJobs = Array.from(subjobSection.querySelectorAll('button')).map(b => b.dataset.value);
 
-        // 各カテゴリのアセットパスを生成
         for (const race of races) {
             const raceValue = raceAssetMap[race] || race;
             assetsToLoad.add(getAssetPath({ category: 'race/bg', filename: `Common_race_${raceValue}_bg` }));
@@ -215,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) { /* Ignore failed loads */ }
     };
     
-const drawMiscIcons = async (ctx) => {
+    const drawMiscIcons = async (ctx) => {
         const config = templateConfig[state.template];
         if (!config) return;
         const raceAssetMap = { 'au_ra': 'aura' };
@@ -233,23 +239,16 @@ const drawMiscIcons = async (ctx) => {
         }
         
         if (state.progress) {
-            // ★★★ 修正点：変数をif/elseの外で定義 ★★★
             const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
-
             if (state.progress === 'all_clear') {
-                for (const stage of progressStages) {
-                    await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${stage}_bg` }), state.iconBgColor);
-                }
+                for (const stage of progressStages) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${stage}_bg` }), state.iconBgColor);
                 await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: 'Common_progress_all_clear_bg' }), state.iconBgColor);
             } else {
                 const currentIndex = progressStages.indexOf(state.progress);
                 if (currentIndex > -1) {
-                    for (let i = 0; i <= currentIndex; i++) {
-                        await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), state.iconBgColor);
-                    }
+                    for (let i = 0; i <= currentIndex; i++) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), state.iconBgColor);
                 }
             }
-            
             const progressFile = state.progress === 'gyougetsu' ? 'gyogetsu' : state.progress;
             await drawTinted(ctx, getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${progressFile}_frame` }), config.iconTint);
         }
@@ -364,9 +363,41 @@ const drawMiscIcons = async (ctx) => {
         if (!userHasManuallyPickedColor) {
             const newColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
             iconBgColorPicker.value = newColor;
+            stickyIconBgColorPicker.value = newColor;
         }
         await redrawAll();
+        updateColorSwatches(iconBgColorPicker.value);
         await preloadTemplateAssets(templateSelect.value);
+    });
+
+    const updateColorSwatches = (color) => {
+        colorSwatch.style.backgroundColor = color;
+        stickyColorSwatch.style.backgroundColor = color;
+        stickyColorPickerBtn.style.backgroundColor = color;
+    };
+
+    const handleColorInput = (source, target) => {
+        userHasManuallyPickedColor = true;
+        target.value = source.value;
+        updateColorSwatches(source.value);
+        updateState();
+        debouncedRedrawMisc();
+        debouncedRedrawSubJob();
+    };
+    colorPickerBtn.addEventListener('click', () => iconBgColorPicker.click());
+    stickyColorPickerBtn.addEventListener('click', () => stickyIconBgColorPicker.click());
+    iconBgColorPicker.addEventListener('input', () => handleColorInput(iconBgColorPicker, stickyIconBgColorPicker));
+    stickyIconBgColorPicker.addEventListener('input', () => handleColorInput(stickyIconBgColorPicker, iconBgColorPicker));
+
+    resetColorBtn.addEventListener('click', () => {
+        userHasManuallyPickedColor = false;
+        const defaultColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
+        iconBgColorPicker.value = defaultColor;
+        stickyIconBgColorPicker.value = defaultColor;
+        updateColorSwatches(defaultColor);
+        updateState();
+        debouncedRedrawMisc();
+        debouncedRedrawSubJob();
     });
 
     [dcSelect, raceSelect, progressSelect].forEach(el => el.addEventListener('change', () => { updateState(); debouncedRedrawMisc(); }));
@@ -408,22 +439,6 @@ const drawMiscIcons = async (ctx) => {
     nameInput.addEventListener('input', () => { updateState(); debouncedRedrawName(); });
     fontSelect.addEventListener('change', () => { updateState(); debouncedRedrawName(); });
 
-    iconBgColorPicker.addEventListener('input', () => {
-        userHasManuallyPickedColor = true;
-        updateState();
-        debouncedRedrawMisc();
-        debouncedRedrawSubJob();
-    });
-
-    resetColorBtn.addEventListener('click', () => {
-        userHasManuallyPickedColor = false;
-        const currentColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
-        iconBgColorPicker.value = currentColor;
-        updateState();
-        debouncedRedrawMisc();
-        debouncedRedrawSubJob();
-    });
-    
     uploadImageInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) {
@@ -568,10 +583,22 @@ const drawMiscIcons = async (ctx) => {
     window.addEventListener('scroll', () => {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         toTopBtn.classList.toggle('visible', scrollTop > 100);
+
+        const rect = mainColorPickerSection.getBoundingClientRect();
+        if (rect.bottom < 50) {
+            stickyColorDrawer.classList.remove('is-hidden');
+        } else {
+            stickyColorDrawer.classList.add('is-hidden');
+            stickyColorDrawer.classList.add('is-closed');
+        }
     });
 
     toTopBtn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    drawerHandle.addEventListener('click', () => {
+        stickyColorDrawer.classList.toggle('is-closed');
     });
 
     // --- 7. 初期化処理 ---
@@ -580,9 +607,11 @@ const drawMiscIcons = async (ctx) => {
         fontSelect.value = state.font;
         const initialColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
         iconBgColorPicker.value = initialColor;
+        stickyIconBgColorPicker.value = initialColor;
         
         drawCharacterLayer();
         await redrawAll();
+        updateColorSwatches(initialColor);
         await preloadTemplateAssets(templateSelect.value);
         
         loaderElement.style.display = 'none';

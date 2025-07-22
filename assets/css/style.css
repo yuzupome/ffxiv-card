@@ -572,3 +572,114 @@ input[type="color"]::-moz-color-swatch {
     border-color: var(--primary-hover-color);
     color: var(--primary-hover-color);
 }
+
+/* === UI改善のための追加スタイル === */
+
+/* メインのカラーピッカーUI */
+.color-picker-ui {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.color-picker-button {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-color);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    color: var(--text-secondary-color);
+    transition: all 0.2s ease;
+}
+.color-picker-button:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+.color-picker-button svg {
+    width: 24px;
+    height: 24px;
+}
+.color-swatch {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+}
+.color-input-hidden {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+.reset-btn {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary-color);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin-left: auto; /* 右寄せ */
+}
+.reset-btn:hover {
+    border-color: var(--primary-hover-color);
+    color: var(--primary-hover-color);
+}
+
+/* 追従ドロワー */
+.sticky-drawer {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 1500;
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease-in-out;
+}
+.sticky-drawer.is-closed {
+    transform: translateY(-50%) translateX(calc(100% - 48px)); /* ハンドル分だけ見えるように隠す */
+}
+.drawer-handle {
+    width: 48px;
+    height: 64px;
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    box-shadow: -2px 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: var(--primary-color);
+}
+.drawer-panel {
+    padding: 1rem;
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    box-shadow: -2px 2px 8px rgba(0,0,0,0.1);
+}
+.sticky-picker-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+    color: var(--text-color);
+}
+
+/* PC表示でCanvasが追従しないように */
+@media (min-width: 768px) {
+    .preview-panel {
+        position: static; /* stickyを解除 */
+    }
+}

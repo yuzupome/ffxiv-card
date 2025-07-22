@@ -35,11 +35,11 @@
                     <canvas id="background-layer"></canvas>
                     <canvas id="character-layer"></canvas>
                     <canvas id="ui-layer"></canvas>
-                    
                     <div id="mini-loader" class="mini-loader hidden">
                         <img src="./assets/favicon.png" alt="loading..." class="spinner-icon">
                     </div>
-                    </div>
+                </div>
+            </div>
         </main>
 
         <aside class="controls-panel">
@@ -62,16 +62,20 @@
                     </div>
 
                     <div id="main-color-picker-section" class="control-section">
-                        <h2 class="section-title">Icon BG Color</h2>
-                        <div class="color-picker-wrapper">
-                            <input type="color" id="iconBgColorPicker" value="#A142CD">
+                        <h2 class="section-title">Accent Color</h2>
+                        <div class="color-picker-ui">
+                            <button id="colorPickerBtn" class="color-picker-button" title="カラーを選択">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"></path></svg>
+                            </button>
+                            <div id="colorSwatch" class="color-swatch"></div>
                             <button id="resetColorBtn" class="reset-btn">Reset</button>
+                            <input type="color" id="iconBgColorPicker" value="#A142CD" class="color-input-hidden">
                         </div>
                     </div>
-                    
+
                     <div id="top-controls" class="control-section">
                         <label for="uploadImage" class="file-upload-label">
-                            <svg xmlns="http://www.w.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                             <span>画像をアップロード</span>
                         </label>
                         <input type="file" id="uploadImage" accept="image/*" class="file-upload-input">
@@ -145,8 +149,8 @@
                         <div id="styleButtons" class="button-grid">
                             <button data-value="leveling">レベリング</button>
                             <button data-value="raid">レイド</button>
-                            <button data-value="pvp">PvP</button>
                             <button data-value="dd">DD</button>
+                            <button data-value="pvp">PvP</button>
                             <button data-value="hunt">モブハン</button>
                             <button data-value="map">地図</button>
                             <button data-value="gatherer">ギャザラー</button>
@@ -226,10 +230,6 @@
                     </button>
                 </div>
             </div>
-
-            <div id="controls-en" class="controls-container" style="display: none;">
-                <p>English controls will be here.</p>
-            </div>
         </aside>
     </div>
 
@@ -247,20 +247,20 @@
             <img id="modalImage" src="" alt="生成されたカード">
         </div>
     </div>
-
   </div>
 
-  <div id="sticky-color-picker" class="sticky-color-picker-container is-hidden">
-      <div class="sticky-picker-toggle" id="sticky-picker-toggle-btn">
-          </div>
-      <div class="sticky-picker-panel">
-          <h3 class="sticky-picker-title">Icon BG Color</h3>
-          <div class="color-picker-wrapper">
-              <input type="color" id="stickyIconBgColorPicker" value="#A142CD">
-              <div id="stickyColorPresetButtons" class="color-presets">
-                  </div>
-          </div>
-      </div>
+  <div id="stickyColorDrawer" class="sticky-drawer is-closed">
+    <div id="drawerHandle" class="drawer-handle" title="カラーを調整">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+    </div>
+    <div class="drawer-panel">
+        <h3 class="sticky-picker-title">Accent Color</h3>
+        <div class="color-picker-ui">
+            <button id="stickyColorPickerBtn" class="color-picker-button" title="カラーを選択"></button>
+            <div id="stickyColorSwatch" class="color-swatch"></div>
+            <input type="color" id="stickyIconBgColorPicker" value="#A142CD" class="color-input-hidden">
+        </div>
+    </div>
   </div>
 
   <script src="./script/common.js"></script>
