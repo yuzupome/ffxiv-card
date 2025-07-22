@@ -251,20 +251,46 @@ input[type="checkbox"]:checked + span::after {
 /* フッターとTOPに戻るボタン */
 .site-footer {
     display: flex;
+    flex-direction: column; /* 上下段に分ける */
     justify-content: center;
     align-items: center;
-    gap: 0.5rem;
-    padding: 2rem;
+    gap: 0.5rem; /* 上段と下段の間の余白 */
+    padding: 2rem 1rem; /* 左右のパディングを確保 */
     border-top: 1px solid var(--border-color);
     color: var(--text-secondary-color);
+    font-size: 0.85rem; /* 全体のフォントサイズを少し小さく */
+    text-align: center;
 }
+
 .site-footer a {
     color: var(--text-secondary-color);
     text-decoration: none;
     transition: color 0.2s ease;
 }
-.site-footer a:hover { color: var(--primary-hover-color); }
-.site-footer svg { width: 18px; height: 18px; }
+
+.site-footer a:hover {
+    color: var(--primary-hover-color);
+}
+
+.site-footer .footer-main {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap; /* スマホで折り返すように */
+    justify-content: center;
+    gap: 0.25rem 0.75rem; /* アイコンと文字の隙間 | リンク間の隙間 */
+}
+
+.site-footer .footer-main svg {
+    width: 16px;
+    height: 16px;
+    position: relative;
+    top: 2px;
+}
+
+.site-footer .footer-design-info {
+    font-size: 0.75rem; /* @yypome のフォントをさらに小さく */
+    margin-top: 0.25rem;
+}
 
 #toTopBtn {
     position: fixed;
