@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator - Final Japanese Version
- * - 2025-07-23 v07:37: Implemented two-tone color system for Neon templates.
+ * - 2025-07-23 v08:15: Fixed mobile color picker issue and integrated all features.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -46,14 +46,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mainColorPickerSection = document.getElementById('main-color-picker-section');
     const iconBgColorPicker = document.getElementById('iconBgColorPicker');
     const resetColorBtn = document.getElementById('resetColorBtn');
-    const colorPickerBtn = document.getElementById('colorPickerBtn');
-    const colorSwatch = document.getElementById('colorSwatch');
 
     const stickyColorDrawer = document.getElementById('stickyColorDrawer');
     const drawerHandle = document.getElementById('drawerHandle');
     const stickyIconBgColorPicker = document.getElementById('stickyIconBgColorPicker');
-    const stickyColorPickerBtn = document.getElementById('stickyColorPickerBtn');
-    const stickyColorSwatch = document.getElementById('stickyColorSwatch');
 
     // --- 2. 定数と設定 ---
     const CANVAS_WIDTH = 1000;
@@ -380,26 +376,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             stickyIconBgColorPicker.value = newColor || '#CCCCCC';
         }
         await redrawAll();
-        updateColorSwatches(iconBgColorPicker.value);
         await preloadTemplateAssets(state.template);
     });
-
-    const updateColorSwatches = (color) => {
-        colorSwatch.style.backgroundColor = color;
-        stickyColorSwatch.style.backgroundColor = color;
-        stickyColorPickerBtn.style.backgroundColor = color;
-    };
 
     const handleColorInput = (source, target) => {
         userHasManuallyPickedColor = true;
         target.value = source.value;
-        updateColorSwatches(source.value);
         updateState();
         debouncedRedrawMisc();
         debouncedRedrawSubJob();
     };
-    colorPickerBtn.addEventListener('click', () => iconBgColorPicker.click());
-    stickyColorPickerBtn.addEventListener('click', () => stickyIconBgColorPicker.click());
     iconBgColorPicker.addEventListener('input', () => handleColorInput(iconBgColorPicker, stickyIconBgColorPicker));
     stickyIconBgColorPicker.addEventListener('input', () => handleColorInput(stickyIconBgColorPicker, iconBgColorPicker));
 
@@ -409,7 +395,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const defaultColor = (config && typeof config.defaultBg === 'object') ? config.defaultBg.primary : config.defaultBg;
         iconBgColorPicker.value = defaultColor || '#CCCCCC';
         stickyIconBgColorPicker.value = defaultColor || '#CCCCCC';
-        updateColorSwatches(iconBgColorPicker.value);
         updateState();
         debouncedRedrawMisc();
         debouncedRedrawSubJob();
@@ -627,7 +612,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         drawCharacterLayer();
         await redrawAll();
-        updateColorSwatches(iconBgColorPicker.value);
+        // updateColorSwatches(iconBgColorPicker.value); // This function was removed, this call is an error
         await preloadTemplateAssets(templateSelect.value);
         
         loaderElement.style.display = 'none';
