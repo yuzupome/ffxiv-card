@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator - Final Japanese Version
- * - 2025-07-23 v01:06: UI/UX improvements and all features integrated. This is the complete version.
+ * - 2025-07-23 v07:37: Implemented two-tone color system for Neon templates.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -68,8 +68,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         'Gothic_white':   { nameColor: '#000000', iconTint: '#000000',   defaultBg: '#6CD9D6', frame: 'Common_background_square_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Gothic_pink':    { nameColor: '#ffffff', iconTint: null,       defaultBg: '#A142CD', frame: 'Common_background_square_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Neon_mono':      { nameColor: '#ffffff', iconTint: null,       defaultBg: '#B70016', frame: 'Neon_background_square_frame',   iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
-        'Neon_duotone':   { nameColor: '#ffffff', iconTint: null,       defaultBg: '#FFF500', frame: 'Neon_background_square_frame',   iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
-        'Neon_meltdown':  { nameColor: '#ffffff', iconTint: null,       defaultBg: '#FF00CF', frame: 'Neon_background_square_frame',   iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Neon_duotone':   { nameColor: '#ffffff', iconTint: null,       defaultBg: { primary: '#FFF500', secondary: '#80FF00'}, frame: 'Neon_background_square_frame',   iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Neon_meltdown':  { nameColor: '#ffffff', iconTint: null,       defaultBg: { primary: '#FF00CF', secondary: '#00A3FF'}, frame: 'Neon_background_square_frame',   iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Water':          { nameColor: '#ffffff', iconTint: null,       defaultBg: '#FFFFFF', frame: 'Common_background_circle_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Lovely_heart':   { nameColor: '#E1C8D2', iconTint: '#E1C8D2',   defaultBg: '#D34669', frame: 'Common_background_circle_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Royal_garnet':   { nameColor: '#A2850A', iconTint: '#A2850A',   defaultBg: '#000000', frame: 'Common_background_square_frame', iconTheme: 'Royal',  nameArea: { x: 15, y: 77, width: 180, height: 40 } },
@@ -221,6 +221,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) { /* Ignore failed loads */ }
     };
     
+    const getIconBgColor = (iconCategory) => {
+        const config = templateConfig[state.template];
+        if (config && typeof config.defaultBg === 'object' && !userHasManuallyPickedColor) {
+            if (iconCategory === 'raid' || iconCategory === 'subjob') {
+                return config.defaultBg.secondary;
+            } else {
+                return config.defaultBg.primary;
+            }
+        }
+        return state.iconBgColor;
+    };
+    
     const drawMiscIcons = async (ctx) => {
         const config = templateConfig[state.template];
         if (!config) return;
@@ -234,19 +246,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         const raceValue = raceAssetMap[state.race] || state.race;
         if (raceValue) {
-            await drawTinted(ctx, getAssetPath({ category: 'race/bg', filename: `Common_race_${raceValue}_bg` }), state.iconBgColor);
+            await drawTinted(ctx, getAssetPath({ category: 'race/bg', filename: `Common_race_${raceValue}_bg` }), getIconBgColor('race'));
             await drawTinted(ctx, getAssetPath({ category: 'race/frame', filename: `${config.iconTheme}_race_${raceValue}_frame` }), config.iconTint);
         }
         
         if (state.progress) {
             const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
             if (state.progress === 'all_clear') {
-                for (const stage of progressStages) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${stage}_bg` }), state.iconBgColor);
-                await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: 'Common_progress_all_clear_bg' }), state.iconBgColor);
+                for (const stage of progressStages) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${stage}_bg` }), getIconBgColor('progress'));
+                await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: 'Common_progress_all_clear_bg' }), getIconBgColor('progress'));
             } else {
                 const currentIndex = progressStages.indexOf(state.progress);
                 if (currentIndex > -1) {
-                    for (let i = 0; i <= currentIndex; i++) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), state.iconBgColor);
+                    for (let i = 0; i <= currentIndex; i++) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), getIconBgColor('progress'));
                 }
             }
             const progressFile = state.progress === 'gyougetsu' ? 'gyogetsu' : state.progress;
@@ -255,13 +267,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         for (const style of state.playstyles) {
             const bgNum = playstyleBgNumMap[style];
-            if (bgNum) await drawTinted(ctx, getAssetPath({ category: 'playstyle/bg', filename: `Common_playstyle_${bgNum}_bg` }), state.iconBgColor);
+            if (bgNum) await drawTinted(ctx, getAssetPath({ category: 'playstyle/bg', filename: `Common_playstyle_${bgNum}_bg` }), getIconBgColor('playstyle'));
             await drawTinted(ctx, getAssetPath({ category: 'playstyle/frame', filename: `Common_playstyle_${style}_frame` }), config.iconTint);
         }
 
         for (const time of state.playtimes) {
             const isSpecial = time === 'random' || time === 'fulltime';
-            if (isSpecial) await drawTinted(ctx, getAssetPath({ category: 'time/bg', filename: `Common_time_${time}_bg` }), state.iconBgColor);
+            if (isSpecial) await drawTinted(ctx, getAssetPath({ category: 'time/bg', filename: `Common_time_${time}_bg` }), getIconBgColor('time'));
             const timeTheme = isSpecial ? config.iconTheme : 'Common';
             const filename = `${timeTheme}_time_${time}${isSpecial ? '_frame' : ''}`;
             const category = `time/${isSpecial ? 'frame' : 'icon'}`;
@@ -272,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             let raidTheme = 'Common';
             if (state.template.startsWith('Lovely') || state.template.startsWith('Water')) raidTheme = 'Circle';
             else if (state.template.startsWith('Neon_')) raidTheme = 'Neon';
-            await drawTinted(ctx, getAssetPath({ category: 'raid/bg', filename: `${raidTheme}_raid_${diff}_bg` }), state.iconBgColor);
+            await drawTinted(ctx, getAssetPath({ category: 'raid/bg', filename: `${raidTheme}_raid_${diff}_bg` }), getIconBgColor('raid'));
         }
     };
 
@@ -286,7 +298,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const config = templateConfig[state.template];
         for (const job of state.subjobs) {
             const subJobBgTheme = (state.template.startsWith('Lovely') || state.template.startsWith('Water')) ? 'Circle' : 'Common';
-            await drawTinted(ctx, getAssetPath({ category: 'job/bg', filename: `${subJobBgTheme}_job_${job}_sub_bg` }), state.iconBgColor);
+            await drawTinted(ctx, getAssetPath({ category: 'job/bg', filename: `${subJobBgTheme}_job_${job}_sub_bg` }), getIconBgColor('subjob'));
             await drawTinted(ctx, getAssetPath({ category: 'job/frame', filename: `Common_job_${job}_sub_frame` }), config.iconTint);
         }
     };
@@ -358,16 +370,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         ]);
     };
 
-// --- 6. イベントリスナー ---
+    // --- 6. イベントリスナー ---
     templateSelect.addEventListener('change', async () => {
+        updateState();
         if (!userHasManuallyPickedColor) {
-            const newColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
-            iconBgColorPicker.value = newColor;
-            stickyIconBgColorPicker.value = newColor;
+            const config = templateConfig[state.template];
+            const newColor = (config && typeof config.defaultBg === 'object') ? config.defaultBg.primary : config.defaultBg;
+            iconBgColorPicker.value = newColor || '#CCCCCC';
+            stickyIconBgColorPicker.value = newColor || '#CCCCCC';
         }
         await redrawAll();
         updateColorSwatches(iconBgColorPicker.value);
-        await preloadTemplateAssets(templateSelect.value);
+        await preloadTemplateAssets(state.template);
     });
 
     const updateColorSwatches = (color) => {
@@ -391,10 +405,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     resetColorBtn.addEventListener('click', () => {
         userHasManuallyPickedColor = false;
-        const defaultColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
-        iconBgColorPicker.value = defaultColor;
-        stickyIconBgColorPicker.value = defaultColor;
-        updateColorSwatches(defaultColor);
+        const config = templateConfig[templateSelect.value];
+        const defaultColor = (config && typeof config.defaultBg === 'object') ? config.defaultBg.primary : config.defaultBg;
+        iconBgColorPicker.value = defaultColor || '#CCCCCC';
+        stickyIconBgColorPicker.value = defaultColor || '#CCCCCC';
+        updateColorSwatches(iconBgColorPicker.value);
         updateState();
         debouncedRedrawMisc();
         debouncedRedrawSubJob();
@@ -495,15 +510,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     let lastTouchDistance = 0;
-    const getTouchLocation = (e) => {
-        const rect = uiLayer.getBoundingClientRect();
-        const scaleX = uiLayer.width / rect.width;
-        const scaleY = uiLayer.height / rect.height;
-        return {
-            x: (e.touches[0].clientX - rect.left) * scaleX,
-            y: (e.touches[0].clientY - rect.top) * scaleY,
-        };
-    };
     uiLayer.addEventListener('touchstart', (e) => {
         if (!imageTransform.img) return;
         e.preventDefault();
@@ -609,18 +615,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     drawerHandle.addEventListener('click', () => {
         stickyColorDrawer.classList.toggle('is-closed');
     });
-    
+
     // --- 7. 初期化処理 ---
     const initialize = async () => {
         await preloadFonts();
         fontSelect.value = state.font;
-        const initialColor = templateConfig[templateSelect.value]?.defaultBg || '#CCCCCC';
-        iconBgColorPicker.value = initialColor;
-        stickyIconBgColorPicker.value = initialColor;
+        const config = templateConfig[templateSelect.value];
+        const initialColor = (config && typeof config.defaultBg === 'object') ? config.defaultBg.primary : config.defaultBg;
+        iconBgColorPicker.value = initialColor || '#CCCCCC';
+        stickyIconBgColorPicker.value = initialColor || '#CCCCCC';
         
         drawCharacterLayer();
         await redrawAll();
-        updateColorSwatches(initialColor);
+        updateColorSwatches(iconBgColorPicker.value);
         await preloadTemplateAssets(templateSelect.value);
         
         loaderElement.style.display = 'none';
