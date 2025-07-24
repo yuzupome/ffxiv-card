@@ -263,6 +263,7 @@ input[type="checkbox"]:checked + span::after {
     opacity: 0;
     transform: translateY(20px);
     pointer-events: none;
+    z-index: 1400; /* ドロワーよりは下 */
 }
 #toTopBtn.visible {
     opacity: 1;
@@ -315,7 +316,9 @@ input[type="checkbox"]:checked + span::after {
     flex: 1;
     min-width: 700px;
     max-width: 800px;
-    position: static; /* stickyを解除 */
+    position: sticky;
+    top: 85px;
+    z-index: 1;
   }
   .controls-panel {
     flex: 1;
@@ -363,7 +366,6 @@ input[type="checkbox"]:checked + span::after {
     font-size: 0.9rem;
     font-weight: 500;
     transition: all 0.2s ease;
-    margin-left: auto;
 }
 .reset-btn:hover {
     border-color: var(--primary-hover-color);
@@ -372,16 +374,16 @@ input[type="checkbox"]:checked + span::after {
 
 .sticky-drawer {
     position: fixed;
-    top: 50%;
+    top: 150px;
     right: 0;
-    transform: translateY(-50%);
+    transform: translateY(0);
     z-index: 1500;
     display: flex;
     align-items: center;
     transition: transform 0.3s ease-in-out;
 }
 .sticky-drawer.is-closed {
-    transform: translateY(-50%) translateX(calc(100% - 48px));
+    transform: translateX(calc(100% - 48px));
 }
 .drawer-handle {
     width: 48px;

@@ -366,7 +366,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ]);
     };
 
-    // --- 6. イベントリスナー ---
+// --- 6. イベントリスナー ---
     templateSelect.addEventListener('change', async () => {
         updateState();
         if (!userHasManuallyPickedColor) {
@@ -495,6 +495,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     let lastTouchDistance = 0;
+    const getTouchLocation = (e) => {
+        const rect = uiLayer.getBoundingClientRect();
+        const scaleX = uiLayer.width / rect.width;
+        const scaleY = uiLayer.height / rect.height;
+        return {
+            x: (e.touches[0].clientX - rect.left) * scaleX,
+            y: (e.touches[0].clientY - rect.top) * scaleY,
+        };
+    };
     uiLayer.addEventListener('touchstart', (e) => {
         if (!imageTransform.img) return;
         e.preventDefault();
@@ -612,8 +621,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         drawCharacterLayer();
         await redrawAll();
-        // updateColorSwatches(iconBgColorPicker.value); // This function was removed, this call is an error
-        await preloadTemplateAssets(templateSelect.value);
         
         loaderElement.style.display = 'none';
         appElement.style.visibility = 'visible';
