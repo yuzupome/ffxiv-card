@@ -35,9 +35,6 @@ body {
 
 /* メインレイアウト */
 .content-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
     padding: 2rem;
     max-width: 100%;
     margin: 0 auto;
@@ -51,6 +48,7 @@ body {
 }
 .controls-panel {
     width: 100%;
+    margin-top: 2rem;
 }
 
 /* Canvas レイヤー */
@@ -314,10 +312,11 @@ input[type="checkbox"]:checked + span::after {
 }
 
 @media (min-width: 768px) {
-  .content-wrapper { 
-      flex-direction: row; 
-      max-width: 1280px; 
-    }
+  .content-wrapper {
+      display: flex; /* flexboxを再度有効に */
+      flex-direction: row;
+      max-width: 1280px;
+  }
   .preview-panel {
     flex: 1;
     min-width: 700px;
@@ -330,6 +329,7 @@ input[type="checkbox"]:checked + span::after {
     overflow-y: auto;
     max-height: calc(100vh - 120px);
     padding-right: 1rem;
+    margin-top: 0; /* flexboxでgapを再現するためマージンをリセット */
   }
 }
 
