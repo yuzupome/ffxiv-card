@@ -378,7 +378,7 @@ input[type="checkbox"]:checked + span::after {
 
 .sticky-drawer {
     position: fixed;
-    top: 350px;
+    top: 500px;
     right: 0;
     transform: translateY(0);
     z-index: 1500;
