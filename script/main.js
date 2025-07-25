@@ -540,7 +540,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         lastTouchDistance = 0;
     });
     
-    downloadBtn.addEventListener('click', async () => {
+downloadBtn.addEventListener('click', async () => {
         if (isDownloading) return;
         isDownloading = true;
         downloadBtn.querySelector('span').textContent = '画像を生成中...';
@@ -551,18 +551,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             finalCanvas.height = CANVAS_HEIGHT;
             const finalCtx = finalCanvas.getContext('2d');
             
-            if (imageTransform.img) finalCtx.drawImage(backgroundLayer, 0, 0);
-            finalCtx.drawImage(characterLayer, 0, 0);
-
-            const config = templateConfig[state.template];
-            if(config) {
-                await drawMiscIcons(finalCtx);
-                await drawSubJobIcons(finalCtx);
-                await drawMainJobIcon(finalCtx);
-                const framePath = getAssetPath({ category: 'background/frame', filename: config.frame });
-                await drawTinted(finalCtx, framePath, config.iconTint);
-                await drawNameText(finalCtx);
+            // 1. ユーザーのキャラクター画像を描画
+            if (imageTransform.img) {
+                finalCtx.drawImage(backgroundLayer, 0, 0);
             }
+
+            // 2. ダウンロード用の重ね合わせ画像（_cp）を描画
+            const cpPath = getAssetPath({ category: 'background/base', filename: `${state.template}_cp` });
+            await drawTinted(finalCtx, cpPath);
+
+            // 3. _cp画像には含まれない、動的に生成されるテキストのみを描画
+            await drawNameText(finalCtx);
 
             const imageUrl = finalCanvas.toDataURL('image/jpeg', 0.92);
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
