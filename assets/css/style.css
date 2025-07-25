@@ -311,7 +311,7 @@ input[type="checkbox"]:checked + span::after {
 }
 
 @media (min-width: 768px) {
-  .content-wrapper { flex-direction: row; align-items: flex-start; max-width: 1280px; }
+  .content-wrapper { flex-direction: row; max-width: 1280px; }
   .preview-panel {
     flex: 1;
     min-width: 700px;
