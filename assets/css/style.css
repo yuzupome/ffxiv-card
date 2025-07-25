@@ -45,6 +45,9 @@ body {
 }
 .preview-panel {
     width: 100%;
+    position: sticky;
+    top: 69px; /* スマホ表示時のヘッダー高さを考慮 */
+    z-index: 1;
 }
 .controls-panel {
     width: 100%;
@@ -263,7 +266,7 @@ input[type="checkbox"]:checked + span::after {
     opacity: 0;
     transform: translateY(20px);
     pointer-events: none;
-    z-index: 1400; /* ドロワーよりは下 */
+    z-index: 1400;
 }
 #toTopBtn.visible {
     opacity: 1;
@@ -311,14 +314,15 @@ input[type="checkbox"]:checked + span::after {
 }
 
 @media (min-width: 768px) {
-  .content-wrapper { flex-direction: row; max-width: 1280px; }
+  .content-wrapper { 
+      flex-direction: row; 
+      max-width: 1280px; 
+    }
   .preview-panel {
     flex: 1;
     min-width: 700px;
     max-width: 800px;
-    position: sticky;
-    top: 85px;
-    z-index: 1;
+    top: 85px; /* PC表示時の追従位置 */
   }
   .controls-panel {
     flex: 1;
