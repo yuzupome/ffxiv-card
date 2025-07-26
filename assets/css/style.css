@@ -378,7 +378,7 @@ input[type="checkbox"]:checked + span::after {
 
 .sticky-drawer {
     position: fixed;
-    top: 473px;
+    top: 490px;
     right: 0;
     transform: translateY(0);
     z-index: 1500;
@@ -401,7 +401,7 @@ input[type="checkbox"]:checked + span::after {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    color: var(--primary-color);
+    color: #f4b25c;
 }
 .drawer-panel {
     padding: 1rem;
