@@ -379,15 +379,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         await preloadTemplateAssets(state.template);
     });
 
-    const handleColorInput = (source, target) => {
-        userHasManuallyPickedColor = true;
-        target.value = source.value;
-        updateState();
-        debouncedRedrawMisc();
-        debouncedRedrawSubJob();
-    };
-    iconBgColorPicker.addEventListener('input', () => handleColorInput(iconBgColorPicker, stickyIconBgColorPicker));
-    stickyIconBgColorPicker.addEventListener('input', () => handleColorInput(stickyIconBgColorPicker, iconBgColorPicker));
+const debouncedColorUpdate = createDebouncer(() => {
+    updateState();
+    debouncedRedrawMisc();
+    debouncedRedrawSubJob();
+}, 100); // 100ミリ秒ごとに再描画
+
+const handleColorInput = (source, target) => {
+    userHasManuallyPickedColor = true;
+    target.value = source.value;
+    debouncedColorUpdate(); // デバウンスされた関数を呼び出す
+};
+iconBgColorPicker.addEventListener('input', () => handleColorInput(iconBgColorPicker, stickyIconBgColorPicker));
+stickyIconBgColorPicker.addEventListener('input', () => handleColorInput(stickyIconBgColorPicker, iconBgColorPicker));
 
     resetColorBtn.addEventListener('click', () => {
         userHasManuallyPickedColor = false;
