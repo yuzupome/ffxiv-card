@@ -73,12 +73,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- 3. 状態管理 ---
-    let state = { font: "'Exo 2', sans-serif" };
-    let imageTransform = { img: null, x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, scale: 1.0, isDragging: false, lastX: 0, lastY: 0 };
-    let imageCache = {};
-    let isDownloading = false;
-    let userHasManuallyPickedColor = false;
-    let previousMainJob = '';
+const currentLang = document.documentElement.lang || 'ja'; // ★ 言語を自動判定
+const translations = {
+    ja: {
+        generating: '画像を生成中...',
+        generateDefault: 'この内容で作る？🐕'
+    },
+    en: {
+        generating: 'Generating...',
+        generateDefault: 'Generate Card'
+    }
+};
+
+let state = { font: "'Orbitron', sans-serif" };
+let imageTransform = { img: null, x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, scale: 1.0, isDragging: false, lastX: 0, lastY: 0 };
+let imageCache = {};
+let isDownloading = false;
+let userHasManuallyPickedColor = false;
+let previousMainJob = '';
 
     // --- 4. パフォーマンス最適化 & プリロード ---
     const createDebouncer = (func, delay) => {
@@ -183,11 +195,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     
     const drawTemplateLayer = async () => {
-        updateState();
-        charCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        const path = getAssetPath({ category: 'background/base', filename: state.template });
-        await drawTinted(charCtx, path);
-    };
+    updateState();
+    charCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    const langSuffix = currentLang === 'en' ? '_en' : '';
+    const path = getAssetPath({ category: 'background/base', filename: `${state.template}${langSuffix}` });
+    await drawTinted(charCtx, path);
+};
 
     const getAssetPath = (options) => `./assets/images/${options.category}/${options.filename}.webp`;
     const loadImage = (src) => {
@@ -230,59 +243,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     
     const drawMiscIcons = async (ctx) => {
-        const config = templateConfig[state.template];
-        if (!config) return;
-        const raceAssetMap = { 'au_ra': 'aura' };
-        const playstyleBgNumMap = {
-             leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
-             streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
-        };
-
-        if(state.dc) await drawTinted(ctx, getAssetPath({ category: 'dc', filename: `${config.iconTheme}_dc_${state.dc}` }), config.iconTint);
-        
-        const raceValue = raceAssetMap[state.race] || state.race;
-        if (raceValue) {
-            await drawTinted(ctx, getAssetPath({ category: 'race/bg', filename: `Common_race_${raceValue}_bg` }), getIconBgColor('race'));
-            await drawTinted(ctx, getAssetPath({ category: 'race/frame', filename: `${config.iconTheme}_race_${raceValue}_frame` }), config.iconTint);
-        }
-        
-        if (state.progress) {
-            const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
-            if (state.progress === 'all_clear') {
-                for (const stage of progressStages) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${stage}_bg` }), getIconBgColor('progress'));
-                await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: 'Common_progress_all_clear_bg' }), getIconBgColor('progress'));
-            } else {
-                const currentIndex = progressStages.indexOf(state.progress);
-                if (currentIndex > -1) {
-                    for (let i = 0; i <= currentIndex; i++) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), getIconBgColor('progress'));
-                }
-            }
-            const progressFile = state.progress === 'gyougetsu' ? 'gyogetsu' : state.progress;
-            await drawTinted(ctx, getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${progressFile}_frame` }), config.iconTint);
-        }
-
-        for (const style of state.playstyles) {
-            const bgNum = playstyleBgNumMap[style];
-            if (bgNum) await drawTinted(ctx, getAssetPath({ category: 'playstyle/bg', filename: `Common_playstyle_${bgNum}_bg` }), getIconBgColor('playstyle'));
-            await drawTinted(ctx, getAssetPath({ category: 'playstyle/frame', filename: `Common_playstyle_${style}_frame` }), config.iconTint);
-        }
-
-        for (const time of state.playtimes) {
-            const isSpecial = time === 'random' || time === 'fulltime';
-            if (isSpecial) await drawTinted(ctx, getAssetPath({ category: 'time/bg', filename: `Common_time_${time}_bg` }), getIconBgColor('time'));
-            const timeTheme = isSpecial ? config.iconTheme : 'Common';
-            const filename = `${timeTheme}_time_${time}${isSpecial ? '_frame' : ''}`;
-            const category = `time/${isSpecial ? 'frame' : 'icon'}`;
-            await drawTinted(ctx, getAssetPath({ category, filename }), config.iconTint);
-        }
-
-        for (const diff of state.difficulties) {
-            let raidTheme = 'Common';
-            if (state.template.startsWith('Lovely') || state.template.startsWith('Water')) raidTheme = 'Circle';
-            else if (state.template.startsWith('Neon_')) raidTheme = 'Neon';
-            await drawTinted(ctx, getAssetPath({ category: 'raid/bg', filename: `${raidTheme}_raid_${diff}_bg` }), getIconBgColor('raid'));
-        }
+    const config = templateConfig[state.template];
+    if (!config) return;
+    const raceAssetMap = { 'au_ra': 'aura' };
+    const playstyleBgNumMap = {
+         leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
+         streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
     };
+    const langSuffix = currentLang === 'en' ? '_en' : '';
+
+    if(state.dc) await drawTinted(ctx, getAssetPath({ category: 'dc', filename: `${config.iconTheme}_dc_${state.dc}` }), config.iconTint);
+
+    const raceValue = raceAssetMap[state.race] || state.race;
+    if (raceValue) {
+        await drawTinted(ctx, getAssetPath({ category: 'race/bg', filename: `Common_race_${raceValue}_bg` }), getIconBgColor('race'));
+        await drawTinted(ctx, getAssetPath({ category: 'race/frame', filename: `${config.iconTheme}_race_${raceValue}_frame` }), config.iconTint);
+    }
+
+    if (state.progress) {
+        const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
+        if (state.progress === 'all_clear') {
+            for (const stage of progressStages) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${stage}_bg` }), getIconBgColor('progress'));
+            await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: 'Common_progress_all_clear_bg' }), getIconBgColor('progress'));
+        } else {
+            const currentIndex = progressStages.indexOf(state.progress);
+            if (currentIndex > -1) {
+                for (let i = 0; i <= currentIndex; i++) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), getIconBgColor('progress'));
+            }
+        }
+        const progressFile = state.progress === 'gyougetsu' ? 'gyogetsu' : state.progress;
+        await drawTinted(ctx, getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${progressFile}_frame${langSuffix}` }), config.iconTint);
+    }
+
+    for (const style of state.playstyles) {
+        const bgNum = playstyleBgNumMap[style];
+        if (bgNum) await drawTinted(ctx, getAssetPath({ category: 'playstyle/bg', filename: `Common_playstyle_${bgNum}_bg` }), getIconBgColor('playstyle'));
+        await drawTinted(ctx, getAssetPath({ category: 'playstyle/frame', filename: `Common_playstyle_${style}_frame${langSuffix}` }), config.iconTint);
+    }
+
+    for (const time of state.playtimes) {
+        const isSpecial = time === 'random' || time === 'fulltime';
+        if (isSpecial) await drawTinted(ctx, getAssetPath({ category: 'time/bg', filename: `Common_time_${time}_bg` }), getIconBgColor('time'));
+        const timeTheme = isSpecial ? config.iconTheme : 'Common';
+        const filename = `${timeTheme}_time_${time}${isSpecial ? `_frame${langSuffix}` : ''}`;
+        const category = `time/${isSpecial ? 'frame' : 'icon'}`;
+        await drawTinted(ctx, getAssetPath({ category, filename }), config.iconTint);
+    }
+
+    for (const diff of state.difficulties) {
+        let raidTheme = 'Common';
+        if (state.template.startsWith('Lovely') || state.template.startsWith('Water')) raidTheme = 'Circle';
+        else if (state.template.startsWith('Neon_')) raidTheme = 'Neon';
+        await drawTinted(ctx, getAssetPath({ category: 'raid/bg', filename: `${raidTheme}_raid_${diff}_bg` }), getIconBgColor('raid'));
+    }
+};
 
     const drawMainJobIcon = async (ctx) => {
         if(state.mainjob) {
@@ -545,48 +559,53 @@ stickyIconBgColorPicker.addEventListener('input', () => handleColorInput(stickyI
     });
     
 downloadBtn.addEventListener('click', async () => {
-        if (isDownloading) return;
-        isDownloading = true;
-        downloadBtn.querySelector('span').textContent = '画像を生成中...';
-        
-        try {
-            const finalCanvas = document.createElement('canvas');
-            finalCanvas.width = CANVAS_WIDTH;
-            finalCanvas.height = CANVAS_HEIGHT;
-            const finalCtx = finalCanvas.getContext('2d');
-            
-            // 1. ユーザーのキャラクター画像を描画
-            if (imageTransform.img) {
-                finalCtx.drawImage(backgroundLayer, 0, 0);
-            }
+    if (isDownloading) return;
+    isDownloading = true;
+    downloadBtn.querySelector('span').textContent = translations[currentLang].generating;
 
-            // 2. ダウンロード用の重ね合わせ画像（_cp）を描画
-            const cpPath = getAssetPath({ category: 'background/base', filename: `${state.template}_cp` });
-            await drawTinted(finalCtx, cpPath);
+    try {
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = CANVAS_WIDTH;
+        finalCanvas.height = CANVAS_HEIGHT;
+        const finalCtx = finalCanvas.getContext('2d');
 
-            // 3. _cp画像には含まれない、動的に生成されるテキストのみを描画
-            await drawNameText(finalCtx);
+        if (imageTransform.img) finalCtx.drawImage(backgroundLayer, 0, 0);
 
-            const imageUrl = finalCanvas.toDataURL('image/jpeg', 0.92);
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const langSuffix = currentLang === 'en' ? '_en' : '';
+        const cpPath = getAssetPath({ category: 'background/base', filename: `${state.template}_cp${langSuffix}` });
+        await drawTinted(finalCtx, cpPath);
 
-            if (isIOS) {
-                modalImage.src = imageUrl;
-                saveModal.classList.remove('hidden');
-            } else {
-                const link = document.createElement('a');
-                link.download = 'ffxiv_character_card.jpeg';
-                link.href = imageUrl;
-                link.click();
-            }
-        } catch (error) {
-            console.error("ダウンロード画像の生成に失敗しました:", error);
-            alert("画像の生成に失敗しました。");
-        } finally {
-            isDownloading = false;
-            downloadBtn.querySelector('span').textContent = 'この内容で作る？🐕';
+        await drawMiscIcons(finalCtx);
+        await drawSubJobIcons(finalCtx);
+        await drawMainJobIcon(finalCtx);
+
+        const config = templateConfig[state.template];
+        if (config) {
+            const framePath = getAssetPath({ category: 'background/frame', filename: config.frame });
+            await drawTinted(finalCtx, framePath, config.iconTint);
         }
-    });
+        await drawNameText(finalCtx);
+
+        const imageUrl = finalCanvas.toDataURL('image/jpeg', 0.92);
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+        if (isIOS) {
+            modalImage.src = imageUrl;
+            saveModal.classList.remove('hidden');
+        } else {
+            const link = document.createElement('a');
+            link.download = 'ffxiv_character_card.jpeg';
+            link.href = imageUrl;
+            link.click();
+        }
+    } catch (error) {
+        console.error("ダウンロード画像の生成に失敗しました:", error);
+        alert("画像の生成に失敗しました。");
+    } finally {
+        isDownloading = false;
+        downloadBtn.querySelector('span').textContent = translations[currentLang].generateDefault;
+    }
+});
 
     closeModalBtn.addEventListener('click', () => {
         saveModal.classList.add('hidden');
