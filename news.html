@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-PKSZ7BSD');</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FFXIV Character Card Generator</title>
@@ -12,144 +17,147 @@
     <link rel="stylesheet" href="./assets/css/style.css" />
 
     <style>
-        /* ヘッダーとのマージンをさらに狭く */
-        .news-wrapper { max-width: 800px; margin: 0.5rem auto; padding: 1rem; }
+        .news-wrapper {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background-color: var(--surface-color);
+        }
+        
+        .lang-switcher {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .lang-switcher button {
+            font-family: 'Orbitron', sans-serif;
+            background: none;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-secondary-color);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .lang-switcher button.active {
+            color: var(--primary-hover-color);
+            border-bottom-color: var(--primary-hover-color);
+        }
         
         .generator-links {
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
             margin: 2rem auto 3rem auto;
-            max-width: 400px;
         }
+
         .generator-links a {
             display: block;
-            padding: 1rem;
+            padding: 1rem 2rem;
             background-color: var(--primary-hover-color);
             color: white;
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
             text-decoration: none;
             border-radius: 8px;
-            margin: 1rem 0;
-            transition: opacity 0.2s ease;
+            transition: background-color 0.2s ease;
+            white-space: nowrap;
         }
-        .generator-links a:hover { opacity: 0.85; }
 
-        .update-section {
-            text-align: center;
-            margin-bottom: 3rem;
+        .generator-links a:hover {
+            background-color: var(--primary-color);
         }
-        /* 「Update」タイトルのスタイル変更 */
-        .update-section .section-title {
-            font-family: 'Orbitron', sans-serif; /* フォント変更 */
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-            font-size: 1.1rem; /* フォントサイズを小さく */
-        }
-        .update-section ul {
-            font-family: 'Noto Sans JP', sans-serif;
-            font-weight: 500;
-            color: var(--text-muted-color);
-            font-size: 0.9rem;
-            list-style: none; padding: 0;
-        }
-        .update-section ul li { margin-bottom: 0.5rem; }
 
-        .info-section {
-            background-color: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem 2rem;
-            margin-bottom: 2rem;
-        }
-        .info-section .section-title {
+        .update-entry h2 {
             font-family: 'Orbitron', sans-serif;
-            color: var(--primary-color);
-            text-align: center;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
         }
-        .lang-switcher { text-align: right; margin-bottom: 1rem; }
-        .lang-switcher button {
-            background: none; border: none;
-            color: var(--text-color); cursor: pointer;
-            font-size: 0.9rem; opacity: 0.7;
+
+        .update-entry ul {
+            padding-left: 20px;
+            line-height: 1.8;
+            list-style-type: none; /* 点を削除 */
+            text-align: left; /* 左揃え */
         }
-        .lang-switcher button.active { font-weight: 700; opacity: 1; text-decoration: underline; }
+        .update-entry li {
+            color: var(--text-secondary-color); /* 少し薄い色に */
+            font-size: 0.9rem; /* 少し小さく */
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body>
-    <div id="app">
-        <div id="header-placeholder"></div>
+<div id="app">
+    <div id="header-placeholder"></div>
 
-        <div class="content-wrapper">
-            <div class="news-wrapper">
-                <div class="lang-switcher">
-                    <button id="lang-ja" class="active">日本語</button>
-                    <span>/</span>
-                    <button id="lang-en">English</button>
-                </div>
-
-                <div class="generator-links">
-                    <a href="./index.html" data-key="linkJa">日本語版ジェネレーター</a>
-                    <a href="./index_en.html" data-key="linkEn">English Generator</a>
-                </div>
-
-                <div class="update-section">
-                    <h2 class="section-title" data-key="newsTitle">Update</h2>
-                    <ul>
-                        <li data-key="update1">2025.07.05　ジェネレーター公開</li>
-                        <li data-key="update2">2025.07.24　アイコンカラーピッカー実装</li>
-                    </ul>
-                </div>
-
-                <div class="info-section">
-                    <h2 class="section-title">#yzpmcard Posts</h2>
-                    <a class="twitter-timeline" data-height="600" data-theme="dark" href="https://twitter.com/hashtag/yzpmcard?src=twsrc%5Etfw"></a>
-                </div>
-            </div>
+    <div class="news-wrapper">
+        <div class="lang-switcher">
+            <button id="lang-ja" data-key="langJa">日本語</button>
+            <span>/</span>
+            <button id="lang-en" data-key="langEn">English</button>
         </div>
 
-        <div id="footer-placeholder"></div>
+        <div class="generator-links">
+            <a href="./index.html" data-key="linkJa">日本語版ジェネレーター</a>
+            <a href="./index_en.html" data-key="linkEn">English Generator</a>
+        </div>
+        
+        <div class="update-entry">
+            <h2 data-key="newsTitle">Updates</h2>
+            <ul>
+                <li data-key="update2">2025.07.26　アイコンカラー変更機能追加<br>英語版公開</li>
+                <li data-key="update1">2025.07.05　ジェネレーター公開</li>
+            </ul>
+        </div>
     </div>
 
-    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-    <script src="./script/common.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 翻訳テキストを更新
-            const translations = {
-                ja: {
-                    linkJa: '日本語版ジェネレーター',
-                    linkEn: 'English Generator',
-                    newsTitle: 'Update',
-                    update1: '2025.07.05　ジェネレーター公開',
-                    update2: '2025.07.24　アイコンカラーピッカー実装'
-                },
-                en: {
-                    linkJa: 'Japanese Generator',
-                    linkEn: 'English Generator',
-                    newsTitle: 'Update',
-                    update1: '2025.07.05 - Generator Released',
-                    update2: '2025.07.24 - Icon Color Picker Implemented'
-                }
-            };
-            const setLanguage = (lang) => {
-                document.querySelectorAll('[data-key]').forEach(el => {
-                    if (translations[lang] && translations[lang][el.dataset.key]) {
-                        el.textContent = translations[lang][el.dataset.key];
-                    }
-                });
-                document.documentElement.lang = lang;
-                document.getElementById('lang-ja').classList.toggle('active', lang === 'ja');
-                document.getElementById('lang-en').classList.toggle('active', lang === 'en');
-            };
-            document.getElementById('lang-ja').addEventListener('click', () => setLanguage('ja'));
-            document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
+    <div id="footer-placeholder"></div>
+</div>
 
-            // ページ読み込み時にデフォルト言語を設定
-            setLanguage('ja');
-        });
-    </script>
+<script src="./script/common.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const translations = {
+            ja: {
+                langJa: '日本語',
+                langEn: 'English',
+                linkJa: '日本語版ジェネレーター',
+                linkEn: '英語版ジェネレーター',
+                newsTitle: 'Updates',
+                update2: '2025.07.26　アイコンカラー変更機能追加 英語版公開',
+                update1: '2025.07.05　ジェネレーター公開'
+            },
+            en: {
+                langJa: '日本語',
+                langEn: 'English',
+                linkJa: 'Japanese Generator',
+                linkEn: 'English Generator',
+                newsTitle: 'Updates',
+                update2: '2025.07.26 - Added Icon Color feature<br>English version released',
+                update1: '2025.07.05 - Generator Released'
+            }
+        };
+        const setLanguage = (lang) => {
+            document.querySelectorAll('[data-key]').forEach(el => {
+                if (translations[lang] && translations[lang][el.dataset.key]) {
+                    el.innerHTML = translations[lang][el.dataset.key]; // Use innerHTML to allow <br>
+                }
+            });
+            document.documentElement.lang = lang;
+            document.getElementById('lang-ja').classList.toggle('active', lang === 'ja');
+            document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+        };
+        document.getElementById('lang-ja').addEventListener('click', () => setLanguage('ja'));
+        document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
+
+        // Set default language on page load
+        setLanguage('ja');
+    });
+</script>
 </body>
 </html>

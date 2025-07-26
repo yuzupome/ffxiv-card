@@ -422,3 +422,30 @@ body.generator-page #app {
     flex-direction: column;
     min-height: 100vh;
 }
+
+/* フッターのデザイン調整 */
+.site-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary-color);
+}
+.site-footer a {
+    color: var(--text-secondary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.site-footer a:hover {
+    color: var(--primary-hover-color);
+}
+.site-footer svg {
+    width: 18px;
+    height: 18px;
+}
+.design-credit {
+    font-size: 0.8rem; /* 文字を少し小さく */
+    opacity: 0.7;      /* 少し薄く */
+}
