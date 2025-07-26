@@ -194,7 +194,7 @@ select:invalid { color: var(--text-secondary-color); }
     font-size: 0.95rem;
     flex-shrink: 0;
 }
-.options-row { display: flex; flex-wrap: nowrap; gap: 1rem; }
+.options-row { display: flex; flex-wrap: wrap; gap: 1rem; }
 .checkbox-group-single { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 1.5rem; }
 .checkbox-group label, .checkbox-group-single label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.95rem; }
 input[type="checkbox"] { display: none; }
