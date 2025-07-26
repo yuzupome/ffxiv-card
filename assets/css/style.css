@@ -16,6 +16,7 @@ body {
   color: var(--text-color);
   margin: 0;
   line-height: 1.6;
+  overflow-x: hidden; /* ★ この1行で横スクロールを無効にし、表示崩れを解消します */
 }
 
 #app { display: flex; flex-direction: column; min-height: 100vh; }
@@ -43,7 +44,7 @@ body.generator-page #app { visibility: hidden; }
 .preview-panel {
     width: 100%;
     position: sticky;
-    top: 69px; /* スマホ表示時のヘッダー高さを考慮 */
+    top: 69px;
     z-index: 1;
 }
 .controls-panel {
@@ -305,29 +306,29 @@ input[type="checkbox"]:checked + span::after {
 /* レスポンシブ対応 */
 @media (max-width: 767px) {
     .site-header { padding: 1rem; }
-    .content-wrapper { padding: 1rem; }
+    .content-wrapper { padding: 2rem 1rem; }
     .grid-col-2, .grid-col-3 { grid-template-columns: 1fr; }
 }
 
 @media (min-width: 768px) {
-  .content-wrapper {
-      display: flex; /* flexboxを再度有効に */
-      flex-direction: row;
-      max-width: 1280px;
-  }
+  .content-wrapper { 
+      display: flex;
+      flex-direction: row; 
+      max-width: 1280px; 
+    }
   .preview-panel {
     flex: 1;
     min-width: 700px;
     max-width: 800px;
-    top: 85px; /* PC表示時の追従位置 */
+    top: 85px;
   }
   .controls-panel {
     flex: 1;
     min-width: 360px;
     overflow-y: auto;
     max-height: calc(100vh - 120px);
-    padding-right: 1rem;
-    margin-top: 0; /* flexboxでgapを再現するためマージンをリセット */
+    padding-left: 2rem;
+    margin-top: 0;
   }
 }
 
@@ -376,7 +377,7 @@ input[type="checkbox"]:checked + span::after {
 
 .sticky-drawer {
     position: fixed;
-    top: 490px;
+    top: 180px;
     right: 0;
     transform: translateY(0);
     z-index: 1500;
@@ -399,7 +400,7 @@ input[type="checkbox"]:checked + span::after {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    color: #f4b25c;
+    color: var(--primary-color);
 }
 .drawer-panel {
     padding: 1rem;
@@ -415,37 +416,4 @@ input[type="checkbox"]:checked + span::after {
     font-weight: 600;
     margin: 0 0 0.75rem 0;
     color: var(--text-color);
-}
-
-body.generator-page #app {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-/* フッターのデザイン調整 */
-.site-footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 2rem;
-    border-top: 1px solid var(--border-color);
-    color: var(--text-secondary-color);
-}
-.site-footer a {
-    color: var(--text-secondary-color);
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-.site-footer a:hover {
-    color: var(--primary-hover-color);
-}
-.site-footer svg {
-    width: 18px;
-    height: 18px;
-}
-.design-credit {
-    font-size: 0.8rem; /* 文字を少し小さく */
-    opacity: 0.7;      /* 少し薄く */
 }
