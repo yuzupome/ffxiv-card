@@ -276,10 +276,16 @@ let previousMainJob = '';
     }
 
     for (const style of state.playstyles) {
-        const bgNum = playstyleBgNumMap[style];
-        if (bgNum) await drawTinted(ctx, getAssetPath({ category: 'playstyle/bg', filename: `Common_playstyle_${bgNum}_bg` }), getIconBgColor('playstyle'));
-        await drawTinted(ctx, getAssetPath({ category: 'playstyle/frame', filename: `Common_playstyle_${style}_frame${langSuffix}` }), config.iconTint);
+    const bgNum = playstyleBgNumMap[style];
+    if (bgNum) await drawTinted(ctx, getAssetPath({ category: 'playstyle/bg', filename: `Common_playstyle_${bgNum}_bg` }), getIconBgColor('playstyle'));
+
+    let langSuffix = currentLang === 'en' ? '_en' : '';
+    // ddとpvpの場合は、_enを付けない
+    if (style === 'dd' || style === 'pvp') {
+        langSuffix = '';
     }
+    await drawTinted(ctx, getAssetPath({ category: 'playstyle/frame', filename: `Common_playstyle_${style}_frame${langSuffix}` }), config.iconTint);
+}
 
     for (const time of state.playtimes) {
         const isSpecial = time === 'random' || time === 'fulltime';
