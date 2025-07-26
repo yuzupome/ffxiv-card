@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator - Final Japanese Version
- * - 2025-07-22 v23:46: Fixed a scope issue in progress drawing logic.
+ * - 2025-07-26 v19:30: Fixed duplicate declaration error and integrated all features.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -46,11 +46,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mainColorPickerSection = document.getElementById('main-color-picker-section');
     const iconBgColorPicker = document.getElementById('iconBgColorPicker');
     const resetColorBtn = document.getElementById('resetColorBtn');
+    const stickyResetColorBtn = document.getElementById('stickyResetColorBtn');
 
     const stickyColorDrawer = document.getElementById('stickyColorDrawer');
     const drawerHandle = document.getElementById('drawerHandle');
     const stickyIconBgColorPicker = document.getElementById('stickyIconBgColorPicker');
-    const stickyResetColorBtn = document.getElementById('stickyResetColorBtn');
 
     // --- 2. 定数と設定 ---
     const CANVAS_WIDTH = 1000;
@@ -247,7 +247,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const config = templateConfig[state.template];
         if (!config) return;
         const raceAssetMap = { 'au_ra': 'aura' };
-        const playstyleBgNumMap = {
+        
+        const playstyleBgNumMap_ja = {
+             leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
+             streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
+        };
+        const playstyleBgNumMap_en = {
              leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '10', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '05',
              streaming: '15', glam: '11', studio: '12', housing: '14', screenshot: '13', drawing: '16', roleplay: '17',
         };
@@ -272,16 +277,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
             const progressFile = state.progress === 'gyougetsu' ? 'gyogetsu' : state.progress;
-            const langSuffix = currentLang === 'en' ? '_en' : '';
+            let langSuffix = currentLang === 'en' ? '_en' : '';
+            if (state.progress === 'all_clear') langSuffix = '';
             await drawTinted(ctx, getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${progressFile}_frame${langSuffix}` }), config.iconTint);
         }
 
         for (const style of state.playstyles) {
-            const playstyleBgNumMapToUse = (currentLang === 'en') ? playstyleBgNumMap : {
-                 leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
-                 streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
-            };
-            const bgNum = playstyleBgNumMapToUse[style];
+            const playstyleBgNumMap = (currentLang === 'en') ? playstyleBgNumMap_en : playstyleBgNumMap_ja;
+            const bgNum = playstyleBgNumMap[style];
             if (bgNum) await drawTinted(ctx, getAssetPath({ category: 'playstyle/bg', filename: `Common_playstyle_${bgNum}_bg` }), getIconBgColor('playstyle'));
             
             let langSuffix = currentLang === 'en' ? '_en' : '';
@@ -426,7 +429,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     resetColorBtn.addEventListener('click', resetColorAction);
     stickyResetColorBtn.addEventListener('click', resetColorAction);
-
 
     [dcSelect, raceSelect, progressSelect].forEach(el => el.addEventListener('change', () => { updateState(); debouncedRedrawMisc(); }));
     [styleButtonsContainer, playtimeOptionsContainer, difficultyOptionsContainer].forEach(container => {
@@ -644,7 +646,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         drawCharacterLayer();
         await redrawAll();
-        // updateColorSwatches(iconBgColorPicker.value);
+        // updateColorSwatches(iconBgColorPicker.value); // This function was removed.
         await preloadTemplateAssets(templateSelect.value);
         
         loaderElement.style.display = 'none';
