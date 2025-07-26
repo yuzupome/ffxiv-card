@@ -187,7 +187,7 @@ select:invalid { color: var(--text-secondary-color); }
 
 /* チェックボックス */
 .checkbox-group { display: flex; flex-direction: column; gap: 0.75rem; }
-.time-section { display: flex; align-items: center; gap: 1rem; flex-wrap: nowrap; }
+.time-section { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 .time-section > span {
     font-weight: 500;
     color: var(--text-secondary-color);
