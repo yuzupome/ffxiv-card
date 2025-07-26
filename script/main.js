@@ -1,6 +1,6 @@
 /**
  * FFXIV Character Card Generator - Final Japanese Version
- * - 2025-07-26 v19:30: Fixed duplicate declaration error and integrated all features.
+ * - 2025-07-26 v20:30: Fixed sub job background theme for Water template.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -46,11 +46,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mainColorPickerSection = document.getElementById('main-color-picker-section');
     const iconBgColorPicker = document.getElementById('iconBgColorPicker');
     const resetColorBtn = document.getElementById('resetColorBtn');
-    const stickyResetColorBtn = document.getElementById('stickyResetColorBtn');
 
     const stickyColorDrawer = document.getElementById('stickyColorDrawer');
     const drawerHandle = document.getElementById('drawerHandle');
     const stickyIconBgColorPicker = document.getElementById('stickyIconBgColorPicker');
+    const stickyResetColorBtn = document.getElementById('stickyResetColorBtn');
 
     // --- 2. 定数と設定 ---
     const CANVAS_WIDTH = 1000;
@@ -429,6 +429,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     resetColorBtn.addEventListener('click', resetColorAction);
     stickyResetColorBtn.addEventListener('click', resetColorAction);
+
 
     [dcSelect, raceSelect, progressSelect].forEach(el => el.addEventListener('change', () => { updateState(); debouncedRedrawMisc(); }));
     [styleButtonsContainer, playtimeOptionsContainer, difficultyOptionsContainer].forEach(container => {
