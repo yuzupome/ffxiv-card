@@ -418,3 +418,9 @@ input[type="checkbox"]:checked + span::after {
     margin: 0 0 0.75rem 0;
     color: var(--text-color);
 }
+
+body.generator-page #app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
