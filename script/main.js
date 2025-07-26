@@ -247,8 +247,8 @@ let previousMainJob = '';
     if (!config) return;
     const raceAssetMap = { 'au_ra': 'aura' };
     const playstyleBgNumMap = {
-         leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
-         streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
+         leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '10', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '05',
+         streaming: '15', glam: '11', studio: '12', housing: '14', screenshot: '13', drawing: '16', roleplay: '17',
     };
     const langSuffix = currentLang === 'en' ? '_en' : '';
 
