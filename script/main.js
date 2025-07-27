@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loaderElement = document.getElementById('loader');
     const miniLoader = document.getElementById('mini-loader');
     
-    const toTopBtn = document.getElementById('toTopBtn');
     const saveModal = document.getElementById('saveModal');
     const modalImage = document.getElementById('modalImage');
     const closeModalBtn = document.getElementById('closeModal');
@@ -617,7 +616,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     window.addEventListener('scroll', () => {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        toTopBtn.classList.toggle('visible', scrollTop > 100);
 
         const rect = mainColorPickerSection.getBoundingClientRect();
         if (rect.bottom < 50) {
@@ -626,10 +624,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             stickyColorDrawer.classList.add('is-hidden');
             stickyColorDrawer.classList.add('is-closed');
         }
-    });
-
-    toTopBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
     drawerHandle.addEventListener('click', () => {
