@@ -577,3 +577,61 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initialize();
 });
+
+// GTM
+document.getElementById('templateSelect').addEventListener('change', function() {
+  window.dataLayer.push({
+    event: 'template_select',
+    templateName: this.value
+  });
+});
+
+document.getElementById('downloadBtn').addEventListener('click', function() {
+  window.dataLayer.push({
+    event: 'generate_card'
+  });
+});
+
+document.getElementById('uploadImage').addEventListener('change', function() {
+  window.dataLayer.push({
+    event: 'upload_image'
+  });
+});
+
+document.getElementById('fontSelect').addEventListener('change', function() {
+  window.dataLayer.push({
+    event: 'select_font',
+    fontName: this.value
+  });
+});
+
+document.getElementById('dcSelect').addEventListener('change', function() {
+  window.dataLayer.push({
+    event: 'select_dc',
+    dcName: this.value
+  });
+});
+
+document.getElementById('raceSelect').addEventListener('change', function() {
+  window.dataLayer.push({
+    event: 'select_race',
+    raceName: this.value
+  });
+});
+
+document.getElementById('progressSelect').addEventListener('change', function() {
+  window.dataLayer.push({
+    event: 'select_progress',
+    progressName: this.value
+  });
+});
+
+document.getElementById('styleButtons').addEventListener('click', function(e) {
+
+  if (e.target.tagName === 'BUTTON') {
+    window.dataLayer.push({
+      event: 'select_playstyle',
+      playstyleName: e.target.dataset.value
+    });
+  }
+});
