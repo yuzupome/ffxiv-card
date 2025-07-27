@@ -239,6 +239,7 @@ input[type="checkbox"]:checked + span::after {
     padding: 2rem;
     border-top: 1px solid var(--border-color);
     color: var(--text-secondary-color);
+    font-size: 0.9rem;
 }
 .site-footer a { color: var(--text-secondary-color); text-decoration: none; transition: color 0.2s ease; }
 .site-footer a:hover { color: var(--primary-hover-color); }
@@ -308,6 +309,7 @@ input[type="checkbox"]:checked + span::after {
     .site-header { padding: 1rem; }
     .content-wrapper { padding: 2rem 1rem; }
     .grid-col-2, .grid-col-3 { grid-template-columns: 1fr; }
+    .site-footer { padding: 1.5rem 1rem; }
 }
 
 @media (min-width: 768px) {
