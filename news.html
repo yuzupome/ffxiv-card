@@ -1,7 +1,103 @@
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // --- ここから下が、ページの準備完了後に実行される ---
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FFXIV Character Card Generator</title>
+    <link rel="icon" type="image/png" href="./assets/favicon.png">
+    <link rel="stylesheet" href="./assets/css/style.css" />
+    <style>
+        /* Newsページ固有のスタイル */
+        .news-wrapper {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            flex-grow: 1;
+        }
+        .news-title {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+        }
+        .update-history {
+            list-style: none;
+            padding-left: 0;
+            border-top: 1px solid var(--border-color);
+        }
+        .update-history li {
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .generator-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .generator-links a {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .generator-links a:hover {
+            background-color: var(--surface-color);
+            border-color: var(--primary-hover-color);
+            color: var(--primary-hover-color);
+        }
+        .lang-switcher {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .lang-switcher button {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary-color);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1rem;
+        }
+        .lang-switcher button.active {
+            color: var(--primary-hover-color);
+            border-bottom-color: var(--primary-hover-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
 
+<div id="app">
+    <div id="header-placeholder"></div>
+
+    <main class="news-wrapper">
+        <div class="lang-switcher">
+            <button id="lang-ja">日本語</button>
+            <span>/</span>
+            <button id="lang-en">English</button>
+        </div>
+
+        <div class="generator-links">
+            <a href="./index.html" data-key="linkJa">日本語版ジェネレーター</a>
+            <a href="./index_en.html" data-key="linkEn">英語版ジェネレーター</a>
+        </div>
+
+        <h1 class="news-title" data-key="newsTitle">Updates</h1>
+        <ul class="update-history">
+            <li data-key="update2">2025.07.26　アイコンカラー変更機能追加 英語版公開</li>
+            <li data-key="update1">2025.07.05　ジェネレーター公開</li>
+        </ul>
+    </main>
+
+    <div id="footer-placeholder"></div>
+</div>
+
+<script>
     const translations = {
         ja: {
             langJa: '日本語',
@@ -65,7 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初期化処理を開始
     waitForFooterAndInit();
-
-    // --- ここまでが、ページの準備完了後に実行される ---
-});
 </script>
+<script src="./script/common.js"></script>
+
+</body>
+</html>
