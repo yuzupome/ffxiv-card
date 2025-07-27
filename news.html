@@ -34,6 +34,11 @@
             padding-top: 1.5rem;
             border-top: 1px solid var(--border-color);
         }
+
+        .update-history ul {
+            padding-left: 0;
+        }
+        
         .update-history li {
             padding: 0.75rem 0;
             font-size: 0.9rem;
@@ -146,8 +151,8 @@
             linkEn: '英語版ジェネレーター',
             newsTitle: 'Updates',
             update2: '<span class="update-date">2025.07.26</span><span class="update-content">アイコンカラー変更機能追加 英語版公開</span>',
-            update1: '<span class="update-date">2025.07.05</span><span class="update-content">ジェネレーター公開</span>',
-            usageNotes: '利用上の注意'
+            update1: '<span class="update-date">2025.07.05</span><span class="update-content">ジェネレーター公開</span>'
+            // usageNotes は common.js が担当するため削除
         },
         en: {
             langJa: '日本語',
@@ -156,8 +161,8 @@
             linkEn: 'English Generator',
             newsTitle: 'Updates',
             update2: '<span class="update-date">2025.07.26</span><span class="update-content">Added Icon Color feature<br>English version released</span>',
-            update1: '<span class="update-date">2025.07.05</span><span class="update-content">Generator Released</span>',
-            usageNotes: 'Usage Notes'
+            update1: '<span class="update-date">2025.07.05</span><span class="update-content">Generator Released</span>'
+            // usageNotes は common.js が担当するため削除
         }
     };
 
@@ -167,9 +172,7 @@
             if (translations[lang] && translations[lang][key]) {
                 el.innerHTML = translations[lang][key];
             }
-            if (key === 'usageNotes') {
-                el.href = (lang === 'en') ? './copyright_en.html' : './copyright.html';
-            }
+            // フッター関連の処理は common.js が担当するため削除
         });
         document.documentElement.lang = lang;
         document.getElementById('lang-ja').classList.toggle('active', lang === 'ja');
@@ -182,10 +185,11 @@
         let elapsedTime = 0;
 
         const intervalId = setInterval(() => {
-            const footerLink = document.querySelector('#footer-placeholder [data-key="usageNotes"]');
+            // フッターの読み込み完了を待ってから実行
+            const footerLink = document.querySelector('#footer-placeholder .site-footer');
             if (footerLink) {
                 clearInterval(intervalId);
-                setLanguage('ja');
+                setLanguage('ja'); // news.html の初期言語を設定
             }
             elapsedTime += checkInterval;
             if (elapsedTime >= timeout) {
