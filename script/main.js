@@ -368,6 +368,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const debouncedRedrawSubJob = createDebouncer(redrawSubJobComposite, 50);
     const debouncedRedrawName = createDebouncer(redrawName, 200);
 
+    // ▼ このブロックを追加 ▼
+    const debouncedTrackColor = createDebouncer((color) => {
+        window.dataLayer.push({
+        event: 'select_icon_color',
+        color_code: color
+        });
+        }, 500); // 500ミリ秒操作がなければイベントを送信
+
     const drawUiLayer = async () => {
         uiCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         const config = templateConfig[state.template];
@@ -411,6 +419,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateState();
         debouncedRedrawMisc();
         debouncedRedrawSubJob();
+        debouncedTrackColor(source.value);
     };
     iconBgColorPicker.addEventListener('input', () => handleColorInput(iconBgColorPicker, stickyIconBgColorPicker));
     stickyIconBgColorPicker.addEventListener('input', () => handleColorInput(stickyIconBgColorPicker, iconBgColorPicker));
