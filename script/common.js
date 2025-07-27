@@ -25,7 +25,20 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function adjustFooterLanguage() {
-    // ... (この関数は変更なし) ...
+    const translations = {
+        ja: { usageNotes: 'About us' },
+        en: { usageNotes: 'About us' } 
+    };
+    
+    const lang = document.documentElement.lang || 'ja';
+    const usageNotesLink = document.querySelector('[data-key="usageNotes"]');
+    
+    if (usageNotesLink) {
+        if (translations[lang] && translations[lang].usageNotes) {
+            usageNotesLink.textContent = translations[lang].usageNotes;
+        }
+        usageNotesLink.href = (lang === 'en') ? './copyright_en.html' : './copyright.html';
+    }
 }
 
 /**
