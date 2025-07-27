@@ -7,20 +7,21 @@
     <link rel="icon" type="image/png" href="./assets/favicon.png">
     <link rel="stylesheet" href="./assets/css/style.css" />
     <style>
-        /* Newsページ固有のスタイル */
+/* Newsページ固有のスタイル */
 .news-wrapper {
     padding: 2rem;
     max-width: 800px;
     margin: 0 auto;
     flex-grow: 1;
-    font-family: 'Noto Sans JP', sans-serif; /* 基本フォントを明確に指定 */
+    font-family: 'Noto Sans JP', sans-serif;
 }
 .news-title {
     font-family: 'Orbitron', sans-serif;
     text-align: center;
-    font-size: 1.5rem; /* 文字サイズを小さく */
-    margin-bottom: 2rem;
+    font-size: 1.2rem; /* さらに小さく */
+    margin-bottom: 1.5rem; /* 余白も調整 */
     font-weight: 600;
+    color: var(--text-secondary-color); /* 少し色を薄く */
 }
 .update-history {
     list-style: none;
@@ -28,9 +29,9 @@
     border-top: 1px solid var(--border-color);
 }
 .update-history li {
-    padding: 0.75rem 0; /* 少し余白を詰める */
+    padding: 0.75rem 0;
     border-bottom: 1px solid var(--border-color);
-    font-size: 0.9rem; /* 文字サイズを小さく */
+    font-size: 0.85rem; /* さらに小さく */
     color: var(--text-secondary-color);
 }
 .generator-links {
@@ -39,7 +40,6 @@
     gap: 1rem;
     margin: 2rem 0;
 }
-/* ジェネレーターのボタン風スタイルに修正 */
 .generator-links a {
     display: inline-block;
     padding: 0.75rem 1.5rem;

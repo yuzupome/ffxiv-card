@@ -6,10 +6,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const footerPlaceholder = document.getElementById('footer-placeholder');
 
     // ヘッダーを読み込んで表示
-<header class="site-header">
-    <img src="./assets/favicon.png" alt="Logo" class="header-logo">
-    <h1 class="header-title">FFXIV Character Card Generator</h1>
-</header>
+    if (headerPlaceholder) {
+        fetch('./_header.html')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Header not found');
+                }
+                return response.text();
+            })
+            .then(data => {
+                headerPlaceholder.innerHTML = data;
+            })
+            .catch(error => {
+                console.error('Error loading header:', error);
+            });
+    }
 
     // フッターを読み込んで表示
     if (footerPlaceholder) {
