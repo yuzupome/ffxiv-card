@@ -432,3 +432,31 @@ input[type="checkbox"]:checked + span::after {
     border: 1px solid var(--border-color);
     display: block;
 }
+
+/* フッター内蔵「TOPへ戻る」ボタンのスタイル */
+.footer-to-top {
+    display: flex; /* 文字とアイコンを横並びにする */
+    align-items: center; /* 上下中央揃え */
+    gap: 0.2em; /* 文字とアイコンの隙間 */
+    
+    margin-left: auto; /* 右端に配置する */
+    padding: 0 1.5rem; /* ボタンの左右の余白 */
+    align-self: stretch; /* フッターの高さ一杯に広げる */
+    
+    background-color: var(--surface-color); /* ボタンの背景色 */
+    border-left: 1px solid var(--border-color); /* 左の境界線 */
+    
+    color: var(--text-color); /* 文字とアイコンの色 */
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.footer-to-top:hover {
+    background-color: var(--border-color); /* ホバー時の背景色 */
+}
+
+.footer-to-top svg {
+    width: 20px;
+    height: 20px;
+}
