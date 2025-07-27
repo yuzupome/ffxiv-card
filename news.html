@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-PKSZ7BSD');</script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FFXIV Character Card Generator</title>
+    <link rel="icon" type="image/png" href="./assets/favicon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="./assets/css/style.css" />
+    <style>
+        /* Newsページ固有のスタイル */
+        .news-wrapper {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            flex-grow: 1;
+        }
+        .news-title {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary-color);
+        }
+        .update-history {
+            list-style: none;
+            padding-left: 0;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .update-history ul {
+            padding-left: 0;
+        }
+        
+        .update-history li {
+            padding: 0.75rem 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary-color);
+            display: flex;
+            align-items: flex-start;
+        }
+        .update-date {
+            width: 90px;
+            flex-shrink: 0;
+            font-weight: 500;
+        }
+        .update-content {
+            flex-grow: 1;
+        }
+        .generator-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem; /* ボタンと区切り線の余白 */
+        }
+        .generator-links a {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--primary-color);
+            border-radius: 8px;
+            text-decoration: none;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s ease;
+            font-family: 'Orbitron', sans-serif; /* Orbitronフォントを適用 */
+        }
+        .generator-links a:hover {
+            opacity: 0.85;
+        }
+        .lang-switcher {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .lang-switcher button {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary-color);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1rem;
+        }
+        .lang-switcher button.active {
+            color: var(--primary-hover-color);
+            border-bottom-color: var(--primary-hover-color);
+            font-weight: bold;
+        } 
+
+        @media (max-width: 767px) {
+            .generator-links {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PKSZ7BSD"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<div id="app">
+    <div id="header-placeholder"></div>
+
+    <main class="news-wrapper">
+        <div class="lang-switcher">
+            <button id="lang-ja">日本語</button>
+            <span>/</span>
+            <button id="lang-en">English</button>
+        </div>
+
+        <div class="generator-links">
+            <a href="./index.html" data-key="linkJa">日本語版ジェネレーター</a>
+            <a href="./index_en.html" data-key="linkEn">英語版ジェネレーター</a>
+        </div>
+        
+        <div class="how-to-use-section">
+            <h2 class="how-to-use-title">How to Use</h2>
+            <img src="./assets/images/how-to-use.gif" alt="How to use the generator" class="how-to-use-gif">
+        </div>
+
+
+        <div class="update-history">
+            <h2 class="news-title" data-key="newsTitle">Updates</h2>
+            <ul>
+                <li data-key="update2">
+                    <span class="update-date">2025.07.27</span>
+                    <span class="update-content">アイコンカラー変更機能追加<br>英語版公開</span>
+                </li>
+                <li data-key="update1">
+                    <span class="update-date">2025.07.05</span>
+                    <span class="update-content">ジェネレーター公開</span>
+                </li>
+            </ul>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+</div>
+
+<script>
+    const translations = {
+        ja: {
+            langJa: '日本語',
+            langEn: 'English',
+            linkJa: '日本語版ジェネレーター',
+            linkEn: '英語版ジェネレーター',
+            newsTitle: 'Updates',
+            update2: '<span class="update-date">2025.07.27</span><span class="update-content">アイコンカラー変更機能追加 英語版公開</span>',
+            update1: '<span class="update-date">2025.07.05</span><span class="update-content">ジェネレーター公開</span>'
+            // usageNotes は common.js が担当するため削除
+        },
+        en: {
+            langJa: '日本語',
+            langEn: 'English',
+            linkJa: 'Japanese Generator',
+            linkEn: 'English Generator',
+            newsTitle: 'Updates',
+            update2: '<span class="update-date">2025.07.27</span><span class="update-content">Added Icon Color feature<br>English version released</span>',
+            update1: '<span class="update-date">2025.07.05</span><span class="update-content">Generator Released</span>'
+            // usageNotes は common.js が担当するため削除
+        }
+    };
+
+    const setLanguage = (lang) => {
+        document.querySelectorAll('[data-key]').forEach(el => {
+            const key = el.dataset.key;
+            if (translations[lang] && translations[lang][key]) {
+                el.innerHTML = translations[lang][key];
+            }
+            // フッター関連の処理は common.js が担当するため削除
+        });
+        document.documentElement.lang = lang;
+        document.getElementById('lang-ja').classList.toggle('active', lang === 'ja');
+        document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+    };
+
+    const waitForFooterAndInit = () => {
+        const checkInterval = 50;
+        const timeout = 5000;
+        let elapsedTime = 0;
+
+        const intervalId = setInterval(() => {
+            // フッターの読み込み完了を待ってから実行
+            const footerLink = document.querySelector('#footer-placeholder .site-footer');
+            if (footerLink) {
+                clearInterval(intervalId);
+                setLanguage('ja'); // news.html の初期言語を設定
+            }
+            elapsedTime += checkInterval;
+            if (elapsedTime >= timeout) {
+                clearInterval(intervalId);
+                console.error('フッターの読み込みを待機中にタイムアウトしました。');
+            }
+        }, checkInterval);
+    };
+
+    document.getElementById('lang-ja').addEventListener('click', () => setLanguage('ja'));
+    document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
+
+    waitForFooterAndInit();
+</script>
+<script src="./script/common.js"></script>
+
+</body>
+</html>

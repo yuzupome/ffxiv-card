@@ -1,32 +1,23 @@
 /**
- * FFXIV Character Card Generator Script (Final Version)
- * - v21.1: Finalized sub job selection logic.
+ * FFXIV Character Card Generator - Final Japanese Version
+ * - 2025-07-26 v20:30: Fixed sub job background theme for Water template.
  */
 document.addEventListener('DOMContentLoaded', async () => {
 
-    const DEBUG_MODE = false;
-
-    // --- DOM要素の取得 ---
-    const appElement = document.getElementById('app');
-    const loaderElement = document.getElementById('loader');
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    const miniLoader = document.getElementById('mini-loader');
-    const miniProgressText = document.getElementById('mini-progress-text');
-
-    const charCanvas = document.getElementById('background-layer');
-    const charCtx = charCanvas.getContext('2d');
-    const bgCanvas = document.getElementById('character-layer');
-    const bgCtx = bgCanvas.getContext('2d');
-    const uiCanvas = document.getElementById('ui-layer');
-    const uiCtx = uiCanvas.getContext('2d');
-
-    const miscIconCompositeCanvas = document.createElement('canvas');
-    const miscIconCompositeCtx = miscIconCompositeCanvas.getContext('2d');
+    // --- 1. DOM要素の取得 ---
+    const backgroundLayer = document.getElementById('background-layer');
+    const characterLayer = document.getElementById('character-layer');
+    const uiLayer = document.getElementById('ui-layer');
+    const bgCtx = backgroundLayer.getContext('2d');
+    const charCtx = characterLayer.getContext('2d');
+    const uiCtx = uiLayer.getContext('2d');
+    
+    const miscCompositeCanvas = document.createElement('canvas');
+    const miscCtx = miscCompositeCanvas.getContext('2d');
     const mainJobCompositeCanvas = document.createElement('canvas');
-    const mainJobCompositeCtx = mainJobCompositeCanvas.getContext('2d');
+    const mainJobCtx = mainJobCompositeCanvas.getContext('2d');
     const subJobCompositeCanvas = document.createElement('canvas');
-    const subJobCompositeCtx = subJobCompositeCanvas.getContext('2d');
+    const subJobCtx = subJobCompositeCanvas.getContext('2d');
 
     const nameInput = document.getElementById('nameInput');
     const fontSelect = document.getElementById('fontSelect');
@@ -36,376 +27,476 @@ document.addEventListener('DOMContentLoaded', async () => {
     const raceSelect = document.getElementById('raceSelect');
     const dcSelect = document.getElementById('dcSelect');
     const progressSelect = document.getElementById('progressSelect');
-    const styleButtons = document.querySelectorAll('#styleButtons button');
-    const playtimeCheckboxes = document.querySelectorAll('#playtimeOptions input[type="checkbox"]');
-    const difficultyCheckboxes = document.querySelectorAll('#difficultyOptions input[type="checkbox"]');
-    const mainJobSelect = document.getElementById('mainjobSelect');
-    const subJobButtons = document.querySelectorAll('#subjobSection .button-grid button');
+    const styleButtonsContainer = document.getElementById('styleButtons');
+    const playtimeOptionsContainer = document.getElementById('playtimeOptions');
+    const difficultyOptionsContainer = document.getElementById('difficultyOptions');
+    const mainjobSelect = document.getElementById('mainjobSelect');
+    const subjobSection = document.getElementById('subjobSection');
     const downloadBtn = document.getElementById('downloadBtn');
-    const toTopBtn = document.getElementById('toTopBtn');
+    
+    const appElement = document.getElementById('app');
+    const loaderElement = document.getElementById('loader');
+    const miniLoader = document.getElementById('mini-loader');
+    
     const saveModal = document.getElementById('saveModal');
     const modalImage = document.getElementById('modalImage');
-    const closeModal = document.getElementById('closeModal');
+    const closeModalBtn = document.getElementById('closeModal');
     
-    // --- 定数定義 ---
-    const EDIT_WIDTH = 1000;
-    const EDIT_HEIGHT = 600;
-    
-    [bgCanvas, charCanvas, uiCanvas, miscIconCompositeCanvas, mainJobCompositeCanvas, subJobCompositeCanvas].forEach(c => {
-        c.width = EDIT_WIDTH;
-        c.height = EDIT_HEIGHT;
+    const mainColorPickerSection = document.getElementById('main-color-picker-section');
+    const iconBgColorPicker = document.getElementById('iconBgColorPicker');
+    const resetColorBtn = document.getElementById('resetColorBtn');
+
+    const stickyColorDrawer = document.getElementById('stickyColorDrawer');
+    const drawerHandle = document.getElementById('drawerHandle');
+    const stickyIconBgColorPicker = document.getElementById('stickyIconBgColorPicker');
+    const stickyResetColorBtn = document.getElementById('stickyResetColorBtn');
+
+    // --- 2. 定数と設定 ---
+    const CANVAS_WIDTH = 1000;
+    const CANVAS_HEIGHT = 600;
+    [backgroundLayer, characterLayer, uiLayer, miscCompositeCanvas, mainJobCompositeCanvas, subJobCompositeCanvas].forEach(c => {
+        c.width = CANVAS_WIDTH;
+        c.height = CANVAS_HEIGHT;
     });
 
-    // --- テンプレート設定の一元管理 ---
     const templateConfig = {
-        'Gothic_black':   { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Gothic_white':   { textColor: '#000000', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
-        'Gothic_pink':    { textColor: '#ffffff', sharedAsset: 'Gothic', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Neon_mono':      { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Neon_duotonek':  { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Neon_meltdown':  { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Water':          { textColor: '#ffffff', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Common' },
-        'Lovely_heart':   { textColor: '#E1C8D2', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
-        'Royal_garnet':   { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Royal' },
-        'Royal_sapphire': { textColor: '#A2850A', sharedAsset: 'Royal', nameArea: { x: 15, y: 77, width: 180, height: 40 }, mainJobAsset: 'Royal' }
+        'Gothic_black':   { nameColor: '#ffffff', iconTint: null,       defaultBg: '#A142CD', frame: 'Common_background_square_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Gothic_white':   { nameColor: '#000000', iconTint: '#000000',   defaultBg: '#6CD9D6', frame: 'Common_background_square_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Gothic_pink':    { nameColor: '#ffffff', iconTint: null,       defaultBg: '#A142CD', frame: 'Common_background_square_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Neon_mono':      { nameColor: '#ffffff', iconTint: null,       defaultBg: '#B70016', frame: 'Neon_background_square_frame',   iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Neon_duotone':   { nameColor: '#ffffff', iconTint: null,       defaultBg: { primary: '#FFF500', secondary: '#80FF00'}, frame: 'Neon_background_square_frame',   iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Neon_meltdown':  { nameColor: '#ffffff', iconTint: null,       defaultBg: { primary: '#FF00CF', secondary: '#00A3FF'}, frame: 'Neon_background_square_frame',   iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Water':          { nameColor: '#ffffff', iconTint: null,       defaultBg: '#FFFFFF', frame: 'Common_background_circle_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Lovely_heart':   { nameColor: '#E1C8D2', iconTint: '#E1C8D2',   defaultBg: '#D34669', frame: 'Common_background_circle_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Royal_garnet':   { nameColor: '#A2850A', iconTint: '#A2850A',   defaultBg: '#000000', frame: 'Common_background_square_frame', iconTheme: 'Royal',  nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Royal_sapphire': { nameColor: '#A2850A', iconTint: '#A2850A',   defaultBg: '#000000', frame: 'Common_background_square_frame', iconTheme: 'Royal',  nameArea: { x: 15, y: 77, width: 180, height: 40 } }
     };
 
-    // --- アセット定義 ---
-    const races = ['au_ra', 'viera', 'roegadyn', 'miqote', 'hyur', 'elezen', 'lalafell', 'hrothgar'];
-    const dcs = ['mana', 'gaia', 'elemental', 'meteor'];
-    const progresses = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon', 'all_clear'];
-    const styles = Array.from(styleButtons).map(b => b.dataset.value);
-    const playtimes = ['weekday_morning', 'weekday_daytime', 'weekday_night', 'weekday_midnight', 'holiday_morning', 'holiday_daytime', 'holiday_night', 'holiday_midnight', 'random', 'fulltime'];
-    const difficulties = ['extreme', 'unreal', 'savage', 'ultimate'];
-    const mainJobs = Array.from(mainJobSelect.options).filter(o => o.value).map(o => o.value);
-    const allSubJobs = Array.from(subJobButtons).map(btn => btn.dataset.value);
+    // --- 3. 状態管理 ---
+    const currentLang = document.documentElement.lang || 'ja';
+    const translations = {
+        ja: {
+            generating: '画像を生成中...',
+            generateDefault: 'この内容で作る？🐕'
+        },
+        en: {
+            generating: 'Generating...',
+            generateDefault: 'Generate Card'
+        }
+    };
 
-    // --- 状態管理 ---
-    const imageCache = {};
-    let currentTemplatePrefix = 'Gothic_black';
-    let imageTransform = { img: null, x: EDIT_WIDTH / 2, y: EDIT_HEIGHT / 2, scale: 1.0, isDragging: false, lastX: 0, lastY: 0, lastTouchDistance: 0 };
+    let state = { font: "'Exo 2', sans-serif" };
+    let imageTransform = { img: null, x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, scale: 1.0, isDragging: false, lastX: 0, lastY: 0 };
+    let imageCache = {};
     let isDownloading = false;
+    let userHasManuallyPickedColor = false;
     let previousMainJob = '';
 
-    // --- アセット読み込み処理 ---
-    async function loadAssetsForTemplate(templateName, isInitialLoad = false) {
-        const assetExt = '.webp';
-        const pathsToLoad = new Set();
-        
-        pathsToLoad.add(`./assets/backgrounds/${templateName}${assetExt}`);
-        pathsToLoad.add(`./assets/backgrounds/${templateName}_cp${assetExt}`);
-        
-        const iconTypes = { races, dcs, progresses, styles, playtimes, difficulties, mainJobs, allSubJobs };
-        const iconPaths = {
-            races: 'race_icons', dcs: 'dc_icons', progresses: 'progress_icons', styles: 'style_icons',
-            playtimes: 'time_icons', difficulties: 'difficulty_icons',
-            mainJobs: 'mainjob_icons', allSubJobs: 'subjob_icons'
+    // --- 4. パフォーマンス最適化 & プリロード ---
+    const createDebouncer = (func, delay) => {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => func(...args), delay);
         };
-        const iconPrefixes = { mainJobs: '_main_', allSubJobs: '_sub_' };
-
-        for (const type in iconTypes) {
-            for (const item of iconTypes[type]) {
-                const prefix = iconPrefixes[type] || '_';
-                const currentConfig = templateConfig[templateName] || {};
-                let effectiveTemplateName;
-
-                if (type === 'mainJobs') {
-                    effectiveTemplateName = currentConfig.mainJobAsset || templateName;
-                } else {
-                    effectiveTemplateName = currentConfig.sharedAsset || templateName;
-                }
-                pathsToLoad.add(`./assets/${iconPaths[type]}/${effectiveTemplateName}${prefix}${item}${assetExt}`);
-            }
-        }
-
-        const finalPaths = [...pathsToLoad].filter(p => !imageCache[p]);
-        if (finalPaths.length === 0) {
-            updateProgress(isInitialLoad ? { bar: progressBar, text: progressText } : { bar: null, text: miniProgressText }, 1, 1);
-            return Promise.resolve();
-        }
-
-        let loadedCount = 0;
-        const totalCount = finalPaths.length;
-        const progressTarget = isInitialLoad ? { bar: progressBar, text: progressText } : { bar: null, text: miniProgressText };
-        
-        const promises = finalPaths.map(path => 
-            new Promise((resolve) => {
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                img.onload = () => {
-                    imageCache[path] = img;
-                    loadedCount++;
-                    updateProgress(progressTarget, loadedCount, totalCount);
-                    resolve(img);
-                };
-                img.onerror = () => {
-                    console.warn(`画像の読み込みに失敗: ${path}`);
-                    loadedCount++;
-                    updateProgress(progressTarget, loadedCount, totalCount);
-                    resolve(null);
-                };
-                img.src = path;
-            })
-        );
-        return Promise.all(promises);
-    }
-
-    function updateProgress(target, loaded, total) {
-        const percent = total > 0 ? Math.round((loaded / total) * 100) : 100;
-        if (target.bar) target.bar.style.width = `${percent}%`;
-        target.text.textContent = `${percent}%`;
-    }
-
-    // --- 描画関数 ---
-    function drawImageCover(ctx, img, canvasWidth, canvasHeight) {
-        if (!img) return;
-        const imgRatio = img.width / img.height;
-        const canvasRatio = canvasWidth / canvasHeight;
-        let sx, sy, sWidth, sHeight;
-
-        if (Math.abs(imgRatio - canvasRatio) < 0.01) {
-            sx = 0; sy = 0; sWidth = img.width; sHeight = img.height;
-        } else if (imgRatio > canvasRatio) {
-            sHeight = img.height; sWidth = sHeight * canvasRatio;
-            sx = (img.width - sWidth) / 2; sy = 0;
-        } else {
-            sWidth = img.width; sHeight = sWidth / canvasRatio;
-            sx = 0; sy = (img.height - sHeight) / 2;
-        }
-        ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, canvasWidth, canvasHeight);
-    }
-
-    function drawBackgroundLayer() {
-        const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}.webp`];
-        bgCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-        drawImageCover(bgCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
-    }
-
-    function drawCharacterLayer() {
-        charCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-        if (imageTransform.img) {
-            charCtx.save();
-            charCtx.translate(imageTransform.x, imageTransform.y);
-            charCtx.scale(imageTransform.scale, imageTransform.scale);
-            charCtx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
-            charCtx.restore();
-        }
-    }
-
-    async function redrawMiscIconComposite() {
-        miscIconCompositeCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-        await drawMiscIcons(miscIconCompositeCtx, {width: EDIT_WIDTH, height: EDIT_HEIGHT});
-    }
-    async function redrawMainJobComposite() {
-        mainJobCompositeCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-        await drawMainJobIcon(mainJobCompositeCtx, {width: EDIT_WIDTH, height: EDIT_HEIGHT});
-    }
-    async function redrawSubJobComposite() {
-        subJobCompositeCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-        await drawSubJobIcons(subJobCompositeCtx, {width: EDIT_WIDTH, height: EDIT_HEIGHT});
-    }
-
-    async function drawUiLayer() {
-        uiCtx.clearRect(0, 0, EDIT_WIDTH, EDIT_HEIGHT);
-        uiCtx.drawImage(miscIconCompositeCanvas, 0, 0);
-        uiCtx.drawImage(subJobCompositeCanvas, 0, 0);
-        uiCtx.drawImage(mainJobCompositeCanvas, 0, 0);
-        await drawNameText(uiCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
-    }
-
-    // --- アイコン描画ヘルパー ---
-    function getAssetPath(type, item) {
-        const pathMap = { race: 'race_icons', dc: 'dc_icons', progress: 'progress_icons', style: 'style_icons', time: 'time_icons', difficulty: 'difficulty_icons', mainJob: 'mainjob_icons', subJob: 'subjob_icons' };
-        const prefix = type === 'mainJob' ? '_main_' : (type === 'subJob' ? '_sub_' : '_');
-        const config = templateConfig[currentTemplatePrefix] || {};
-        let finalTemplate;
-
-        if (type === 'mainJob') {
-            finalTemplate = config.mainJobAsset || currentTemplatePrefix;
-        } else {
-            finalTemplate = config.sharedAsset || currentTemplatePrefix;
-        }
-
-        return `./assets/${pathMap[type]}/${finalTemplate}${prefix}${item}.webp`;
-    }
-
-    async function drawMiscIcons(context, canvasSize) {
-        const draw = (path) => { if(imageCache[path]) drawImageCover(context, imageCache[path], canvasSize.width, canvasSize.height); };
-        if (raceSelect.value) draw(getAssetPath('race', raceSelect.value));
-        if (dcSelect.value) draw(getAssetPath('dc', dcSelect.value));
-        if (progressSelect.value) {
-            const stages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
-            const toLoad = progressSelect.value === 'all_clear' ? [...stages, 'all_clear'] : stages.slice(0, stages.indexOf(progressSelect.value) + 1);
-            toLoad.forEach(p => draw(getAssetPath('progress', p)));
-        }
-        styleButtons.forEach(btn => { if (btn.classList.contains('active')) draw(getAssetPath('style', btn.dataset.value)); });
-        const timePaths = new Set();
-        playtimeCheckboxes.forEach(cb => {
-            if (cb.checked) {
-                const value = cb.value;
-                const className = cb.className;
-                const pathKey = className.includes('other') ? value : `${className}_${value}`;
-                timePaths.add(getAssetPath('time', pathKey));
-            }
-        });
-        timePaths.forEach(path => draw(path));
-        difficultyCheckboxes.forEach(cb => { if (cb.checked) draw(getAssetPath('difficulty', cb.value)); });
-    }
-
-    async function drawMainJobIcon(context, canvasSize) {
-        if (mainJobSelect.value) {
-            const path = getAssetPath('mainJob', mainJobSelect.value);
-            if(imageCache[path]) drawImageCover(context, imageCache[path], canvasSize.width, canvasSize.height);
-        }
-    }
-
-    async function drawSubJobIcons(context, canvasSize) {
-        const draw = (path) => { if(imageCache[path]) drawImageCover(context, imageCache[path], canvasSize.width, canvasSize.height); };
-        subJobButtons.forEach(btn => {
-            if (btn.classList.contains('active')) draw(getAssetPath('subJob', btn.dataset.value));
-        });
-    }
-
-    async function drawNameText(context, canvasSize) {
-        const name = nameInput.value;
-        const config = templateConfig[currentTemplatePrefix] || {};
-        const defaultNameArea = { x: 15, y: 77, width: 180, height: 40 };
-        const baseNameArea = config.nameArea || defaultNameArea;
-
-        if (!name && !DEBUG_MODE) return;
-        
-        const scale = canvasSize.width / EDIT_WIDTH;
-        const nameArea = { 
-            x: baseNameArea.x * scale, 
-            y: baseNameArea.y * scale, 
-            width: baseNameArea.width * scale, 
-            height: baseNameArea.height * scale
-        };
-        const MAX_FONT_SIZE = 26 * scale;
-        
-        if (DEBUG_MODE) {
-            const lineWidth = 2 * scale;
-            const inset = lineWidth / 2;
-            context.strokeStyle = 'red';
-            context.lineWidth = lineWidth;
-            context.strokeRect(
-                nameArea.x + inset,
-                nameArea.y + inset,
-                nameArea.width - lineWidth,
-                nameArea.height - lineWidth
-            );
-        }
-        
-        if (!name) return;
-
-        const selectedFont = fontSelect.value || "'Orbitron', sans-serif";
-        try {
-            await document.fonts.load(`10px ${selectedFont}`);
-        } catch (err) {
-            console.warn(`フォントの読み込みに失敗した可能性があります: ${selectedFont}`, err);
-        }
-
-        let fontSize = MAX_FONT_SIZE;
-        context.font = `${fontSize}px ${selectedFont}`;
-        while (context.measureText(name).width > nameArea.width && fontSize > 10) {
-            fontSize--;
-            context.font = `${fontSize}px ${selectedFont}`;
-        }
-        
-        context.fillStyle = config.textColor || '#ffffff';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText(name, nameArea.x + nameArea.width / 2, nameArea.y + nameArea.height / 2);
-    }
-    
-    // --- パフォーマンス最適化 ---
-    const createDebouncer = (func, delay) => { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => func(...args), delay); }; };
-    const debouncedRedrawMisc = createDebouncer(async () => { await redrawMiscIconComposite(); await drawUiLayer(); }, 250);
-    const debouncedRedrawMainJob = createDebouncer(async () => { await redrawMainJobComposite(); await drawUiLayer(); }, 250);
-    const debouncedRedrawSubJob = createDebouncer(async () => { await redrawSubJobComposite(); await drawUiLayer(); }, 250);
-    const debouncedNameDraw = createDebouncer(drawUiLayer, 250);
-    let charAnimationFrameId;
-    const throttledDrawChar = () => {
-        if (charAnimationFrameId) return;
-        charAnimationFrameId = requestAnimationFrame(() => {
-            drawCharacterLayer();
-            charAnimationFrameId = null;
-        });
     };
 
-    // --- イベントリスナー ---
-    nameInput.addEventListener('input', debouncedNameDraw);
-    fontSelect.addEventListener('input', debouncedNameDraw);
+    const preloadFonts = () => {
+        const fonts = Array.from(fontSelect.options).filter(o => o.value).map(o => o.value);
+        return Promise.all(fonts.map(font => document.fonts.load(`10px ${font}`).catch(e => console.warn(`Font failed to preload: ${font}`))));
+    };
+
+    const preloadTemplateAssets = async (templateName) => {
+        miniLoader.classList.remove('hidden');
+        const config = templateConfig[templateName];
+        if (!config) {
+            miniLoader.classList.add('hidden');
+            return;
+        }
+
+        const assetsToLoad = new Set();
+        const raceAssetMap = { 'au_ra': 'aura' };
+        
+        const races = Array.from(raceSelect.options).filter(o => o.value).map(o => o.value);
+        const dcs = Array.from(dcSelect.options).filter(o => o.value).map(o => o.value);
+        const progresses = Array.from(progressSelect.options).filter(o => o.value).map(o => o.value);
+        const styles = Array.from(styleButtonsContainer.querySelectorAll('button')).map(b => b.dataset.value);
+        const difficulties = Array.from(difficultyOptionsContainer.querySelectorAll('input')).map(i => i.value);
+        const mainJobs = Array.from(mainjobSelect.options).filter(o => o.value).map(o => o.value);
+        const subJobs = Array.from(subjobSection.querySelectorAll('button')).map(b => b.dataset.value);
+
+        for (const race of races) {
+            const raceValue = raceAssetMap[race] || race;
+            assetsToLoad.add(getAssetPath({ category: 'race/bg', filename: `Common_race_${raceValue}_bg` }));
+            assetsToLoad.add(getAssetPath({ category: 'race/frame', filename: `${config.iconTheme}_race_${raceValue}_frame` }));
+        }
+        for (const dc of dcs) {
+            assetsToLoad.add(getAssetPath({ category: 'dc', filename: `${config.iconTheme}_dc_${dc}` }));
+        }
+        for (const progress of progresses) {
+            const progressFile = progress === 'gyougetsu' ? 'gyogetsu' : progress;
+            assetsToLoad.add(getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progress}_bg` }));
+            assetsToLoad.add(getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${progressFile}_frame` }));
+        }
+        for (const style of styles) {
+            assetsToLoad.add(getAssetPath({ category: 'playstyle/frame', filename: `Common_playstyle_${style}_frame` }));
+        }
+        for (const diff of difficulties) {
+            ['Common', 'Neon', 'Circle'].forEach(theme => {
+                assetsToLoad.add(getAssetPath({ category: 'raid/bg', filename: `${theme}_raid_${diff}_bg` }));
+            });
+        }
+        for (const job of mainJobs) {
+            assetsToLoad.add(getAssetPath({ category: 'job', filename: `Common_job_${job}_main` }));
+        }
+        for (const job of subJobs) {
+             ['Common', 'Circle'].forEach(theme => {
+                assetsToLoad.add(getAssetPath({ category: 'job/bg', filename: `${theme}_job_${job}_sub_bg` }));
+            });
+            assetsToLoad.add(getAssetPath({ category: 'job/frame', filename: `Common_job_${job}_sub_frame` }));
+        }
+
+        const promises = [...assetsToLoad].map(src => loadImage(src));
+        await Promise.all(promises);
+        miniLoader.classList.add('hidden');
+    };
+
+    // --- 5. 描画ロジック ---
+    const updateState = () => {
+        state = {
+            template: templateSelect.value,
+            iconBgColor: iconBgColorPicker.value,
+            characterName: nameInput.value,
+            font: fontSelect.value,
+            dc: dcSelect.value,
+            race: raceSelect.value,
+            progress: progressSelect.value,
+            playstyles: [...styleButtonsContainer.querySelectorAll('button.active')].map(btn => btn.dataset.value),
+            playtimes: [...playtimeOptionsContainer.querySelectorAll('input:checked')].map(cb => {
+                const value = cb.value;
+                const className = cb.className;
+                return className.includes('other') ? value : `${className}_${value}`;
+            }),
+            difficulties: [...difficultyOptionsContainer.querySelectorAll('input:checked')].map(cb => cb.value),
+            mainjob: mainjobSelect.value,
+            subjobs: [...subjobSection.querySelectorAll('button.active')].map(btn => btn.dataset.value),
+        };
+    };
+
+    const drawCharacterLayer = () => {
+        bgCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        if (imageTransform.img) {
+            bgCtx.save();
+            bgCtx.translate(imageTransform.x, imageTransform.y);
+            bgCtx.scale(imageTransform.scale, imageTransform.scale);
+            bgCtx.drawImage(imageTransform.img, -imageTransform.img.width / 2, -imageTransform.img.height / 2);
+            bgCtx.restore();
+        }
+    };
     
-    [raceSelect, dcSelect, progressSelect, ...styleButtons, ...playtimeCheckboxes, ...difficultyCheckboxes].forEach(el => {
-        el.addEventListener(el.tagName === 'BUTTON' ? 'click' : 'input', (e) => {
-            if (e.currentTarget.tagName === 'BUTTON') e.currentTarget.classList.toggle('active');
-            debouncedRedrawMisc();
+    const drawTemplateLayer = async () => {
+        updateState();
+        charCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        const langSuffix = currentLang === 'en' ? '_en' : '';
+        const path = getAssetPath({ category: 'background/base', filename: `${state.template}${langSuffix}` });
+        await drawTinted(charCtx, path);
+    };
+
+    const getAssetPath = (options) => `./assets/images/${options.category}/${options.filename}.webp`;
+    const loadImage = (src) => {
+        if (imageCache[src]) return Promise.resolve(imageCache[src]);
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = () => { imageCache[src] = img; resolve(img); };
+            img.onerror = (err) => { console.error(`Failed to load: ${src}`); reject(err); };
+            img.src = src;
+        });
+    };
+    const drawTinted = async (ctx, path, tintColor) => {
+        try {
+            const img = await loadImage(path);
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = CANVAS_WIDTH;
+            tempCanvas.height = CANVAS_HEIGHT;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            if (tintColor) {
+                tempCtx.globalCompositeOperation = 'source-in';
+                tempCtx.fillStyle = tintColor;
+                tempCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            }
+            ctx.drawImage(tempCanvas, 0, 0);
+        } catch (e) { /* Ignore failed loads */ }
+    };
+    
+    const getIconBgColor = (iconCategory) => {
+        const config = templateConfig[state.template];
+        if (config && typeof config.defaultBg === 'object' && !userHasManuallyPickedColor) {
+            if (iconCategory === 'raid' || iconCategory === 'subjob') {
+                return config.defaultBg.secondary;
+            } else {
+                return config.defaultBg.primary;
+            }
+        }
+        return state.iconBgColor;
+    };
+    
+    const drawMiscIcons = async (ctx) => {
+        const config = templateConfig[state.template];
+        if (!config) return;
+        const raceAssetMap = { 'au_ra': 'aura' };
+        
+        const playstyleBgNumMap_ja = {
+             leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '05', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '10',
+             streaming: '11', glam: '12', studio: '13', housing: '14', screenshot: '15', drawing: '16', roleplay: '17',
+        };
+        const playstyleBgNumMap_en = {
+             leveling: '01', raid: '02', pvp: '03', dd: '04', hunt: '10', map: '06', gatherer: '07', crafter: '08', gil: '09', perform: '05',
+             streaming: '15', glam: '11', studio: '12', housing: '14', screenshot: '13', drawing: '16', roleplay: '17',
+        };
+
+        if(state.dc) await drawTinted(ctx, getAssetPath({ category: 'dc', filename: `${config.iconTheme}_dc_${state.dc}` }), config.iconTint);
+        
+        const raceValue = raceAssetMap[state.race] || state.race;
+        if (raceValue) {
+            await drawTinted(ctx, getAssetPath({ category: 'race/bg', filename: `Common_race_${raceValue}_bg` }), getIconBgColor('race'));
+            await drawTinted(ctx, getAssetPath({ category: 'race/frame', filename: `${config.iconTheme}_race_${raceValue}_frame` }), config.iconTint);
+        }
+        
+        if (state.progress) {
+            const progressStages = ['shinsei', 'souten', 'guren', 'shikkoku', 'gyougetsu', 'ougon'];
+            if (state.progress === 'all_clear') {
+                for (const stage of progressStages) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${stage}_bg` }), getIconBgColor('progress'));
+                await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: 'Common_progress_all_clear_bg' }), getIconBgColor('progress'));
+            } else {
+                const currentIndex = progressStages.indexOf(state.progress);
+                if (currentIndex > -1) {
+                    for (let i = 0; i <= currentIndex; i++) await drawTinted(ctx, getAssetPath({ category: 'progress/bg', filename: `Common_progress_${progressStages[i]}_bg` }), getIconBgColor('progress'));
+                }
+            }
+            const progressFile = state.progress === 'gyougetsu' ? 'gyogetsu' : state.progress;
+            let langSuffix = currentLang === 'en' ? '_en' : '';
+            if (state.progress === 'all_clear') langSuffix = '';
+            await drawTinted(ctx, getAssetPath({ category: 'progress/frame', filename: `${config.iconTheme}_progress_${progressFile}_frame${langSuffix}` }), config.iconTint);
+        }
+
+        for (const style of state.playstyles) {
+            const playstyleBgNumMap = (currentLang === 'en') ? playstyleBgNumMap_en : playstyleBgNumMap_ja;
+            const bgNum = playstyleBgNumMap[style];
+            if (bgNum) await drawTinted(ctx, getAssetPath({ category: 'playstyle/bg', filename: `Common_playstyle_${bgNum}_bg` }), getIconBgColor('playstyle'));
+            
+            let langSuffix = currentLang === 'en' ? '_en' : '';
+            if (style === 'dd' || style === 'pvp') {
+                langSuffix = '';
+            }
+            await drawTinted(ctx, getAssetPath({ category: 'playstyle/frame', filename: `Common_playstyle_${style}_frame${langSuffix}` }), config.iconTint);
+        }
+
+        for (const time of state.playtimes) {
+            const isSpecial = time === 'random' || time === 'fulltime';
+            if (isSpecial) await drawTinted(ctx, getAssetPath({ category: 'time/bg', filename: `Common_time_${time}_bg` }), getIconBgColor('time'));
+            const timeTheme = isSpecial ? config.iconTheme : 'Common';
+            const langSuffix = currentLang === 'en' ? '_en' : '';
+            const filename = `${timeTheme}_time_${time}${isSpecial ? `_frame${langSuffix}` : ''}`;
+            const category = `time/${isSpecial ? 'frame' : 'icon'}`;
+            await drawTinted(ctx, getAssetPath({ category, filename }), config.iconTint);
+        }
+
+        for (const diff of state.difficulties) {
+            let raidTheme = 'Common';
+            if (state.template.startsWith('Lovely') || state.template.startsWith('Water')) raidTheme = 'Circle';
+            else if (state.template.startsWith('Neon_')) raidTheme = 'Neon';
+            await drawTinted(ctx, getAssetPath({ category: 'raid/bg', filename: `${raidTheme}_raid_${diff}_bg` }), getIconBgColor('raid'));
+        }
+    };
+
+    const drawMainJobIcon = async (ctx) => {
+        if(state.mainjob) {
+            const config = templateConfig[state.template];
+            await drawTinted(ctx, getAssetPath({ category: 'job', filename: `Common_job_${state.mainjob}_main` }), config.iconTint);
+        }
+    };
+    const drawSubJobIcons = async (ctx) => {
+        const config = templateConfig[state.template];
+        for (const job of state.subjobs) {
+            const subJobBgTheme = (state.template.startsWith('Lovely') || state.template.startsWith('Water')) ? 'Circle' : 'Common';
+            await drawTinted(ctx, getAssetPath({ category: 'job/bg', filename: `${subJobBgTheme}_job_${job}_sub_bg` }), getIconBgColor('subjob'));
+            await drawTinted(ctx, getAssetPath({ category: 'job/frame', filename: `Common_job_${job}_sub_frame` }), config.iconTint);
+        }
+    };
+    const drawNameText = async (ctx) => {
+        if (!state.characterName || !state.font) return;
+        const config = templateConfig[state.template];
+        if(!config) return;
+        
+        const fontName = state.font.split(',')[0].replace(/'/g, '');
+        const nameArea = config.nameArea;
+        let fontSize = 32;
+        ctx.font = `${fontSize}px "${fontName}"`;
+        while(ctx.measureText(state.characterName).width > nameArea.width && fontSize > 10) {
+            fontSize--;
+            ctx.font = `${fontSize}px "${fontName}"`;
+        }
+        ctx.fillStyle = config.nameColor || '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(state.characterName, nameArea.x + nameArea.width / 2, nameArea.y + nameArea.height / 2);
+    };
+
+    const redrawMiscComposite = async () => {
+        miscCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        await drawMiscIcons(miscCtx);
+        await drawUiLayer();
+    };
+    const redrawMainJobComposite = async () => {
+        mainJobCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        await drawMainJobIcon(mainJobCtx);
+        await drawUiLayer();
+    };
+    const redrawSubJobComposite = async () => {
+        subJobCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        await drawSubJobIcons(subJobCtx);
+        await drawUiLayer();
+    };
+    const redrawName = async () => {
+        await drawUiLayer();
+    };
+
+    const debouncedRedrawMisc = createDebouncer(redrawMiscComposite, 50);
+    const debouncedRedrawMainJob = createDebouncer(redrawMainJobComposite, 50);
+    const debouncedRedrawSubJob = createDebouncer(redrawSubJobComposite, 50);
+    const debouncedRedrawName = createDebouncer(redrawName, 200);
+
+    // ▼ このブロックを追加 ▼
+    const debouncedTrackColor = createDebouncer((color) => {
+        window.dataLayer.push({
+        event: 'select_icon_color',
+        color_code: color
+        });
+        }, 500); // 500ミリ秒操作がなければイベントを送信
+
+    const drawUiLayer = async () => {
+        uiCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        const config = templateConfig[state.template];
+        if (!config) return;
+
+        uiCtx.drawImage(miscCompositeCanvas, 0, 0);
+        uiCtx.drawImage(subJobCompositeCanvas, 0, 0);
+        uiCtx.drawImage(mainJobCompositeCanvas, 0, 0);
+
+        const framePath = getAssetPath({ category: 'background/frame', filename: config.frame });
+        await drawTinted(uiCtx, framePath, config.iconTint);
+
+        await drawNameText(uiCtx);
+    };
+    
+    const redrawAll = async () => {
+        updateState();
+        await drawTemplateLayer();
+        await Promise.all([
+            redrawMiscComposite(),
+            redrawMainJobComposite(),
+            redrawSubJobComposite()
+        ]);
+    };
+
+    // --- 6. イベントリスナー ---
+    templateSelect.addEventListener('change', async () => {
+        updateState();
+        if (!userHasManuallyPickedColor) {
+            const config = templateConfig[state.template];
+            const newColor = (config && typeof config.defaultBg === 'object') ? config.defaultBg.primary : config.defaultBg;
+            iconBgColorPicker.value = newColor || '#CCCCCC';
+            stickyIconBgColorPicker.value = newColor || '#CCCCCC';
+        }
+        await redrawAll();
+    });
+
+    const handleColorInput = (source, target) => {
+        userHasManuallyPickedColor = true;
+        target.value = source.value;
+        updateState();
+        debouncedRedrawMisc();
+        debouncedRedrawSubJob();
+        debouncedTrackColor(source.value);
+    };
+    iconBgColorPicker.addEventListener('input', () => handleColorInput(iconBgColorPicker, stickyIconBgColorPicker));
+    stickyIconBgColorPicker.addEventListener('input', () => handleColorInput(stickyIconBgColorPicker, iconBgColorPicker));
+
+    const resetColorAction = () => {
+        userHasManuallyPickedColor = false;
+        const config = templateConfig[templateSelect.value];
+        const defaultColor = (config && typeof config.defaultBg === 'object') ? config.defaultBg.primary : config.defaultBg;
+        iconBgColorPicker.value = defaultColor || '#CCCCCC';
+        stickyIconBgColorPicker.value = defaultColor || '#CCCCCC';
+        updateState();
+        debouncedRedrawMisc();
+        debouncedRedrawSubJob();
+    };
+    resetColorBtn.addEventListener('click', resetColorAction);
+    stickyResetColorBtn.addEventListener('click', resetColorAction);
+
+
+    [dcSelect, raceSelect, progressSelect].forEach(el => el.addEventListener('change', () => { updateState(); debouncedRedrawMisc(); }));
+    [styleButtonsContainer, playtimeOptionsContainer, difficultyOptionsContainer].forEach(container => {
+        container.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') e.target.classList.toggle('active');
+            if (e.target.tagName === 'BUTTON' || e.target.type === 'checkbox') {
+                updateState();
+                debouncedRedrawMisc();
+            }
         });
     });
 
-    mainJobSelect.addEventListener('input', (e) => {
+    mainjobSelect.addEventListener('change', (e) => {
+        updateState();
         const newMainJob = e.target.value;
-
-        // 前のメインジョブに連動したサブジョブの選択を解除
         if (previousMainJob) {
-            const previousSubJobButton = Array.from(subJobButtons).find(btn => btn.dataset.value === previousMainJob);
-            if (previousSubJobButton) {
-                previousSubJobButton.classList.remove('active');
-            }
+            const prevBtn = subjobSection.querySelector(`button[data-value="${previousMainJob}"]`);
+            if (prevBtn) prevBtn.classList.remove('active');
         }
-        
-        // 新しいメインジョブに対応するサブジョブを選択
         if (newMainJob) {
-            const newSubJobButton = Array.from(subJobButtons).find(btn => btn.dataset.value === newMainJob);
-            if (newSubJobButton) {
-                newSubJobButton.classList.add('active');
-            }
+            const newBtn = subjobSection.querySelector(`button[data-value="${newMainJob}"]`);
+            if (newBtn) newBtn.classList.add('active');
         }
-
-        // 選択されたジョブを記憶
         previousMainJob = newMainJob;
-
-        // メインジョブとサブジョブの両方の描画を更新
+        updateState();
         debouncedRedrawMainJob();
         debouncedRedrawSubJob();
     });
 
-    subJobButtons.forEach(btn => btn.addEventListener('click', (e) => { 
-        e.currentTarget.classList.toggle('active'); 
-        debouncedRedrawSubJob(); 
-    }));
-
-    templateSelect.addEventListener('change', async (e) => {
-        const newTemplate = e.target.value;
-        if (newTemplate === currentTemplatePrefix) return;
-        
-        miniLoader.classList.remove('hidden');
-        updateProgress({ bar: null, text: miniProgressText }, 0, 1);
-        
-        currentTemplatePrefix = newTemplate;
-        await loadAssetsForTemplate(newTemplate);
-        
-        drawBackgroundLayer();
-        await Promise.all([redrawMiscIconComposite(), redrawMainJobComposite(), redrawSubJobComposite()]);
-        await drawUiLayer();
-
-        miniLoader.classList.add('hidden');
+    subjobSection.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            e.target.classList.toggle('active');
+            updateState();
+            debouncedRedrawSubJob();
+        }
     });
 
+    nameInput.addEventListener('input', () => { updateState(); debouncedRedrawName(); });
+    fontSelect.addEventListener('change', () => { updateState(); debouncedRedrawName(); });
+
     uploadImageInput.addEventListener('change', (e) => {
-        const file = e.target.files[0]; if (!file) { fileNameDisplay.textContent = ''; return; }
+        const file = e.target.files[0];
+        if (!file) {
+            imageTransform.img = null;
+            fileNameDisplay.textContent = '';
+            drawCharacterLayer();
+            return;
+        }
         fileNameDisplay.textContent = file.name;
+        
         const reader = new FileReader();
         reader.onload = (event) => {
             const img = new Image();
             img.onload = () => {
                 imageTransform.img = img;
-                const canvasAspectRatio = EDIT_WIDTH / EDIT_HEIGHT;
-                const imageAspectRatio = img.width / img.height;
-                imageTransform.scale = (imageAspectRatio > canvasAspectRatio) ? (EDIT_HEIGHT / img.height) : (EDIT_WIDTH / img.width);
-                imageTransform.x = EDIT_WIDTH / 2;
-                imageTransform.y = EDIT_HEIGHT / 2;
+                const canvasAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
+                const imgAspect = img.width / img.height;
+                imageTransform.scale = (imgAspect > canvasAspect) ? (CANVAS_HEIGHT / img.height) : (CANVAS_WIDTH / img.width);
+                imageTransform.x = CANVAS_WIDTH / 2;
+                imageTransform.y = CANVAS_HEIGHT / 2;
                 drawCharacterLayer();
             };
             img.src = event.target.result;
@@ -413,120 +504,102 @@ document.addEventListener('DOMContentLoaded', async () => {
         reader.readAsDataURL(file);
     });
 
-    // --- 画像操作イベントリスナー ---
-    function getEventLocation(e) {
-        const rect = uiCanvas.getBoundingClientRect();
-        const scaleX = uiCanvas.width / rect.width;
-        const scaleY = uiCanvas.height / rect.height;
-        if (e.touches && e.touches[0]) {
-            return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
-        }
-        return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
-    }
-    function handleDragStart(e) { 
-        if (!imageTransform.img) return; 
-        e.preventDefault(); 
-        const loc = getEventLocation(e); 
-        imageTransform.isDragging = true; 
-        imageTransform.lastX = loc.x; 
-        imageTransform.lastY = loc.y; 
-    }
-    function handleDragMove(e) { 
-        if (!imageTransform.isDragging) return; 
-        e.preventDefault(); 
-        const loc = getEventLocation(e); 
-        const dx = loc.x - imageTransform.lastX; 
-        const dy = loc.y - imageTransform.lastY; 
-        imageTransform.x += dx; 
-        imageTransform.y += dy; 
-        imageTransform.lastX = loc.x; 
-        imageTransform.lastY = loc.y; 
-        throttledDrawChar(); 
-    }
-    function handleDragEnd() { 
-        imageTransform.isDragging = false; 
-    }
-    
-    uiCanvas.addEventListener('mousedown', handleDragStart, { passive: false });
-    uiCanvas.addEventListener('mousemove', handleDragMove, { passive: false });
-    uiCanvas.addEventListener('mouseup', handleDragEnd);
-    uiCanvas.addEventListener('mouseleave', handleDragEnd);
-    
-    uiCanvas.addEventListener('wheel', (e) => { 
-        if (!imageTransform.img) return; 
-        e.preventDefault(); 
-        const scaleAmount = e.deltaY < 0 ? 1.1 : 1 / 1.1; 
-        const newScale = imageTransform.scale * scaleAmount; 
-        imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0)); 
-        throttledDrawChar(); 
-    }, { passive: false });
-
-    uiCanvas.addEventListener('touchstart', (e) => {
-        if (!imageTransform.img) return; 
+    const handleDrag = (e, isTouch = false) => {
+        if (!imageTransform.isDragging || !imageTransform.img) return;
         e.preventDefault();
-        if (e.touches.length === 1) { 
-            handleDragStart(e); 
+        const loc = isTouch ? e.touches[0] : e;
+        const dx = loc.clientX - imageTransform.lastX;
+        const dy = loc.clientY - imageTransform.lastY;
+        imageTransform.x += dx;
+        imageTransform.y += dy;
+        imageTransform.lastX = loc.clientX;
+        imageTransform.lastY = loc.clientY;
+        drawCharacterLayer();
+    };
+    uiLayer.addEventListener('mousedown', (e) => {
+        if (!imageTransform.img) return;
+        imageTransform.isDragging = true;
+        imageTransform.lastX = e.clientX;
+        imageTransform.lastY = e.clientY;
+    });
+    window.addEventListener('mousemove', (e) => handleDrag(e, false));
+    window.addEventListener('mouseup', () => { imageTransform.isDragging = false; });
+    uiLayer.addEventListener('wheel', (e) => {
+        if (!imageTransform.img) return;
+        e.preventDefault();
+        const scaleAmount = e.deltaY < 0 ? 1.05 : 1 / 1.05;
+        imageTransform.scale *= scaleAmount;
+        drawCharacterLayer();
+    });
+    
+    let lastTouchDistance = 0;
+    uiLayer.addEventListener('touchstart', (e) => {
+        if (!imageTransform.img) return;
+        e.preventDefault();
+        if (e.touches.length === 1) {
+            imageTransform.isDragging = true;
+            imageTransform.lastX = e.touches[0].clientX;
+            imageTransform.lastY = e.touches[0].clientY;
         } else if (e.touches.length === 2) {
             imageTransform.isDragging = false;
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
-            imageTransform.lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+            lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
         }
     }, { passive: false });
-
-    uiCanvas.addEventListener('touchmove', (e) => {
-        if (!imageTransform.img) return; 
+    uiLayer.addEventListener('touchmove', (e) => {
+        if (!imageTransform.img) return;
         e.preventDefault();
-        if (e.touches.length === 1 && imageTransform.isDragging) { 
-            handleDragMove(e); 
+        if (e.touches.length === 1 && imageTransform.isDragging) {
+            handleDrag(e, true);
         } else if (e.touches.length === 2) {
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             const newDist = Math.sqrt(dx * dx + dy * dy);
-            if (imageTransform.lastTouchDistance > 0) {
-                const newScale = imageTransform.scale * (newDist / imageTransform.lastTouchDistance);
-                imageTransform.scale = Math.max(0.1, Math.min(newScale, 5.0));
+            if (lastTouchDistance > 0) {
+                const scaleAmount = newDist / lastTouchDistance;
+                imageTransform.scale *= scaleAmount;
             }
-            imageTransform.lastTouchDistance = newDist;
-            throttledDrawChar();
+            lastTouchDistance = newDist;
+            drawCharacterLayer();
         }
     }, { passive: false });
-
-    uiCanvas.addEventListener('touchend', (e) => {
-        if (e.touches.length < 2) { 
-            imageTransform.isDragging = false; 
-        }
-        imageTransform.lastTouchDistance = 0;
+    window.addEventListener('touchend', (e) => {
+        imageTransform.isDragging = false;
+        lastTouchDistance = 0;
     });
-
-    // --- ダウンロード処理 ---
+    
     downloadBtn.addEventListener('click', async () => {
         if (isDownloading) return;
         isDownloading = true;
-        downloadBtn.querySelector('span').textContent = '画像を生成中...';
+        downloadBtn.querySelector('span').textContent = translations[currentLang].generating;
         
         try {
             const finalCanvas = document.createElement('canvas');
-            finalCanvas.width = EDIT_WIDTH;
-            finalCanvas.height = EDIT_HEIGHT;
+            finalCanvas.width = CANVAS_WIDTH;
+            finalCanvas.height = CANVAS_HEIGHT;
             const finalCtx = finalCanvas.getContext('2d');
-            finalCtx.imageSmoothingEnabled = true;
-            finalCtx.imageSmoothingQuality = 'high';
+            
+            if (imageTransform.img) finalCtx.drawImage(backgroundLayer, 0, 0);
+            
+            const langSuffix = currentLang === 'en' ? '_en' : '';
+            const cpPath = getAssetPath({ category: 'background/base', filename: `${state.template}_cp${langSuffix}` });
+            await drawTinted(finalCtx, cpPath);
 
-            if (imageTransform.img) {
-                finalCtx.drawImage(charCanvas, 0, 0, EDIT_WIDTH, EDIT_HEIGHT);
+            await drawMiscIcons(finalCtx);
+            await drawSubJobIcons(finalCtx);
+            await drawMainJobIcon(finalCtx);
+            
+            const config = templateConfig[state.template];
+            if (config) {
+                const framePath = getAssetPath({ category: 'background/frame', filename: config.frame });
+                await drawTinted(finalCtx, framePath, config.iconTint);
             }
-
-            const bgImg = imageCache[`./assets/backgrounds/${currentTemplatePrefix}_cp.webp`];
-            drawImageCover(finalCtx, bgImg, EDIT_WIDTH, EDIT_HEIGHT);
-
-            await drawMiscIcons(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
-            await drawSubJobIcons(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
-            await drawMainJobIcon(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
-            await drawNameText(finalCtx, { width: EDIT_WIDTH, height: EDIT_HEIGHT });
+            await drawNameText(finalCtx);
 
             const imageUrl = finalCanvas.toDataURL('image/jpeg', 0.92);
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
             if (isIOS) {
                 modalImage.src = imageUrl;
                 saveModal.classList.remove('hidden');
@@ -538,100 +611,50 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (error) {
             console.error("ダウンロード画像の生成に失敗しました:", error);
-            alert("画像の生成に失敗しました。ページをリロードして再度お試しください。");
+            alert("画像の生成に失敗しました。");
         } finally {
             isDownloading = false;
-            downloadBtn.querySelector('span').textContent = 'この内容で作る？🐕';
+            downloadBtn.querySelector('span').textContent = translations[currentLang].generateDefault;
         }
     });
 
-    // --- その他UIイベント ---
-    closeModal.addEventListener('click', () => { saveModal.classList.add('hidden'); });
-    const controlsPanel = document.querySelector('.controls-panel');
-    const scrollContainer = window.innerWidth >= 1024 ? controlsPanel : window;
-    scrollContainer.onscroll = () => {
-        const scrollTop = window.innerWidth >= 1024 ? controlsPanel.scrollTop : (document.body.scrollTop || document.documentElement.scrollTop);
-        toTopBtn.classList.toggle('visible', scrollTop > 100);
-    };
-    toTopBtn.addEventListener('click', () => { 
-        const target = window.innerWidth >= 1024 ? controlsPanel : window;
-        target.scrollTo({ top: 0, behavior: 'smooth' }); 
+    closeModalBtn.addEventListener('click', () => {
+        saveModal.classList.add('hidden');
     });
 
-    // --- 初期化処理 ---
-    async function initialize() {
-        console.log("初期化処理を開始します。");
-        await document.fonts.ready;
-        console.log("✓ フォントの準備が完了しました。");
-        await loadAssetsForTemplate(currentTemplatePrefix, true);
-        console.log("✓ デフォルトアセットのプリロードが完了しました。");
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        const rect = mainColorPickerSection.getBoundingClientRect();
+        if (rect.bottom < 50) {
+            stickyColorDrawer.classList.remove('is-hidden');
+        } else {
+            stickyColorDrawer.classList.add('is-hidden');
+            stickyColorDrawer.classList.add('is-closed');
+        }
+    });
+
+    drawerHandle.addEventListener('click', () => {
+        stickyColorDrawer.classList.toggle('is-closed');
+    });
+
+    // --- 7. 初期化処理 ---
+    const initialize = async () => {
+        await preloadFonts();
+        fontSelect.value = state.font;
+        const config = templateConfig[templateSelect.value];
+        const initialColor = (config && typeof config.defaultBg === 'object') ? config.defaultBg.primary : config.defaultBg;
+        iconBgColorPicker.value = initialColor || '#CCCCCC';
+        stickyIconBgColorPicker.value = initialColor || '#CCCCCC';
         
         drawCharacterLayer();
-        drawBackgroundLayer();
-        await Promise.all([redrawMiscIconComposite(), redrawMainJobComposite(), redrawSubJobComposite()]);
-        await drawUiLayer();
+        await redrawAll();
+        // updateColorSwatches(iconBgColorPicker.value); // This function was removed.
+        await preloadTemplateAssets(templateSelect.value);
         
-        loaderElement.classList.add('hidden');
-        setTimeout(() => appElement.classList.remove('hidden'), 300);
-    }
+        loaderElement.style.display = 'none';
+        appElement.style.visibility = 'visible';
+    };
 
     initialize();
-});
-
-// GTM
-document.getElementById('templateSelect').addEventListener('change', function() {
-  window.dataLayer.push({
-    event: 'template_select',
-    templateName: this.value
-  });
-});
-
-document.getElementById('downloadBtn').addEventListener('click', function() {
-  window.dataLayer.push({
-    event: 'generate_card'
-  });
-});
-
-document.getElementById('uploadImage').addEventListener('change', function() {
-  window.dataLayer.push({
-    event: 'upload_image'
-  });
-});
-
-document.getElementById('fontSelect').addEventListener('change', function() {
-  window.dataLayer.push({
-    event: 'select_font',
-    fontName: this.value
-  });
-});
-
-document.getElementById('dcSelect').addEventListener('change', function() {
-  window.dataLayer.push({
-    event: 'select_dc',
-    dcName: this.value
-  });
-});
-
-document.getElementById('raceSelect').addEventListener('change', function() {
-  window.dataLayer.push({
-    event: 'select_race',
-    raceName: this.value
-  });
-});
-
-document.getElementById('progressSelect').addEventListener('change', function() {
-  window.dataLayer.push({
-    event: 'select_progress',
-    progressName: this.value
-  });
-});
-
-document.getElementById('styleButtons').addEventListener('click', function(e) {
-
-  if (e.target.tagName === 'BUTTON') {
-    window.dataLayer.push({
-      event: 'select_playstyle',
-      playstyleName: e.target.dataset.value
-    });
-  }
 });
