@@ -8,66 +8,73 @@
     <link rel="stylesheet" href="./assets/css/style.css" />
     <style>
         /* Newsページ固有のスタイル */
-        .news-wrapper {
-            padding: 2rem;
-            max-width: 800px;
-            margin: 0 auto;
-            flex-grow: 1;
-        }
-        .news-title {
-            font-family: 'Orbitron', sans-serif;
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 2rem;
-        }
-        .update-history {
-            list-style: none;
-            padding-left: 0;
-            border-top: 1px solid var(--border-color);
-        }
-        .update-history li {
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .generator-links {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin: 2rem 0;
-        }
-        .generator-links a {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            text-decoration: none;
-            color: var(--text-color);
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        .generator-links a:hover {
-            background-color: var(--surface-color);
-            border-color: var(--primary-hover-color);
-            color: var(--primary-hover-color);
-        }
-        .lang-switcher {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .lang-switcher button {
-            background: none;
-            border: none;
-            border-bottom: 2px solid transparent;
-            color: var(--text-secondary-color);
-            cursor: pointer;
-            padding: 0.25rem;
-            font-size: 1rem;
-        }
-        .lang-switcher button.active {
-            color: var(--primary-hover-color);
-            border-bottom-color: var(--primary-hover-color);
-            font-weight: bold;
-        }
+.news-wrapper {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    flex-grow: 1;
+    font-family: 'Noto Sans JP', sans-serif; /* 基本フォントを明確に指定 */
+}
+.news-title {
+    font-family: 'Orbitron', sans-serif;
+    text-align: center;
+    font-size: 1.5rem; /* 文字サイズを小さく */
+    margin-bottom: 2rem;
+    font-weight: 600;
+}
+.update-history {
+    list-style: none;
+    padding-left: 0;
+    border-top: 1px solid var(--border-color);
+}
+.update-history li {
+    padding: 0.75rem 0; /* 少し余白を詰める */
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem; /* 文字サイズを小さく */
+    color: var(--text-secondary-color);
+}
+.generator-links {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+/* ジェネレーターのボタン風スタイルに修正 */
+.generator-links a {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    text-decoration: none;
+    background-color: var(--bg-color);
+    color: var(--text-secondary-color);
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+.generator-links a:hover {
+    background-color: var(--surface-color);
+    border-color: var(--primary-hover-color);
+    color: var(--primary-hover-color);
+}
+.lang-switcher {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.lang-switcher button {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary-color);
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1rem;
+}
+.lang-switcher button.active {
+    color: var(--primary-hover-color);
+    border-bottom-color: var(--primary-hover-color);
+    font-weight: bold;
+}
     </style>
 </head>
 <body>
