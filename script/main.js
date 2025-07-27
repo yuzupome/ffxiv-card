@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await drawUiLayer();
     };
 
-    const debouncedRedrawMisc = createDebouncer(redrawMiscComposite, 200);
+    const debouncedRedrawMisc = createDebouncer(redrawMiscComposite, 50);
     const debouncedRedrawMainJob = createDebouncer(redrawMainJobComposite, 50);
     const debouncedRedrawSubJob = createDebouncer(redrawSubJobComposite, 50);
     const debouncedRedrawName = createDebouncer(redrawName, 200);
@@ -403,7 +403,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             stickyIconBgColorPicker.value = newColor || '#CCCCCC';
         }
         await redrawAll();
-        await preloadTemplateAssets(state.template);
     });
 
     const handleColorInput = (source, target) => {
