@@ -23,8 +23,8 @@
             font-family: 'Orbitron', sans-serif;
             text-align: center;
             font-size: 1.2rem;
-            margin-top: 1.5rem;
-            margin-bottom: 0.75rem; /* 見出しと本文の余白を縮小 */
+            margin-top: 0;
+            margin-bottom: 1rem;
             font-weight: 600;
             color: var(--text-secondary-color);
         }
@@ -32,36 +32,46 @@
             list-style: none;
             padding-left: 0;
             padding-top: 1.5rem;
-            border-top: 1px solid var(--border-color); /* ボタンとの区切り線を追加 */
+            border-top: 1px solid var(--border-color);
         }
         .update-history li {
-            padding: 0.5rem 0; /* 項目の余白を調整 */
-            border-bottom: none; /* 項目ごとの区切り線を削除 */
-            font-size: 0.85rem;
+            padding: 0.75rem 0;
+            font-size: 0.9rem;
             color: var(--text-secondary-color);
+            display: flex;
+            align-items: flex-start;
+        }
+        .update-date {
+            width: 90px;
+            flex-shrink: 0;
+            font-weight: 500;
+        }
+        .update-content {
+            flex-grow: 1;
         }
         .generator-links {
             display: flex;
             justify-content: center;
             gap: 1rem;
-            margin: 2rem 0;
+            margin-top: 2rem;
+            margin-bottom: 2rem; /* ボタンと区切り線の余白 */
         }
-        /* ジェネレーターのボタン風スタイルに修正 */
         .generator-links a {
             display: inline-block;
             padding: 0.75rem 1.5rem;
             border: 1px solid var(--primary-color);
             border-radius: 8px;
             text-decoration: none;
-            background-color: var(--primary-color); /* グレー背景 */
-            color: #ffffff; /* 白抜き文字 */
+            background-color: var(--primary-color);
+            color: #ffffff;
             font-size: 1rem;
             font-weight: 600;
             text-align: center;
             transition: all 0.2s ease;
+            font-family: 'Orbitron', sans-serif; /* Orbitronフォントを適用 */
         }
         .generator-links a:hover {
-            opacity: 0.85; /* ホバー時のエフェクト */
+            opacity: 0.85;
         }
         .lang-switcher {
             text-align: center;
@@ -81,14 +91,13 @@
             border-bottom-color: var(--primary-hover-color);
             font-weight: bold;
         }
+        .site-footer {
+            font-size: 0.9rem;
+        }
         
-        /* ▼ SP版(スマホ)用のレスポンシブデザイン */
         @media (max-width: 767px) {
             .generator-links {
-                flex-direction: column; /* ボタンを縦積みにする */
-            }
-            .site-footer {
-                font-size: 0.8rem; /* フッターの文字を小さくして1行に収める */
+                flex-direction: column;
             }
         }
     </style>
@@ -109,12 +118,20 @@
             <a href="./index.html" data-key="linkJa">日本語版ジェネレーター</a>
             <a href="./index_en.html" data-key="linkEn">英語版ジェネレーター</a>
         </div>
-
-        <ul class="update-history">
+        
+        <div class="update-history">
             <h2 class="news-title" data-key="newsTitle">Updates</h2>
-            <li data-key="update2">2025.07.26　アイコンカラー変更機能追加 英語版公開</li>
-            <li data-key="update1">2025.07.05　ジェネレーター公開</li>
-        </ul>
+            <ul>
+                <li data-key="update2">
+                    <span class="update-date">2025.07.26</span>
+                    <span class="update-content">アイコンカラー変更機能追加 英語版公開</span>
+                </li>
+                <li data-key="update1">
+                    <span class="update-date">2025.07.05</span>
+                    <span class="update-content">ジェネレーター公開</span>
+                </li>
+            </ul>
+        </div>
     </main>
 
     <div id="footer-placeholder"></div>
@@ -128,8 +145,8 @@
             linkJa: '日本語版ジェネレーター',
             linkEn: '英語版ジェネレーター',
             newsTitle: 'Updates',
-            update2: '2025.07.26　アイコンカラー変更機能追加 英語版公開',
-            update1: '2025.07.05　ジェネレーター公開',
+            update2: '<span class="update-date">2025.07.26</span><span class="update-content">アイコンカラー変更機能追加 英語版公開</span>',
+            update1: '<span class="update-date">2025.07.05</span><span class="update-content">ジェネレーター公開</span>',
             usageNotes: '利用上の注意'
         },
         en: {
@@ -138,8 +155,8 @@
             linkJa: 'Japanese Generator',
             linkEn: 'English Generator',
             newsTitle: 'Updates',
-            update2: '2025.07.26 - Added Icon Color feature<br>English version released',
-            update1: '2025.07.05 - Generator Released',
+            update2: '<span class="update-date">2025.07.26</span><span class="update-content">Added Icon Color feature<br>English version released</span>',
+            update1: '<span class="update-date">2025.07.05</span><span class="update-content">Generator Released</span>',
             usageNotes: 'Usage Notes'
         }
     };

@@ -417,3 +417,21 @@ input[type="checkbox"]:checked + span::after {
     margin: 0 0 0.75rem 0;
     color: var(--text-color);
 }
+
+/* フッターのデザインクレジット部分のスタイル */
+.design-credit {
+    color: var(--text-secondary-color);
+}
+
+.design-credit a {
+    font-size: 0.9em; /* 文字を少し小さく */
+    color: var(--text-secondary-color);
+    opacity: 0.7; /* 少し透明にして存在感を薄める */
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.design-credit a:hover {
+    opacity: 1;
+    color: var(--primary-hover-color);
+}
