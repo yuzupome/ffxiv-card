@@ -437,3 +437,26 @@ input[type="checkbox"]:checked + span::after {
     opacity: 1;
     color: var(--primary-hover-color);
 }
+
+/* How to Useセクションのスタイル */
+.how-to-use-section {
+    margin-top: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.how-to-use-title {
+    font-family: 'Orbitron', sans-serif;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-top: 0;
+    margin-bottom: 0.5rem; /* 見出しと動画の余白を狭く */
+}
+.how-to-use-gif {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    display: block;
+}
