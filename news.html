@@ -5,76 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FFXIV Character Card Generator</title>
     <link rel="icon" type="image/png" href="./assets/favicon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="./assets/css/style.css" />
     <style>
-/* Newsページ固有のスタイル */
-.news-wrapper {
-    padding: 2rem;
-    max-width: 800px;
-    margin: 0 auto;
-    flex-grow: 1;
-    font-family: 'Noto Sans JP', sans-serif;
-}
-.news-title {
-    font-family: 'Orbitron', sans-serif;
-    text-align: center;
-    font-size: 1.2rem; /* さらに小さく */
-    margin-bottom: 1.5rem; /* 余白も調整 */
-    font-weight: 600;
-    color: var(--text-secondary-color); /* 少し色を薄く */
-}
-.update-history {
-    list-style: none;
-    padding-left: 0;
-    border-top: 1px solid var(--border-color);
-}
-.update-history li {
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.85rem; /* さらに小さく */
-    color: var(--text-secondary-color);
-}
-.generator-links {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin: 2rem 0;
-}
-.generator-links a {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    text-decoration: none;
-    background-color: var(--bg-color);
-    color: var(--text-secondary-color);
-    font-size: 1rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-.generator-links a:hover {
-    background-color: var(--surface-color);
-    border-color: var(--primary-hover-color);
-    color: var(--primary-hover-color);
-}
-.lang-switcher {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-.lang-switcher button {
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: var(--text-secondary-color);
-    cursor: pointer;
-    padding: 0.25rem;
-    font-size: 1rem;
-}
-.lang-switcher button.active {
-    color: var(--primary-hover-color);
-    border-bottom-color: var(--primary-hover-color);
-    font-weight: bold;
-}
+        /* Newsページ固有のスタイル */
+        .news-wrapper {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            flex-grow: 1;
+        }
+        .news-title {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem; /* 見出しと本文の余白を縮小 */
+            font-weight: 600;
+            color: var(--text-secondary-color);
+        }
+        .update-history {
+            list-style: none;
+            padding-left: 0;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color); /* ボタンとの区切り線を追加 */
+        }
+        .update-history li {
+            padding: 0.5rem 0; /* 項目の余白を調整 */
+            border-bottom: none; /* 項目ごとの区切り線を削除 */
+            font-size: 0.85rem;
+            color: var(--text-secondary-color);
+        }
+        .generator-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        /* ジェネレーターのボタン風スタイルに修正 */
+        .generator-links a {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--primary-color);
+            border-radius: 8px;
+            text-decoration: none;
+            background-color: var(--primary-color); /* グレー背景 */
+            color: #ffffff; /* 白抜き文字 */
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .generator-links a:hover {
+            opacity: 0.85; /* ホバー時のエフェクト */
+        }
+        .lang-switcher {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .lang-switcher button {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary-color);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1rem;
+        }
+        .lang-switcher button.active {
+            color: var(--primary-hover-color);
+            border-bottom-color: var(--primary-hover-color);
+            font-weight: bold;
+        }
+        
+        /* ▼ SP版(スマホ)用のレスポンシブデザイン */
+        @media (max-width: 767px) {
+            .generator-links {
+                flex-direction: column; /* ボタンを縦積みにする */
+            }
+            .site-footer {
+                font-size: 0.8rem; /* フッターの文字を小さくして1行に収める */
+            }
+        }
     </style>
 </head>
 <body>
@@ -94,8 +110,8 @@
             <a href="./index_en.html" data-key="linkEn">英語版ジェネレーター</a>
         </div>
 
-        <h1 class="news-title" data-key="newsTitle">Updates</h1>
         <ul class="update-history">
+            <h2 class="news-title" data-key="newsTitle">Updates</h2>
             <li data-key="update2">2025.07.26　アイコンカラー変更機能追加 英語版公開</li>
             <li data-key="update1">2025.07.05　ジェネレーター公開</li>
         </ul>
@@ -162,11 +178,9 @@
         }, checkInterval);
     };
 
-    // ボタンにイベントリスナーを設定
     document.getElementById('lang-ja').addEventListener('click', () => setLanguage('ja'));
     document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
 
-    // 初期化処理を開始
     waitForFooterAndInit();
 </script>
 <script src="./script/common.js"></script>
