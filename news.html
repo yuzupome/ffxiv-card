@@ -1,8 +1,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    /**
-     * 翻訳データ。ここにページ内の全翻訳テキストとリンク情報を集約します。
-     */
+    // --- ここから下が、ページの準備完了後に実行される ---
+
     const translations = {
         ja: {
             langJa: '日本語',
@@ -12,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
             newsTitle: 'Updates',
             update2: '2025.07.26　アイコンカラー変更機能追加 英語版公開',
             update1: '2025.07.05　ジェネレーター公開',
-            usageNotes: '利用上の注意' // フッター用の翻訳
+            usageNotes: '利用上の注意'
         },
         en: {
             langJa: '日本語',
@@ -22,69 +21,51 @@ document.addEventListener('DOMContentLoaded', () => {
             newsTitle: 'Updates',
             update2: '2025.07.26 - Added Icon Color feature<br>English version released',
             update1: '2025.07.05 - Generator Released',
-            usageNotes: 'Usage Notes' // フッター用の翻訳
+            usageNotes: 'Usage Notes'
         }
     };
 
-    /**
-     * 指定された言語にページ全体の表示を切り替える関数
-     * @param {string} lang - 'ja' または 'en'
-     */
     const setLanguage = (lang) => {
-        // 翻訳対象の全要素をループ処理
         document.querySelectorAll('[data-key]').forEach(el => {
             const key = el.dataset.key;
             if (translations[lang] && translations[lang][key]) {
-                // innerHTMLを使い、<br>タグなども反映できるようにします
                 el.innerHTML = translations[lang][key];
             }
-            
-            // フッターのリンク先(href)を特別に書き換える処理
             if (key === 'usageNotes') {
                 el.href = (lang === 'en') ? './copyright_en.html' : './copyright.html';
             }
         });
-        
-        // ページの言語属性を設定
         document.documentElement.lang = lang;
-        
-        // 言語切り替えボタンの見た目を更新
         document.getElementById('lang-ja').classList.toggle('active', lang === 'ja');
         document.getElementById('lang-en').classList.toggle('active', lang === 'en');
     };
 
-    /**
-     * common.js によってフッターが読み込まれるのを待ってから初期化処理を実行します。
-     */
     const waitForFooterAndInit = () => {
-        const checkInterval = 50; // 50ミリ秒ごとにチェック
-        const timeout = 5000;     // 最大5秒待つ
+        const checkInterval = 50;
+        const timeout = 5000;
         let elapsedTime = 0;
 
         const intervalId = setInterval(() => {
-            // フッター内のリンク要素が利用可能になったかチェック
             const footerLink = document.querySelector('#footer-placeholder [data-key="usageNotes"]');
-            
             if (footerLink) {
-                clearInterval(intervalId); // ポーリングを停止
-                setLanguage('ja'); // デフォルト言語（日本語）で初期化
+                clearInterval(intervalId);
+                setLanguage('ja');
             }
-            
             elapsedTime += checkInterval;
             if (elapsedTime >= timeout) {
-                clearInterval(intervalId); // タイムアウトでも停止
+                clearInterval(intervalId);
                 console.error('フッターの読み込みを待機中にタイムアウトしました。');
             }
         }, checkInterval);
     };
 
-    // --- ここからが実行の起点 ---
-
-    // 言語切り替えボタンにクリックイベントを設定
+    // ボタンにイベントリスナーを設定
     document.getElementById('lang-ja').addEventListener('click', () => setLanguage('ja'));
     document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
 
-    // フッターの読み込みを待ってから、ページを初期化
+    // 初期化処理を開始
     waitForFooterAndInit();
+
+    // --- ここまでが、ページの準備完了後に実行される ---
 });
 </script>
