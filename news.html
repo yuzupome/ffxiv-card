@@ -33,11 +33,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             font-weight: 600;
             color: var(--text-secondary-color);
         }
+        
+        /* Updates リスト */
         .update-history {
             list-style: none;
             padding-left: 0;
             padding-top: 1.5rem;
             border-top: 1px solid var(--border-color);
+            margin-top: 3rem;
         }
 
         .update-history ul {
@@ -50,61 +53,133 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             color: var(--text-secondary-color);
             display: flex;
             align-items: flex-start;
+            border-bottom: 1px solid var(--surface-color);
+            gap: 1rem;
         }
         .update-date {
-            width: 90px;
+            width: 120px;
             flex-shrink: 0;
             font-weight: 500;
+            font-family: 'Orbitron', sans-serif;
         }
         .update-content {
             flex-grow: 1;
         }
-        .generator-links {
+
+        /* --- タブ切り替えUI --- */
+        .lang-tabs {
             display: flex;
             justify-content: center;
             gap: 1rem;
-            margin-top: 2rem;
-            margin-bottom: 2rem; /* ボタンと区切り線の余白 */
-        }
-        .generator-links a {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            border: 1px solid var(--primary-color);
-            border-radius: 8px;
-            text-decoration: none;
-            background-color: var(--primary-color);
-            color: #ffffff;
-            font-size: 1rem;
-            font-weight: 600;
-            text-align: center;
-            transition: all 0.2s ease;
-            font-family: 'Orbitron', sans-serif; /* Orbitronフォントを適用 */
-        }
-        .generator-links a:hover {
-            opacity: 0.85;
-        }
-        .lang-switcher {
-            text-align: center;
             margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0;
         }
-        .lang-switcher button {
+        
+        .tab-btn {
             background: none;
             border: none;
-            border-bottom: 2px solid transparent;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
             color: var(--text-secondary-color);
             cursor: pointer;
-            padding: 0.25rem;
-            font-size: 1rem;
+            position: relative;
+            transition: color 0.3s;
+            font-family: 'Noto Sans JP', sans-serif;
         }
-        .lang-switcher button.active {
-            color: var(--primary-hover-color);
-            border-bottom-color: var(--primary-hover-color);
-            font-weight: bold;
-        } 
+        
+        .tab-btn.active {
+            color: var(--primary-color);
+        }
+        
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+
+        /* --- カード選択ボタンエリア (テキストのみ版) --- */
+        .generator-links-container {
+            min-height: 80px;
+        }
+
+        .generator-links {
+            display: none;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .generator-links.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .generator-card-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 200px; /* テキストのみなので少し横長に */
+            padding: 1.2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            text-decoration: none;
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .generator-card-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-text {
+            font-size: 1.05rem; /* 少し文字サイズアップ */
+            text-align: center;
+        }
+
+        /* How to Use */
+        .how-to-use-section {
+            text-align: center;
+            margin-top: 3rem;
+        }
+        .how-to-use-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: var(--text-secondary-color);
+            margin-bottom: 1rem;
+        }
+        .how-to-use-gif {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
 
         @media (max-width: 767px) {
             .generator-links {
                 flex-direction: column;
+                align-items: center;
+            }
+            .generator-card-btn {
+                width: 100%;
+                max-width: 280px;
+                /* スマホでも押しやすい高さを確保 */
+                padding: 1rem;
             }
         }
     </style>
@@ -116,15 +191,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="header-placeholder"></div>
 
     <main class="news-wrapper">
-        <div class="lang-switcher">
-            <button id="lang-ja">日本語</button>
-            <span>/</span>
-            <button id="lang-en">English</button>
+        
+        <div class="lang-tabs">
+            <button class="tab-btn active" id="tab-ja">日本語版</button>
+            <button class="tab-btn" id="tab-en">🇺🇸 English Ver.</button>
         </div>
 
-        <div class="generator-links">
-            <a href="./index.html" data-key="linkJa">日本語版ジェネレーター</a>
-            <a href="./index_en.html" data-key="linkEn">英語版ジェネレーター</a>
+        <div class="generator-links-container">
+            <div id="links-ja" class="generator-links active">
+                <a href="./vertical_jp.html" class="generator-card-btn">
+                    <span class="btn-text">縦型カード</span>
+                </a>
+                <a href="./index.html" class="generator-card-btn">
+                    <span class="btn-text">横型カード</span>
+                </a>
+            </div>
+
+            <div id="links-en" class="generator-links">
+                <a href="./vertical_en.html" class="generator-card-btn">
+                    <span class="btn-text">Vertical</span>
+                </a>
+                <a href="./index_en.html" class="generator-card-btn">
+                    <span class="btn-text">Horizontal</span>
+                </a>                
+            </div>
         </div>
         
         <div class="how-to-use-section">
@@ -132,10 +222,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <img src="./assets/images/how-to-use.gif" alt="How to use the generator" class="how-to-use-gif">
         </div>
 
-
         <div class="update-history">
-            <h2 class="news-title" data-key="newsTitle">Updates</h2>
-            <ul>
+            <h2 class="news-title">Updates</h2>
+            <ul id="update-list">
+                <li data-key="update3">
+                    <span class="update-date">2025.11.27</span>
+                    <span class="update-content">日本語版・英語版 縦型カード追加</span>
+                </li>
                 <li data-key="update2">
                     <span class="update-date">2025.07.27</span>
                     <span class="update-content">アイコンカラー変更機能追加<br>英語版公開</span>
@@ -152,64 +245,76 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 
 <script>
+    // 翻訳データ (Updatesの中身だけ管理)
     const translations = {
         ja: {
-            langJa: '日本語',
-            langEn: 'English',
-            linkJa: '日本語版ジェネレーター',
-            linkEn: '英語版ジェネレーター',
-            newsTitle: 'Updates',
-            update2: '<span class="update-date">2025.07.27</span><span class="update-content">アイコンカラー変更機能追加 英語版公開</span>',
+            update3: '<span class="update-date">2025.11.27</span><span class="update-content">日本語版・英語版 縦型カード追加</span>',
+            update2: '<span class="update-date">2025.07.27</span><span class="update-content">アイコンカラー変更機能追加<br>英語版公開</span>',
             update1: '<span class="update-date">2025.07.05</span><span class="update-content">ジェネレーター公開</span>'
-            // usageNotes は common.js が担当するため削除
         },
         en: {
-            langJa: '日本語',
-            langEn: 'English',
-            linkJa: 'Japanese Generator',
-            linkEn: 'English Generator',
-            newsTitle: 'Updates',
+            update3: '<span class="update-date">2025.11.27</span><span class="update-content">Added Vertical Card (JP/EN)</span>',
             update2: '<span class="update-date">2025.07.27</span><span class="update-content">Added Icon Color feature<br>English version released</span>',
             update1: '<span class="update-date">2025.07.05</span><span class="update-content">Generator Released</span>'
-            // usageNotes は common.js が担当するため削除
         }
     };
 
-    const setLanguage = (lang) => {
+    const tabJa = document.getElementById('tab-ja');
+    const tabEn = document.getElementById('tab-en');
+    const linksJa = document.getElementById('links-ja');
+    const linksEn = document.getElementById('links-en');
+
+    // 言語切り替え処理
+    const switchLanguage = (lang) => {
+        // 1. タブの見た目切り替え
+        if (lang === 'ja') {
+            tabJa.classList.add('active');
+            tabEn.classList.remove('active');
+            linksJa.classList.add('active');
+            linksEn.classList.remove('active');
+        } else {
+            tabJa.classList.remove('active');
+            tabEn.classList.add('active');
+            linksJa.classList.remove('active');
+            linksEn.classList.add('active');
+        }
+
+        // 2. Updatesの翻訳反映
         document.querySelectorAll('[data-key]').forEach(el => {
             const key = el.dataset.key;
             if (translations[lang] && translations[lang][key]) {
                 el.innerHTML = translations[lang][key];
             }
-            // フッター関連の処理は common.js が担当するため削除
         });
+
+        // 3. ページ設定更新
         document.documentElement.lang = lang;
-        document.getElementById('lang-ja').classList.toggle('active', lang === 'ja');
-        document.getElementById('lang-en').classList.toggle('active', lang === 'en');
     };
 
+    // イベントリスナー
+    tabJa.addEventListener('click', () => switchLanguage('ja'));
+    tabEn.addEventListener('click', () => switchLanguage('en'));
+
+    // 初期化 (フッター読み込み待機後に実行)
     const waitForFooterAndInit = () => {
         const checkInterval = 50;
         const timeout = 5000;
         let elapsedTime = 0;
 
         const intervalId = setInterval(() => {
-            // フッターの読み込み完了を待ってから実行
             const footerLink = document.querySelector('#footer-placeholder .site-footer');
             if (footerLink) {
                 clearInterval(intervalId);
-                setLanguage('ja'); // news.html の初期言語を設定
+                // 初期状態は日本語
+                switchLanguage('ja'); 
             }
             elapsedTime += checkInterval;
             if (elapsedTime >= timeout) {
                 clearInterval(intervalId);
-                console.error('フッターの読み込みを待機中にタイムアウトしました。');
+                switchLanguage('ja'); // タイムアウトしてもとりあえず表示
             }
         }, checkInterval);
     };
-
-    document.getElementById('lang-ja').addEventListener('click', () => setLanguage('ja'));
-    document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
 
     waitForFooterAndInit();
 </script>
