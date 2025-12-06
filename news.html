@@ -103,7 +103,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             background-color: var(--primary-color);
         }
 
-        /* --- カード選択ボタンエリア (テキストのみ版) --- */
+        /* --- カード選択ボタンエリア --- */
         .generator-links-container {
             min-height: 80px;
         }
@@ -129,7 +129,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 200px; /* テキストのみなので少し横長に */
+            width: 200px;
             padding: 1.2rem;
             border: 1px solid var(--border-color);
             border-radius: 12px;
@@ -149,10 +149,90 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         }
         
         .btn-text {
-            font-size: 1.05rem; /* 少し文字サイズアップ */
+            font-size: 1.05rem;
             text-align: center;
         }
 
+        /* --- 特設バナーボタン（シンプル版） --- */
+        .special-banner-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 3rem auto;
+            padding: 1.5rem;
+            
+            background-color: #fffbf5;
+            border: 2px solid var(--accent-color);
+            border-radius: 16px;
+            
+            text-decoration: none;
+            color: var(--text-color);
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow: hidden;
+            
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .special-banner-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(242, 178, 107, 0.3);
+            background-color: #fff;
+        }
+
+        .special-banner-link:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: var(--surface-color);
+        }
+
+        .banner-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .special-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-color);
+            line-height: 1.3;
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.05em;
+        }
+
+        .special-desc {
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text-secondary-color);
+            font-weight: 500;
+        }
+
+        /* 期間限定ラベル */
+        .limited-label {
+            text-align: center;
+            color: var(--accent-color);
+            font-weight: bold;
+            font-family: 'Orbitron', 'Noto Sans JP', sans-serif;
+            font-size: 0.9rem;
+            margin: 0 auto 0.5rem auto;
+            letter-spacing: 0.05em;
+            animation: floatLabel 2s ease-in-out infinite;
+        }
+
+        @keyframes floatLabel {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* ▼▼▼ 復活させたCSSエリア ▼▼▼ */
         /* How to Use */
         .how-to-use-section {
             text-align: center;
@@ -169,7 +249,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
+        /* ▲▲▲ 復活エリアここまで ▲▲▲ */
 
+        /* スマホ調整 */
         @media (max-width: 767px) {
             .generator-links {
                 flex-direction: column;
@@ -178,8 +260,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             .generator-card-btn {
                 width: 100%;
                 max-width: 280px;
-                /* スマホでも押しやすい高さを確保 */
                 padding: 1rem;
+            }
+            .special-banner-link {
+                padding: 1.2rem;
+            }
+            .special-title {
+                font-size: 1.2rem;
             }
         }
     </style>
@@ -192,6 +279,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     <main class="news-wrapper">
         
+        <p class="limited-label">＼ 12月限定公開 / Limited Time Only ／</p>
+        <a href="./memories.html" class="special-banner-link">
+            <div class="banner-content">
+                <span class="special-title">FFXIV12Months</span>
+                <span class="special-desc">2025年の冒険を1枚に残す</span>
+            </div>
+        </a>
+
         <div class="lang-tabs">
             <button class="tab-btn active" id="tab-ja">日本語版</button>
             <button class="tab-btn" id="tab-en">🇺🇸 English Ver.</button>
@@ -225,6 +320,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="update-history">
             <h2 class="news-title">Updates</h2>
             <ul id="update-list">
+                <li data-key="update4">
+                    <span class="update-date">2025.12.06</span>
+                    <span class="update-content">2025 Memories ジェネレーター公開</span>
+                </li>
                 <li data-key="update3">
                     <span class="update-date">2025.11.27</span>
                     <span class="update-content">日本語版・英語版 縦型カード追加</span>
@@ -245,14 +344,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 
 <script>
-    // 翻訳データ (Updatesの中身だけ管理)
     const translations = {
         ja: {
+            update4: '<span class="update-date">2025.12.06</span><span class="update-content">2025 Memories ジェネレーター公開</span>',
             update3: '<span class="update-date">2025.11.27</span><span class="update-content">日本語版・英語版 縦型カード追加</span>',
             update2: '<span class="update-date">2025.07.27</span><span class="update-content">アイコンカラー変更機能追加<br>英語版公開</span>',
             update1: '<span class="update-date">2025.07.05</span><span class="update-content">ジェネレーター公開</span>'
         },
         en: {
+            update4: '<span class="update-date">2025.12.06</span><span class="update-content">2025 Memories Generator Released</span>',
             update3: '<span class="update-date">2025.11.27</span><span class="update-content">Added Vertical Card (JP/EN)</span>',
             update2: '<span class="update-date">2025.07.27</span><span class="update-content">Added Icon Color feature<br>English version released</span>',
             update1: '<span class="update-date">2025.07.05</span><span class="update-content">Generator Released</span>'
@@ -264,9 +364,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const linksJa = document.getElementById('links-ja');
     const linksEn = document.getElementById('links-en');
 
-    // 言語切り替え処理
     const switchLanguage = (lang) => {
-        // 1. タブの見た目切り替え
         if (lang === 'ja') {
             tabJa.classList.add('active');
             tabEn.classList.remove('active');
@@ -279,7 +377,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             linksEn.classList.add('active');
         }
 
-        // 2. Updatesの翻訳反映
         document.querySelectorAll('[data-key]').forEach(el => {
             const key = el.dataset.key;
             if (translations[lang] && translations[lang][key]) {
@@ -287,15 +384,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             }
         });
 
-        // 3. ページ設定更新
         document.documentElement.lang = lang;
     };
 
-    // イベントリスナー
     tabJa.addEventListener('click', () => switchLanguage('ja'));
     tabEn.addEventListener('click', () => switchLanguage('en'));
 
-    // 初期化 (フッター読み込み待機後に実行)
     const waitForFooterAndInit = () => {
         const checkInterval = 50;
         const timeout = 5000;
@@ -305,13 +399,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             const footerLink = document.querySelector('#footer-placeholder .site-footer');
             if (footerLink) {
                 clearInterval(intervalId);
-                // 初期状態は日本語
                 switchLanguage('ja'); 
             }
             elapsedTime += checkInterval;
             if (elapsedTime >= timeout) {
                 clearInterval(intervalId);
-                switchLanguage('ja'); // タイムアウトしてもとりあえず表示
+                switchLanguage('ja');
             }
         }, checkInterval);
     };
