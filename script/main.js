@@ -76,8 +76,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         'Royal_garnet':   { nameColor: '#A2850A', iconTint: '#A2850A',   defaultBg: '#000000', frame: 'Common_background_square_frame', iconTheme: 'Royal',  nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Royal_sapphire': { nameColor: '#A2850A', iconTint: '#A2850A',   defaultBg: '#000000', frame: 'Common_background_square_frame', iconTheme: 'Royal',  nameArea: { x: 15, y: 77, width: 180, height: 40 } },
         'Royal_aventurine': { nameColor: '#A2850A', iconTint: '#A2850A', defaultBg: '#6B0808', frame: 'Common_background_square_frame', iconTheme: 'Royal',  nameArea: { x: 15, y: 77, width: 180, height: 40 } },
-        'Snowflake':      { nameColor: '#000000', iconTint: '#ffffff',  defaultBg: '#ffffff', frame: 'Common_background_square_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
-        'Vanilla':        { nameColor: '#000000', iconTint: '#FFF3C2',  defaultBg: '#5E4C22', frame: 'Common_background_square_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Snowflake':      { nameColor: '#ffffff', iconTint: '#ffffff',  defaultBg: '#ffffff', frame: 'Common_background_square_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
+        'Vanilla':        { nameColor: '#FFF3C2', iconTint: '#FFF3C2',  defaultBg: '#5E4C22', frame: 'Common_background_square_frame', iconTheme: 'Common', nameArea: { x: 15, y: 77, width: 180, height: 40 } },
     };
 
     // --- 3. 状態管理 ---

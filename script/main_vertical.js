@@ -123,8 +123,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             'Royal_garnet':   { nameColor: '#A2850A', iconTint: '#A2850A', defaultBg: '#000000', iconTheme: 'Royal' },
             'Royal_sapphire': { nameColor: '#A2850A', iconTint: '#A2850A', defaultBg: '#000000', iconTheme: 'Royal' },
             'Royal_aventurine': { nameColor: '#A2850A', iconTint: '#A2850A', defaultBg: '#6B0808', iconTheme: 'Royal' },
-            'Snowflake':      { nameColor: '#000000', iconTint: '#ffffff', defaultBg: '#ffffff', iconTheme: 'Common' },
-            'Vanilla':        { nameColor: '#000000', iconTint: '#FFF3C2', defaultBg: '#5E4C22', iconTheme: 'Common' }
+            'Snowflake':      { nameColor: '#ffffff', iconTint: '#ffffff', defaultBg: '#ffffff', iconTheme: 'Common' },
+            'Vanilla':        { nameColor: '#FFF3C2', iconTint: '#FFF3C2', defaultBg: '#5E4C22', iconTheme: 'Common' }
         };
 
         const translations = {

@@ -17,7 +17,70 @@
     
     <link rel="stylesheet" href="./assets/css/style.css" />
     <style>
-        /* シェアセクション用の追加CSS */
+    /* --- 終了画面専用スタイル --- */
+    .thank-you-wrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+            padding: 2rem;
+            text-align: center;
+            animation: fadeIn 1s ease;
+        }
+
+        .thank-you-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            font-weight: 800;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            letter-spacing: 0.05em;
+            line-height: 1.2;
+        }
+
+        .thank-you-sub {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .thank-you-message {
+            font-family: 'Noto Sans JP', sans-serif;
+            color: var(--text-secondary-color);
+            font-size: 0.95rem;
+            line-height: 1.8;
+            margin-bottom: 3rem;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            border: 2px solid var(--text-color);
+            border-radius: 50px;
+            text-decoration: none;
+            color: var(--text-color);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: var(--text-color);
+            color: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* memorys CSS */
+        /*
         .share-section {
             margin-top: 2rem;
             padding-top: 1.5rem;
@@ -45,7 +108,6 @@
             width: 100%;
         }
 
-        /* 修正: ボタンではなく「表示ボックス」に変更 */
         .tag-box {
             display: flex;
             align-items: center;
@@ -61,10 +123,9 @@
             font-size: 0.95rem;
             font-weight: bold;
             color: var(--text-color);
-            /* ★重要: タップでテキストを一発選択できるようにする */
             user-select: all;
             -webkit-user-select: all;
-            font-family: monospace; /* 等幅フォントでコードっぽく */
+            font-family: monospace;
         }
 
         .tag-region {
@@ -83,8 +144,39 @@
             margin-top: 1.2rem;
             line-height: 1.4;
         }
+        */
+
     </style>
 </head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PKSZ7BSD"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+    <div id="app">
+        <div id="header-placeholder"></div>
+
+        <main class="content-wrapper">
+            
+            <div class="thank-you-wrapper">
+                <h1 class="thank-you-title">THANK YOU FOR<br>YOUR JOURNEY</h1>
+                <p class="thank-you-sub">See you next year!</p>
+
+                <div class="thank-you-message">
+                    <p>The 2025 Memories Generator has ended.<br>Thank you for playing!</p>
+                    <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8;">
+                        公開期間は終了しました。<br>
+                        たくさんの思い出を作ってくれてありがとう！
+                    </p>
+                </div>
+
+                <a href="./news.html" class="back-btn">Back to Top</a>
+            </div>
+            </main>
+
+        <div id="footer-placeholder"></div>
+    </div>
+    <script src="./script/common.js"></script>
+<!--
 <body class="generator-page">
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PKSZ7BSD"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -212,5 +304,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="./script/common.js"></script>
     <script src="./script/memories.js"></script>
+-->
 </body>
 </html>
